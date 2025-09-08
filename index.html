@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HeiyuQuiz — Fast Group Quiz</title>
+  <meta name="description" content="Create a quiz link for your WhatsApp group. Everyone plays outside the chat. Winner → Loser results." />
+
+  <!-- Social preview (optional – works even without the image) -->
+  <meta property="og:title" content="HeiyuQuiz — Fast Group Quiz" />
+  <meta property="og:description" content="Tap to play a 5-question quiz with your friends. Pick a category, share the link, and compare scores." />
+  <meta property="og:image" content="/assets/og.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://heiyuquiz.com" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="./consent.js"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <main class="wrap">
+    <!-- Start Card -->
+    <section id="startCard" class="card">
+      <h1>HeiyuQuiz</h1>
+      <p class="muted">Create a link for your group, pick a category, and play 5 quick questions outside the chat.</p>
+
+      <label class="lbl">Your name</label>
+      <input id="name" placeholder="e.g., Declan" maxlength="24" />
+
+      <label class="lbl">Category</label>
+      <select id="category">
+        <option>General</option>
+        <option>Movies</option>
+        <option>Science</option>
+        <option>Sports</option>
+        <option>History</option>
+      </select>
+
+      <div class="row">
+        <button id="createBtn">Create & Share Link</button>
+        <button id="openPlay">I have a link</button>
+      </div>
+
+      <div class="ad-slot" id="adStart"></div>
+    </section>
+
+    <!-- Play View -->
+    <section id="playView" class="card hidden">
+      <div class="top">
+        <div id="quizMeta"></div>
+        <button id="shareBtn">Share</button>
+      </div>
+
+      <div id="quizBody"></div>
+      <div class="ad-slot" id="adPlay"></div>
+    </section>
+
+    <!-- Results -->
+    <section id="resultsView" class="card hidden">
+      <h2>Results</h2>
+      <ol id="scoreList"></ol>
+      <p class="muted">Screenshot this page and share it with your group ✨</p>
+      <div class="ad-slot" id="adResults"></div>
+    </section>
+  </main>
+
+  <!-- Consent -->
+  <div id="consent" class="consent hidden">
+    <div class="consent-box">
+      <p>We use cookies for analytics and ads. Do you accept?</p>
+      <div class="row">
+        <button id="consentAccept">Accept</button>
+        <button id="consentDecline">Decline</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
