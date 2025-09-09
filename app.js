@@ -1,6 +1,6 @@
-// HeiyuQuiz — app.js (cleaned)
+// HeiyuQuiz — app.js (clean)
 
-// ---- Play gate (first play free) ----
+/* ---------- First-play gate (overlay kept below ad) ---------- */
 function hasPlayedBefore(){ return localStorage.getItem("hq-played")==="true"; }
 function markPlayed(){ localStorage.setItem("hq-played","true"); }
 function checkPlayGate(){
@@ -10,18 +10,17 @@ function checkPlayGate(){
       position:"fixed", top:0, left:0, width:"100%", height:"100%",
       background:"rgba(0,0,0,0.85)", display:"flex",
       justifyContent:"center", alignItems:"center",
-      zIndex: 2147482000 // keep below .ad-banner (which should be higher)
+      zIndex: 2147482000 // ad banner is 2147483000
     });
     gate.innerHTML = `
       <div style="background:#fff;padding:20px;max-width:320px;text-align:center;border-radius:8px">
         <h2 style="margin:0 0 8px;">Watch an Ad to Continue</h2>
         <p style="margin:0 0 12px;">Your first game was free 🎉. Watch a quick ad to play again!</p>
         <button id="continueBtn">Continue</button>
-      </div>
-    `;
+      </div>`;
     document.body.appendChild(gate);
     document.getElementById("continueBtn")?.addEventListener("click", ()=>{
-      // TODO: swap for real rewarded ad
+      // TODO: replace with real rewarded ad
       alert("Here you would watch an ad. Unlocking for now.");
       gate.remove();
     });
@@ -29,13 +28,12 @@ function checkPlayGate(){
     markPlayed();
   }
 }
-checkPlayGate(); // run immediately
+checkPlayGate();
 
-// ---- Config ----
-// Define ONCE, globally. Use window.SERVER_URL everywhere.
+/* ------------------ Config ------------------ */
 window.SERVER_URL = window.SERVER_URL || "https://heiyuquiz-server.onrender.com";
 
-// ---- DOM helpers / refs ----
+/* ------------------ DOM ------------------ */
 const qs = (s)=>document.querySelector(s);
 const startCard   = qs("#startCard");
 const playView    = qs("#playView");
@@ -51,24 +49,24 @@ const quizMeta    = qs("#quizMeta");
 const quizBody    = qs("#quizBody");
 const scoreList   = qs("#scoreList");
 
-// ---- View switcher ----
+/* ------------------ View switcher ------------------ */
 function show(el){
   [startCard, playView, resultsView].forEach(e => e?.classList.add("hidden"));
   el?.classList.remove("hidden");
 }
 
-// ---- Router (#/play/ID or #/results/ID) ----
+/* ------------------ Router ------------------ */
 window.addEventListener("load", route);
 window.addEventListener("hashchange", route);
 
 async function route(){
   const [ , view, id ] = (location.hash.slice(1) || "").split("/");
-  if (view === "play" && id) { renderPlay(id); }
-  else if (view === "results" && id) { renderResults(id); }
-  else { show(startCard); }
+  if (view === "play" && id)      renderPlay(id);
+  else if (view === "results" && id) renderResults(id);
+  else                             show(startCard);
 }
 
-// ---- Create quiz & share ----
+/* ------------------ Create quiz & share ------------------ */
 async function createQuiz(){
   const category = categorySel?.value || "General";
 
@@ -80,15 +78,12 @@ async function createQuiz(){
       body: JSON.stringify({ category, amount:5, durationSec:600 })
     });
     data = await res.json();
-  }catch(e){
+  }catch{
     alert("Network error creating quiz."); return;
   }
 
-  // accept either HTTP ok or JSON { ok:true }
-  if (!res.ok && !data?.ok){
-    alert(data?.error || "Failed to create quiz.");
-    return;
-  }
+  if (!res.ok && !data?.ok){ alert(data?.error || "Failed to create quiz."); return; }
+
   const quizId = data.quizId || data.id;
   if (!quizId){ alert("Create succeeded but no quiz ID returned."); return; }
 
@@ -103,13 +98,13 @@ async function createQuiz(){
   }catch{/* user canceled share */}
 }
 
-// ---- Play view ----
+/* ------------------ Play view ------------------ */
 async function renderPlay(id){
   let res, data;
   try{
     res = await fetch(`${window.SERVER_URL}/api/quiz/${id}`);
     data = await res.json();
-  }catch(e){
+  }catch{
     alert("Network error loading quiz."); return;
   }
   if (!res.ok && !data?.ok){ alert(data?.error || "Quiz not found."); return; }
@@ -155,7 +150,7 @@ async function renderPlay(id){
         body: JSON.stringify({ name, picks })
       });
       sData = await sRes.json();
-    }catch(e){
+    }catch{
       alert("Network error submitting answers."); return;
     }
     if (!sRes.ok && !sData?.ok){ alert(sData?.error || "Submit failed"); return; }
@@ -178,18 +173,18 @@ async function renderPlay(id){
   }
 }
 
-// ---- Results view ----
+/* ------------------ Results view ------------------ */
 async function renderResults(id){
   let res, data;
   try{
     res = await fetch(`${window.SERVER_URL}/api/quiz/${id}/results`);
     data = await res.json();
-  }catch(e){
+  }catch{
     alert("Network error loading results."); return;
   }
   if (!res.ok && !data?.ok){ alert(data?.error || "No results yet."); return; }
 
-  const total = data.totalQuestions || (data.results?.[0]?.total ?? 0);
+  const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
 
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "";
@@ -200,7 +195,7 @@ async function renderResults(id){
   });
 }
 
-// ---- Wire buttons ----
+/* ------------------ Wire buttons ------------------ */
 createBtn?.addEventListener("click", createQuiz);
 openPlayBtn?.addEventListener("click", ()=>{
   const id = prompt("Paste the quiz ID (the part after #/play/ in the link):");
