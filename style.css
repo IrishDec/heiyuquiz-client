@@ -1,39 +1,38 @@
-/* Layout */
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#fff;color:#111}
-.wrap{max-width:720px;margin:0 auto;padding:16px;padding-bottom:120px} /* leave room for ad */
-.hidden{display:none}
-.card{background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,.04);margin:12px 0}
-.muted{color:#666}
-.lbl{display:block;margin-top:12px;font-weight:600}
-input,select,button{font-size:16px}
-input,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;background:#fff}
-.row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-button{appearance:none;border:1px solid #ddd;background:#f9f9f9;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
-button:active{transform:translateY(1px)}
-
-.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
-.q{border:1px solid #eee;border-radius:10px;padding:10px;margin:8px 0}
-.progress{font-size:12px;color:#666;margin-bottom:6px}
-.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.opts button.selected{outline:2px solid #111}
-
-/* Consent banner */
-.consent{
-  position:fixed;left:16px;right:16px;bottom:100px;
-  background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px;
-  box-shadow:0 6px 20px rgba(0,0,0,.08);z-index:2147482500
+/* === Mobile polish === */
+:root{
+  --ad-mobile-h: 60px;   /* banner footprint on phones */
+  --ad-desktop-h: 90px;  /* banner footprint on larger screens */
 }
-.consent.hidden{display:none}
-.consent .row{display:flex;gap:8px;margin-top:8px}
 
-/* Bottom ad banner */
+/* Base spacing so content never hides behind the ad */
+.wrap{ padding-bottom: var(--ad-desktop-h); }
+
+/* Ad banner chrome */
 .ad-banner{
-  position:fixed;bottom:0;left:0;width:100%;
-  background:#fff;border-top:1px solid #ddd;text-align:center;
-  z-index:2147483000;padding:4px 0
+  position:fixed; left:0; right:0; bottom:0;
+  background:#fff; border-top:1px solid #e5e5e5;
+  z-index:2147483000; text-align:center; padding:4px 0;
 }
 
-/* Make sure overlays never hide the ad */
-.overlay-safe{z-index:2147482000}
+/* Let AdSense size itself; cap vertical footprint on phones */
+@media (max-width: 480px){
+  .wrap{ padding-bottom: calc(var(--ad-mobile-h) + 12px); }
+  .ad-banner{ padding:2px 0; }
+  .ad-banner ins.adsbygoogle{ max-height: var(--ad-mobile-h); overflow:hidden; }
+}
+
+/* Quick UI tidy (mobile-first) */
+@media (max-width: 480px){
+  h1{ font-size: 28px; margin: 8px 0 6px; }
+  .card{ border-radius:14px; padding:14px; box-shadow:0 6px 22px rgba(0,0,0,.06); }
+  .lbl{ margin-top:10px; }
+  input, select{ padding:12px; border-radius:12px; }
+  .row{ gap:10px; }
+  button{ width:100%; padding:12px 14px; border-radius:12px; }
+  .opts{ grid-template-columns:1fr; }         /* answer buttons stack on phones */
+  .q{ padding:12px; }
+}
+
+/* Ensure any overlay stays below the ad banner */
+.overlay-safe{ z-index:2147482000; }
 
