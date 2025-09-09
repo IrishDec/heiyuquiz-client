@@ -14,18 +14,19 @@ function checkPlayGate(){
       return `calc(${h}px + env(safe-area-inset-bottom, 0px))`;
     }
 
-    Object.assign(gate.style, {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: overlayBottom(),           // reserve space for ad
-      background: "rgba(0,0,0,0.85)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 2147482000                  // ad banner is 2147483000
-    });
+   Object.assign(gate.style, {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  right: 0,
+  // leave space for banner on phones (60px), desktop uses full height
+  bottom: matchMedia("(max-width: 480px)").matches ? "60px" : "0",
+  background: "rgba(0,0,0,0.85)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 2147482000  // below .ad-banner
+});
 
     gate.innerHTML = `
       <div style="background:#fff;padding:20px;max-width:320px;text-align:center;border-radius:8px">
