@@ -1,3 +1,69 @@
+// ✅ Play gate logic
+function hasPlayedBefore() {
+  return localStorage.getItem("hq-played") === "true";
+}
+
+function markPlayed() {
+  localStorage.setItem("hq-played", "true");
+}
+
+function checkPlayGate() {
+  if (hasPlayedBefore()) {
+    const gate = document.createElement("div");
+    gate.style.position = "fixed";
+    gate.style.top = 0;
+    gate.style.left = 0;
+    gate.style.width = "100%";
+    gate.style.height = "100%";
+    gate.style.background = "rgba(0,0,0,0.85)";
+    gate.style.display = "flex";
+    gate.style.justifyContent = "center";
+    gate.style.alignItems = "center";
+    gate.style.zIndex = 2000;
+    gate.innerHTML = `
+      <div style="background:#fff;padding:20px;max-width:300px;text-align:center;border-radius:8px">
+        <h2>Watch an Ad to Continue</h2>
+        <p>Your first game was free 🎉. Watch a quick ad to play again!</p>
+        <button id="continueBtn">Continue</button>
+      </div>
+    `;
+    document.body.appendChild(gate);
+
+    document.getElementById("continueBtn").addEventListener("click", () => {
+      // TODO: real rewarded ad later
+      alert("Here you would watch an ad. For now, this just unlocks.");
+      gate.remove();
+    });
+  } else {
+    markPlayed();
+  }
+}
+
+// ✅ Run the gate check immediately
+checkPlayGate();
+
+// ---------------------------------------------
+// Your quiz code starts here
+// ---------------------------------------------
+
+// Point to your live server:
+const SERVER_URL = "https://heiyuquiz-server.onrender.com";
+
+const qs = s => document.querySelector(s);
+const startCard = qs("#startCard");
+const playView = qs("#playView");
+const resultsView = qs("#resultsView");
+
+const nameIn = qs("#name");
+const categorySel = qs("#category");
+const createBtn = qs("#createBtn");
+const openPlayBtn = qs("#openPlay");
+const shareBtn = qs("#shareBtn");
+
+const quizMeta = qs("#quizMeta");
+const quizBody = qs("#quizBody");
+const scoreList = qs("#scoreList");
+
 // Point to your live server:
 const SERVER_URL = "https://heiyuquiz-server.onrender.com";
 
