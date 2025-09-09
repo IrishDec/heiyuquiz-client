@@ -6,19 +6,39 @@ function markPlayed(){ localStorage.setItem("hq-played","true"); }
 function checkPlayGate(){
   if (hasPlayedBefore()){
     const gate = document.createElement("div");
+
+    // --- MOBILE FIX: leave space for bottom ad banner & safe area ---
+    const banner = document.querySelector('.ad-banner');
+    function overlayBottom(){
+      const h = banner?.offsetHeight || 90; // fallback if ad not filled yet
+      return `calc(${h}px + env(safe-area-inset-bottom, 0px))`;
+    }
+
     Object.assign(gate.style, {
-      position:"fixed", top:0, left:0, width:"100%", height:"100%",
-      background:"rgba(0,0,0,0.85)", display:"flex",
-      justifyContent:"center", alignItems:"center",
-      zIndex: 2147482000 // ad banner is 2147483000
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: overlayBottom(),           // reserve space for ad
+      background: "rgba(0,0,0,0.85)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 2147482000                  // ad banner is 2147483000
     });
+
     gate.innerHTML = `
       <div style="background:#fff;padding:20px;max-width:320px;text-align:center;border-radius:8px">
         <h2 style="margin:0 0 8px;">Watch an Ad to Continue</h2>
         <p style="margin:0 0 12px;">Your first game was free 🎉. Watch a quick ad to play again!</p>
         <button id="continueBtn">Continue</button>
       </div>`;
+
     document.body.appendChild(gate);
+
+    // keep correct spacing on rotate/resize
+    window.addEventListener('resize', ()=>{ gate.style.bottom = overlayBottom(); }, { passive:true });
+
     document.getElementById("continueBtn")?.addEventListener("click", ()=>{
       // TODO: replace with real rewarded ad
       alert("Here you would watch an ad. Unlocking for now.");
