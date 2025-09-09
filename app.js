@@ -220,5 +220,13 @@ async function renderResults(id){
   (data.results || []).forEach((row, i)=>{
     const li = document.createElement("li");
     li.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
-    scoreLi
+    scoreList?.appendChild(li);
+  });
+}
 
+/* ------------------ Wire buttons ------------------ */
+createBtn?.addEventListener("click", createQuiz);
+openPlayBtn?.addEventListener("click", ()=>{
+  const id = prompt("Paste the quiz ID (the part after #/play/ in the link):");
+  if (id) location.hash = `/play/${id.trim()}`;
+});
