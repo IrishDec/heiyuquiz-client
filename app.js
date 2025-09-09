@@ -1,4 +1,4 @@
-// HeiyuQuiz — app.js (clean)
+// HeiyuQuiz — app.js (mobile spacing fixed)
 
 /* ---------- First-play gate (overlay kept below ad) ---------- */
 function hasPlayedBefore(){ return localStorage.getItem("hq-played")==="true"; }
@@ -6,44 +6,28 @@ function markPlayed(){ localStorage.setItem("hq-played","true"); }
 function checkPlayGate(){
   if (hasPlayedBefore()){
     const gate = document.createElement("div");
-
-    // --- MOBILE FIX: leave space for bottom ad banner & safe area ---
-    const banner = document.querySelector('.ad-banner');
-    function overlayBottom(){
-      const h = banner?.offsetHeight || 90; // fallback if ad not filled yet
-      return `calc(${h}px + env(safe-area-inset-bottom, 0px))`;
-    }
-
-   Object.assign(gate.style, {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  right: 0,
-  // leave space for banner on phones (60px), desktop uses full height
-  bottom: matchMedia("(max-width: 480px)").matches ? "60px" : "0",
-  background: "rgba(0,0,0,0.85)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 2147482000  // below .ad-banner
-});
-
+    Object.assign(gate.style, {
+      position:"fixed", top:0, left:0, right:0, bottom:0, /* JS will adjust bottom for ad height */
+      background:"rgba(0,0,0,0.85)", display:"flex",
+      justifyContent:"center", alignItems:"center",
+      zIndex: 2147482000 // below .ad-banner
+    });
+    gate.className = "overlay-safe";
     gate.innerHTML = `
-      <div style="background:#fff;padding:20px;max-width:320px;text-align:center;border-radius:8px">
+      <div style="background:#fff;padding:20px;max-width:320px;text-align:center;border-radius:12px">
         <h2 style="margin:0 0 8px;">Watch an Ad to Continue</h2>
         <p style="margin:0 0 12px;">Your first game was free 🎉. Watch a quick ad to play again!</p>
-        <button id="continueBtn">Continue</button>
+        <button id="continueBtn" style="padding:10px 14px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">Continue</button>
       </div>`;
-
     document.body.appendChild(gate);
-
-    // keep correct spacing on rotate/resize
-    window.addEventListener('resize', ()=>{ gate.style.bottom = overlayBottom(); }, { passive:true });
+    // expose for padding manager
+    window._hqGate = gate;
+    if (typeof window._applyAdPadding === "function") window._applyAdPadding();
 
     document.getElementById("continueBtn")?.addEventListener("click", ()=>{
       // TODO: replace with real rewarded ad
       alert("Here you would watch an ad. Unlocking for now.");
-      gate.remove();
+      gate.remove(); window._hqGate = null;
     });
   } else {
     markPlayed();
@@ -69,6 +53,30 @@ const shareBtn    = qs("#shareBtn");
 const quizMeta    = qs("#quizMeta");
 const quizBody    = qs("#quizBody");
 const scoreList   = qs("#scoreList");
+
+/* ---------- Dynamic spacing based on actual ad height ---------- */
+(function adPaddingManager(){
+  const wrap = document.querySelector('.wrap');
+  const ad   = document.querySelector('.ad-banner');
+
+  function apply(){
+    const h = ad ? Math.ceil(ad.getBoundingClientRect().height) : 0;
+    if (wrap) wrap.style.paddingBottom = (h ? h + 8 : 16) + 'px';
+    if (window._hqGate){
+      window._hqGate.style.bottom = (h || 0) + 'px';
+    }
+  }
+  // Observe ad size changes
+  if ('ResizeObserver' in window && ad){
+    const ro = new ResizeObserver(apply);
+    ro.observe(ad);
+    const ins = ad.querySelector('ins'); if (ins) ro.observe(ins);
+  }
+  window.addEventListener('resize', apply);
+  document.addEventListener('DOMContentLoaded', apply);
+  setTimeout(apply, 0); setTimeout(apply, 400); setTimeout(apply, 1200);
+  window._applyAdPadding = apply;
+})();
 
 /* ------------------ View switcher ------------------ */
 function show(el){
@@ -212,13 +220,5 @@ async function renderResults(id){
   (data.results || []).forEach((row, i)=>{
     const li = document.createElement("li");
     li.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
-    scoreList?.appendChild(li);
-  });
-}
+    scoreLi
 
-/* ------------------ Wire buttons ------------------ */
-createBtn?.addEventListener("click", createQuiz);
-openPlayBtn?.addEventListener("click", ()=>{
-  const id = prompt("Paste the quiz ID (the part after #/play/ in the link):");
-  if (id) location.hash = `/play/${id.trim()}`;
-});
