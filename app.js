@@ -1,3 +1,4 @@
+alert("HeiyuQuiz app.js loaded");
 // ✅ Play gate logic
 function hasPlayedBefore() {
   return localStorage.getItem("hq-played") === "true";
