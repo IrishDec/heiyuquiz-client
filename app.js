@@ -271,30 +271,54 @@ async function createQuiz(){
 async function renderPlay(id){
   let res, data;
   try{
-    res = await fetch(`${window.SERVER_URL}/api/quiz/${id}`);
+    res = await fetch(`${window.SERVER_URL}/api/quiz/${id}`, { credentials:"omit" });
     data = await res.json();
   }catch{
-    alert("Network error loading quiz."); return;
+    // Network/JSON error → show message instead of blank
+    show(playView);
+    quizMeta && (quizMeta.textContent = "Couldn’t load that quiz.");
+    quizBody && (quizBody.innerHTML = `<p class="muted">Network error. Ask the host to resend the link.</p>`);
+    return false;
   }
-  if (!res.ok && !data?.ok){ alert(data?.error || "Quiz not found."); return; }
+
+  if (!res.ok && !data?.ok){
+    show(playView);
+    quizMeta && (quizMeta.textContent = "Quiz not found or expired.");
+    quizBody && (quizBody.innerHTML = `<p class="muted">That link looks invalid or expired.</p>`);
+    return false;
+  }
 
   const category = data.category || "Quiz";
   const closesAt = data.closesAt ? new Date(data.closesAt).toLocaleTimeString() : "";
+  const region   = data.region || "";
+  const topic    = data.topic  || "";
+
+  // --- Questions fallback (prevents blank screen if server returns none) ---
+  let questions = data.questions;
+  if (!Array.isArray(questions) || questions.length === 0){
+    console.warn("No questions from server; using demo set so UI isn’t blank.");
+    questions = Array.from({length:5}, (_,i)=>({
+      q: `Sample question #${i+1}?`,
+      options: ["Option A","Option B","Option C","Option D"]
+    }));
+  }
 
   show(playView);
-  if (quizMeta) quizMeta.textContent = closesAt ? `${category} • Closes: ${closesAt}` : category;
-  if (quizBody) quizBody.innerHTML = "";
+  const metaBits = [category, closesAt && `Closes: ${closesAt}`, region && region.toUpperCase(), topic && `Topic: ${topic}`]
+    .filter(Boolean).join(" • ");
+  quizMeta && (quizMeta.textContent = metaBits || category);
+  quizBody && (quizBody.innerHTML = "");
 
-  const questions = data.questions || [];
   const picks = new Array(questions.length).fill(null);
 
   questions.forEach((q, idx)=>{
     const wrap = document.createElement("div"); wrap.className = "q";
     const prog = document.createElement("div"); prog.className = "progress"; prog.textContent = `Q ${idx+1}/${questions.length}`;
-    const h = document.createElement("h3"); h.textContent = q.q;
+    const h = document.createElement("h3"); h.textContent = q.q || q.question || `Question ${idx+1}`;
     const opts = document.createElement("div"); opts.className = "opts";
-    (q.options || q.choices || []).forEach((opt, oidx)=>{
-      const b = document.createElement("button"); b.textContent = opt;
+    const options = q.options || q.choices || [];
+    options.forEach((opt, oidx)=>{
+      const b = document.createElement("button"); b.textContent = String(opt);
       b.onclick = ()=>{
         picks[idx] = oidx;
         [...opts.children].forEach(c => c.classList.remove("selected"));
@@ -320,9 +344,13 @@ async function renderPlay(id){
       });
       sData = await sRes.json();
     }catch{
-      alert("Network error submitting answers."); return;
+      window.hqToast && hqToast("Network error submitting.");
+      return;
     }
-    if (!sRes.ok && !sData?.ok){ alert(sData?.error || "Submit failed"); return; }
+    if (!sRes.ok && !sData?.ok){
+      window.hqToast && hqToast(sData?.error || "Submit failed");
+      return;
+    }
     location.hash = `/results/${id}`;
   };
   quizBody?.appendChild(submit);
@@ -335,12 +363,15 @@ async function renderPlay(id){
           await navigator.share({ title:"HeiyuQuiz", text:`Join this ${category} quiz!`, url: link });
         }else{
           await navigator.clipboard.writeText(link);
-          alert("Link copied!");
+          window.hqToast && hqToast("Link copied!");
         }
       }catch{}
     };
   }
+
+  return true;
 }
+
 
 /* ------------------ Results view ------------------ */
 async function renderResults(id){
