@@ -111,13 +111,6 @@ input:focus,select:focus{
 }
 #createBtn:active{ transform:translateY(1px) scale(.99); }
 
-#openPlay{
-  background:#fff;
-  border:1px solid #e6e6e6;
-  color:#111;
-}
-#openPlay:hover{ border-color:#c9c9c9; }
-
 /* Share button */
 #shareBtn{
   border:1px solid #e6e6e6; background:#fff;
