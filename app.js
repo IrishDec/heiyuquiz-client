@@ -287,3 +287,4 @@ openPlayBtn?.addEventListener("click", ()=>{
   const id = prompt("Paste the quiz ID (the part after #/play/ in the link):");
   if (id) location.hash = `/play/${id.trim()}`;
 });
+
