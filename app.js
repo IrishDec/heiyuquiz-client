@@ -318,11 +318,11 @@ async function renderPlay(id){
   questions.forEach((q, idx)=>{
     const wrap = document.createElement("div"); wrap.className = "q";
     const prog = document.createElement("div"); prog.className = "progress"; prog.textContent = `Q ${idx+1}/${questions.length}`;
-    const h = document.createElement("h3"); h.textContent = q.q || q.question || `Question ${idx+1}`;
+    const h = document.createElement("h3"); h.textContent = decodeHTML(q.q || q.question || `Question ${idx+1}`);
     const opts = document.createElement("div"); opts.className = "opts";
     const options = q.options || q.choices || [];
     options.forEach((opt, oidx)=>{
-      const b = document.createElement("button"); b.textContent = String(opt);
+      const b = document.createElement("button"); b.textContent = decodeHTML(String(opt));
       b.onclick = ()=>{
         picks[idx] = oidx;
         [...opts.children].forEach(c => c.classList.remove("selected"));
