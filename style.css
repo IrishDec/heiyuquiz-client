@@ -56,4 +56,7 @@ button:active{transform:translateY(1px)}
 @media (max-width:480px){
   .wrap{ padding-bottom:16px !important; }
 }
+/* Ad slot helpers */
+.ad-banner.hidden{ display:none !important; }
+.ad-banner ins.adsbygoogle{ display:block; width:100%; } /* no fixed height */
 
