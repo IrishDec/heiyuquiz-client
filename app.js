@@ -151,6 +151,60 @@ async function route(){
   else if (view === "results" && id) renderResults(id);
   else                             show(startCard);
 }
+/* ===== Beauty Pack helpers: toast + confetti ===== */
+(function(){
+  function ensureToast(){
+    let t = document.querySelector('.toast');
+    if (!t){
+      t = document.createElement('div');
+      t.className = 'toast';
+      document.body.appendChild(t);
+    }
+    return t;
+  }
+  window.hqToast = function(msg, ms=1600){
+    const t = ensureToast();
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), ms);
+  };
+
+  window.hqConfetti = function(n=18){
+    const colors = ['#6e56cf','#d6467e','#ffb224','#3dd6b7','#5b9eff'];
+    for (let i=0;i<n;i++){
+      const s = document.createElement('div');
+      s.className = 'confetti';
+      s.style.background = colors[i % colors.length];
+      const spread = (Math.random()*240 - 120) + 'px';
+      s.style.setProperty('--x', spread);
+      s.style.left = '50%';
+      s.style.animationDuration = (800 + Math.random()*600) + 'ms';
+      document.body.appendChild(s);
+      setTimeout(()=>s.remove(), 1400);
+    }
+  };
+
+  // Sprinkle confetti when a quiz is created and show a toast after link share/copy
+  const originalCreate = createBtn?.onclick || null;
+  // Our file uses addEventListener, so hook after submit instead:
+  createBtn?.addEventListener('click', ()=>{
+    // confetti fires a bit later to not block your create/share flow
+    setTimeout(()=>hqConfetti(20), 300);
+    // optional toast hint (will still show even if native share opens)
+    setTimeout(()=>hqToast('Share the link 🎉'), 800);
+  });
+
+  // When results page loads, add a tiny celebration
+  const _oldRenderResults = typeof renderResults === 'function' ? renderResults : null;
+  if (_oldRenderResults){
+    window.renderResults = async function(id){
+      await _oldRenderResults(id);
+      hqConfetti(14);
+      hqToast('Results ready!');
+    };
+  }
+})();
+
 
 /* ------------------ Create quiz & share ------------------ */
 async function createQuiz(){
