@@ -103,53 +103,6 @@ const scoreList   = qs("#scoreList");
 const regionSel = qs("#region");
 const topicIn   = qs("#topic");
 
-// ---- Ad slot: auto-collapse on no fill (kills mobile white gap) ----
-(function(){
-  const wrap   = document.querySelector('.wrap');
-  const banner = document.querySelector('.ad-banner');
-  const slot   = banner?.querySelector('.adsbygoogle');
-
-  if (!wrap || !banner || !slot) return;
-
-  function setPaddingByBanner(){
-    const h = Math.max(0, Math.ceil(banner.getBoundingClientRect().height));
-    wrap.style.paddingBottom = (h ? h + 8 : 16) + 'px';
-    if (window._hqGate) window._hqGate.style.bottom = (h ? h : 0) + 'px';
-  }
-
-  function collapse(){
-    banner.classList.add('hidden');
-    wrap.style.paddingBottom = '16px';
-    if (window._hqGate) window._hqGate.style.bottom = '0px';
-  }
-
-  // Watch for an iframe (ad render) and height changes
-  const mo = new MutationObserver(()=> {
-    const ifr = slot.querySelector('iframe');
-    if (ifr) {
-      setPaddingByBanner();
-      if (window.ResizeObserver) {
-        const ro = new ResizeObserver(setPaddingByBanner);
-        ro.observe(banner);
-        ro.observe(ifr);
-      }
-    }
-  });
-  mo.observe(slot, { childList:true, subtree:true });
-
-  // Fallback: if after 2500ms there's no iframe or height < 30px → collapse
-  setTimeout(()=>{
-    const ifr = slot.querySelector('iframe');
-    const h = Math.ceil(banner.getBoundingClientRect().height);
-    if (!ifr || h < 30) collapse();
-    else setPaddingByBanner();
-  }, 2500);
-
-  // Also recalc on resize
-  window.addEventListener('resize', setPaddingByBanner);
-})();
-
-
 /* ------------------ View switcher ------------------ */
 function show(el){
   [startCard, playView, resultsView].forEach(e => e?.classList.add("hidden"));
@@ -388,6 +341,9 @@ async function renderResults(id){
   const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
 
   createBtn?.addEventListener("click", createQuiz);
+  /* ------------------ Wire buttons ------------------ */
+  createBtn?.addEventListener("click", createQuiz);
+
 
 
   show(resultsView);
