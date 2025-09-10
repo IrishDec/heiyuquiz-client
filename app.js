@@ -1,5 +1,14 @@
 // HeiyuQuiz — app.js (mobile spacing fixed)
 
+// If someone opens /?quiz=ABC123, convert it to #/play/ABC123
+document.addEventListener('DOMContentLoaded', ()=>{
+  const u = new URL(location.href);
+  const q = u.searchParams.get('quiz');
+  if (q && !location.hash) {
+    location.hash = `/play/${q}`;
+  }
+});
+
 /* ---------- First-play gate (overlay kept below ad, mobile-safe) ---------- */
 function hasPlayedBefore(){ return localStorage.getItem("hq-played")==="true"; }
 function markPlayed(){ localStorage.setItem("hq-played","true"); }
@@ -87,6 +96,11 @@ const shareBtn    = qs("#shareBtn");
 const quizMeta    = qs("#quizMeta");
 const quizBody    = qs("#quizBody");
 const scoreList   = qs("#scoreList");
+
+const regionSel = qs("#region");
+const topicIn   = qs("#topic");
+const cancelBtn = qs("#cancelBtn");
+
 
 // ---- Ad slot: auto-collapse on no fill (kills mobile white gap) ----
 (function(){
@@ -208,14 +222,23 @@ async function route(){
 
 /* ------------------ Create quiz & share ------------------ */
 async function createQuiz(){
+  const name     = (nameIn?.value || "Player").trim();   // kept for future use
   const category = categorySel?.value || "General";
+  const region   = regionSel?.value || "global";
+  const topic    = (topicIn?.value || "").trim();
 
   let res, data;
   try{
     res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ category, amount:5, durationSec:600 })
+      body: JSON.stringify({
+        category,
+        region,         // NEW
+        topic,          // NEW (server can ignore if unsupported)
+        amount: 5,
+        durationSec: 600
+      })
     });
     data = await res.json();
   }catch{
@@ -228,15 +251,21 @@ async function createQuiz(){
   if (!quizId){ alert("Create succeeded but no quiz ID returned."); return; }
 
   const link = `${location.origin}${location.pathname}#/play/${quizId}`;
+
   try{
     if (navigator.share){
-      await navigator.share({ title:"HeiyuQuiz", text:`Join my ${category} quiz!`, url: link });
+      await navigator.share({
+        title: "HeiyuQuiz",
+        text: `Join my ${category}${region && region!=='global' ? ' • '+region.toUpperCase() : ''}${topic ? ' — '+topic : ''} quiz!`,
+        url: link
+      });
     }else{
       await navigator.clipboard.writeText(link);
       alert("Link copied! Share it in your group.");
     }
   }catch{/* user canceled share */}
 }
+
 
 /* ------------------ Play view ------------------ */
 async function renderPlay(id){
@@ -336,9 +365,11 @@ async function renderResults(id){
 }
 
 /* ------------------ Wire buttons ------------------ */
-createBtn?.addEventListener("click", createQuiz);
-openPlayBtn?.addEventListener("click", ()=>{
-  const id = prompt("Paste the quiz ID (the part after #/play/ in the link):");
-  if (id) location.hash = `/play/${id.trim()}`;
+cancelBtn?.addEventListener("click", ()=>{
+  if (nameIn)      nameIn.value = "";
+  if (categorySel) categorySel.selectedIndex = 0;
+  if (regionSel)   regionSel.value = "global";
+  if (topicIn)     topicIn.value = "";
+  if (window.hqToast) hqToast("Cleared");
 });
 
