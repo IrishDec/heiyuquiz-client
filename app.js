@@ -84,6 +84,10 @@ checkPlayGate();
 
 /* ------------------ Config ------------------ */
 window.SERVER_URL = window.SERVER_URL || "https://heiyuquiz-server.onrender.com";
+/* ------------------ Rules ------------------ */
+// Pick ONE: 24 hours or 3 hours
+const QUIZ_TTL_HOURS = 24;   // set to 3 if you prefer a 3-hour link
+const DURATION_SEC    = QUIZ_TTL_HOURS * 3600;
 
 /* ------------------ DOM ------------------ */
 const qs = (s)=>document.querySelector(s);
@@ -107,6 +111,28 @@ const topicIn   = qs("#topic");
 function show(el){
   [startCard, playView, resultsView].forEach(e => e?.classList.add("hidden"));
   el?.classList.remove("hidden");
+}
+function addHomeCta(msg){
+  // remove a previous CTA if present
+  document.querySelector('.home-cta')?.remove();
+
+  const container = document.createElement('div');
+  container.className = 'home-cta';
+  container.style.marginTop = '12px';
+  container.innerHTML = `
+    ${msg ? `<p class="muted" style="margin:0 0 8px">${msg}</p>` : ``}
+    <button id="goHomeBtn">Start a new quiz</button>
+  `;
+
+  // prefer resultsView if visible, otherwise playView
+  const target = !resultsView?.classList.contains('hidden') ? resultsView : playView;
+  target.appendChild(container);
+
+  document.getElementById('goHomeBtn').onclick = ()=>{
+    location.hash = '';
+    show(startCard);
+    window.scrollTo(0,0);
+  };
 }
 
 /* ------------------ Router ------------------ */
@@ -193,7 +219,8 @@ async function createQuiz(){
         region,         // NEW
         topic,          // NEW (server can ignore if unsupported)
         amount: 5,
-        durationSec: 600
+        durationSec: DURATION_SEC
+
       })
     });
     data = await res.json();
@@ -237,27 +264,25 @@ async function renderPlay(id){
     return false;
   }
 
-  if (!res.ok && !data?.ok){
-    show(playView);
-    quizMeta && (quizMeta.textContent = "Quiz not found or expired.");
-    quizBody && (quizBody.innerHTML = `<p class="muted">That link looks invalid or expired.</p>`);
-    return false;
-  }
+  if (!res.ok || !data?.ok){
+  // Try to show results if quiz is closed/expired
+  try{
+    const r  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/results`);
+    const rd = await r.json();
+    if (r.ok && rd?.ok && Array.isArray(rd.results) && rd.results.length){
+      await renderResults(id);
+      addHomeCta('This quiz is closed. Here are the results.');
+      return true;
+    }
+  }catch{}
 
-  const category = data.category || "Quiz";
-  const closesAt = data.closesAt ? new Date(data.closesAt).toLocaleTimeString() : "";
-  const region   = data.region || "";
-  const topic    = data.topic  || "";
-
-  // --- Questions fallback (prevents blank screen if server returns none) ---
-  let questions = data.questions;
-  if (!Array.isArray(questions) || questions.length === 0){
-    console.warn("No questions from server; using demo set so UI isn’t blank.");
-    questions = Array.from({length:5}, (_,i)=>({
-      q: `Sample question #${i+1}?`,
-      options: ["Option A","Option B","Option C","Option D"]
-    }));
-  }
+  // Fallback: plain message + home CTA
+  show(playView);
+  quizMeta && (quizMeta.textContent = "Quiz not found or expired.");
+  quizBody && (quizBody.innerHTML = `<p class="muted">That link looks invalid or expired.</p>`);
+  addHomeCta();
+  return false;
+}
 
   show(playView);
   const metaBits = [category, closesAt && `Closes: ${closesAt}`, region && region.toUpperCase(), topic && `Topic: ${topic}`]
@@ -329,6 +354,7 @@ async function renderPlay(id){
 }
 
 
+
 /* ------------------ Results view ------------------ */
 async function renderResults(id){
   let res, data;
@@ -350,6 +376,8 @@ async function renderResults(id){
     const li = document.createElement("li");
     li.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
     scoreList?.appendChild(li);
+  addHomeCta(); // lets players jump back to start
+
   });
 }
  /* ------------------ Wire buttons ------------------ */
