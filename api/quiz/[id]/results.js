@@ -1,26 +1,17 @@
 export const config = { runtime: 'edge' };
+import { store } from '../../_store.js';
 
-import { store } from '../../_store.js';                  // <-- was ../../..//_store.js
-
-
-export default async function handler(req) {
-  const url = new URL(req.url);
-  const id = url.pathname.split('/').slice(-2, -1)[0];
-
-  const qz = db().get(id);
-  if (!qz) return json({ ok: false, error: 'not_found' }, 404);
-
-  const total = qz.answers.length;
-  const results = [...qz.results]
-    .sort((a,b) => b.score - a.score || a.ts - b.ts)
-    .map(r => ({ name: r.name, score: r.score, total }));
-
-  return json({ ok: true, id: qz.id, totalQuestions: total, results });
+export default async function handler(req, { params }) {
+  try {
+    const id = params.id;
+    const data = store.results(id);
+    return new Response(JSON.stringify({ ok: true, ...data }), {
+      headers: { 'content-type': 'application/json', 'cache-control': 'no-store' }
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ ok: false, error: String(err) }), {
+      status: 404, headers: { 'content-type': 'application/json' }
+    });
+  }
 }
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
-  });
-}
