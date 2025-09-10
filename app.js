@@ -84,7 +84,7 @@ checkPlayGate();
 
 /* ------------------ Config ------------------ */
 // app.js (near the top)
-window.SERVER_URL = "https://www.heiyuquiz.com";
+window.SERVER_URL = "";
 
 /* ------------------ Rules ------------------ */
 // Pick ONE: 24 hours or 3 hours
