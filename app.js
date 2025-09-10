@@ -1,6 +1,8 @@
-// HeiyuQuiz — app.js (clean)
+lets speed this up 
+you clean this 
+// HeiyuQuiz — app.js (mobile spacing fixed)
 
-/* ---------- First-play gate (overlay kept below ad) ---------- */
+/* ---------- First-play gate (overlay kept below ad, mobile-safe) ---------- */
 function hasPlayedBefore(){ return localStorage.getItem("hq-played")==="true"; }
 function markPlayed(){ localStorage.setItem("hq-played","true"); }
 
@@ -9,10 +11,10 @@ function checkPlayGate(){
 
   const gate = document.createElement("div");
   Object.assign(gate.style, {
-    position:"fixed", top:0, left:0, right:0, bottom:0,
+    position:"fixed", top:0, left:0, right:0, bottom:0, // we’ll adjust bottom after mount
     background:"rgba(0,0,0,0.85)",
     display:"flex", justifyContent:"center", alignItems:"center",
-    zIndex:2147482000 // below .ad-banner
+    zIndex:2147482000  // below .ad-banner
   });
   gate.className = "overlay-safe";
   gate.innerHTML = `
@@ -24,12 +26,45 @@ function checkPlayGate(){
   `;
   document.body.appendChild(gate);
 
-  // Expose so the footer script (in index.html) can adjust bottom spacing when an ad renders
+  // expose for any other helpers
   window._hqGate = gate;
 
+  // --- Set overlay bottom to actual banner height (fallback to 56px on small screens) ---
+  const banner = document.querySelector('.ad-banner');
+  let ro; // ResizeObserver reference
+
+  function setBottomForBanner(){
+    let h = 0;
+    if (banner) {
+      h = Math.max(0, Math.ceil(banner.getBoundingClientRect().height));
+    }
+    if (h === 0 && matchMedia("(max-width:540px)").matches) {
+      // deterministic compact footer height on phones if ad hasn't rendered yet
+      h = 56;
+    }
+    gate.style.bottom = (h ? h + "px" : "0");
+  }
+
+  // initial + delayed passes (to catch late ad rendering)
+  setBottomForBanner();
+  setTimeout(setBottomForBanner, 400);
+  setTimeout(setBottomForBanner, 1200);
+  setTimeout(setBottomForBanner, 2500);
+
+  // react to future size changes
+  if ("ResizeObserver" in window && banner){
+    ro = new ResizeObserver(setBottomForBanner);
+    ro.observe(banner);
+    const ins = banner.querySelector('ins'); if (ins) ro.observe(ins);
+  }
+  window.addEventListener('resize', setBottomForBanner);
+
+  // button handler
   document.getElementById("continueBtn")?.addEventListener("click", ()=>{
     // TODO: replace with real rewarded ad
     alert("Here you would watch an ad. Unlocking for now.");
+    if (ro) try { ro.disconnect(); } catch {}
+    window.removeEventListener('resize', setBottomForBanner);
     gate.remove();
     window._hqGate = null;
   });
@@ -54,6 +89,53 @@ const shareBtn    = qs("#shareBtn");
 const quizMeta    = qs("#quizMeta");
 const quizBody    = qs("#quizBody");
 const scoreList   = qs("#scoreList");
+
+// ---- Ad slot: auto-collapse on no fill (kills mobile white gap) ----
+(function(){
+  const wrap   = document.querySelector('.wrap');
+  const banner = document.querySelector('.ad-banner');
+  const slot   = banner?.querySelector('.adsbygoogle');
+
+  if (!wrap || !banner || !slot) return;
+
+  function setPaddingByBanner(){
+    const h = Math.max(0, Math.ceil(banner.getBoundingClientRect().height));
+    wrap.style.paddingBottom = (h ? h + 8 : 16) + 'px';
+    if (window._hqGate) window._hqGate.style.bottom = (h ? h : 0) + 'px';
+  }
+
+  function collapse(){
+    banner.classList.add('hidden');
+    wrap.style.paddingBottom = '16px';
+    if (window._hqGate) window._hqGate.style.bottom = '0px';
+  }
+
+  // Watch for an iframe (ad render) and height changes
+  const mo = new MutationObserver(()=> {
+    const ifr = slot.querySelector('iframe');
+    if (ifr) {
+      setPaddingByBanner();
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(setPaddingByBanner);
+        ro.observe(banner);
+        ro.observe(ifr);
+      }
+    }
+  });
+  mo.observe(slot, { childList:true, subtree:true });
+
+  // Fallback: if after 2500ms there's no iframe or height < 30px → collapse
+  setTimeout(()=>{
+    const ifr = slot.querySelector('iframe');
+    const h = Math.ceil(banner.getBoundingClientRect().height);
+    if (!ifr || h < 30) collapse();
+    else setPaddingByBanner();
+  }, 2500);
+
+  // Also recalc on resize
+  window.addEventListener('resize', setPaddingByBanner);
+})();
+
 
 /* ------------------ View switcher ------------------ */
 function show(el){
