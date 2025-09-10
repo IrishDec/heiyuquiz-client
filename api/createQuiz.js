@@ -1,40 +1,24 @@
 export const config = { runtime: 'edge' };
 
-import { store, makeQuiz, TTL_SEC } from './_store.js';   // <-- was ../_store.js
-import { debit, credit } from './_bank.js';               // <-- was ../_bank.js
-
+import { store, TTL_SEC } from './_store.js';   // note: "./", not "../"
+import { debit, credit }   from './_bank.js';   // note: "./", not "../"
 
 export default async function handler(req) {
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ ok: false, error: 'POST only' }), { status: 405 });
+  try {
+    const { category = 'General', region = 'global', topic = '', amount = 5, durationSec = TTL_SEC } =
+      (await req.json().catch(() => ({}))) || {};
+
+    const quiz = store.createQuiz({ category, region, topic, amount, durationSec });
+
+    return new Response(JSON.stringify({ ok: true, id: quiz.id, closesAt: quiz.closesAt, category }), {
+      headers: { 'content-type': 'application/json', 'cache-control': 'no-store' }
+    });
+  } catch (err) {
+    // Return JSON instead of the default HTML error so you can see what broke
+    return new Response(JSON.stringify({ ok: false, error: String(err), stack: err?.stack }), {
+      status: 500,
+      headers: { 'content-type': 'application/json' }
+    });
   }
-
-  let body = {};
-  try { body = await req.json(); } catch {}
-
-  const category    = (body.category || 'General').toString();
-  const region      = (body.region   || 'global').toString();
-  const topic       = (body.topic    || '').toString();
-  const amount      = Math.max(3, Math.min(10, body.amount | 0 || 5));
-  const durationSec = Math.max(60, Math.min(86400 * 3, body.durationSec | 0 || 86400)); // cap 3 days max
-
-  const { pub, answers } = buildQuestions(category, amount, topic);
-
-  const id = newId(6);
-  const now = Date.now();
-  const quiz = {
-    id, category, region, topic,
-    createdAt: now,
-    closesAt: now + durationSec * 1000,
-    open: true,
-    questionsPub: pub,       // safe to return to client
-    answers,                 // secret
-    results: [],             // {name, score, ts}
-  };
-
-  db().set(id, quiz);
-
-  return new Response(JSON.stringify({ ok: true, id, quizId: id }), {
-    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
-  });
 }
+
