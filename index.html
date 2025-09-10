@@ -31,40 +31,46 @@
 
 <body>
   <main class="wrap">
-    <!-- Start Card -->
-    <section id="startCard" class="card">
-      <h1>HeiyuQuiz</h1>
-      <p class="muted">Create a link for your group, pick a category, and play 5 quick questions outside the chat.</p>
+ <section id="startCard" class="card">
+  <h1>HeiyuQuiz</h1>
+  <p class="muted">Create a link for your group, pick a category & region, then play 5 quick questions.</p>
 
-      <label class="lbl">Your name</label>
-      <input id="name" placeholder="e.g., Declan" maxlength="24" />
+  <label class="lbl">Name or nickname</label>
+  <input id="name" placeholder="Name or nickname" maxlength="24" />
 
-      <label class="lbl">Category</label>
-      <select id="category">
-        <option>General</option>
-        <option>Movies</option>
-        <option>Science</option>
-        <option>Sports</option>
-        <option>History</option>
-      </select>
+  <label class="lbl">Category</label>
+  <select id="category">
+    <option>General</option>
+    <option>Movies</option>
+    <option>Science</option>
+    <option>Sports</option>
+    <option>History</option>
+  </select>
 
-      <div class="row">
-        <button id="createBtn">Create & Share Link</button>
-        <button id="openPlay">I have a link</button>
-      </div>
+  <label class="lbl">Region</label>
+  <select id="region">
+    <option value="global">Global</option>
+    <option value="ie">Ireland</option>
+    <option value="uk">United Kingdom</option>
+    <option value="us">United States</option>
+    <option value="ca">Canada</option>
+    <option value="au">Australia</option>
+    <option value="in">India</option>
+    <option value="ng">Nigeria</option>
+  </select>
 
-      <div class="ad-slot" id="adStart"></div>
-    </section>
+  <label class="lbl">Custom topic (optional)</label>
+  <input id="topic" placeholder="e.g., Liverpool FC, Taylor Swift, Formula 1" maxlength="60" />
+  <p class="muted" style="margin:6px 0 0">We’ll try to bias questions to this topic.</p>
 
-    <!-- Play View -->
-    <section id="playView" class="card hidden">
-      <div class="top">
-        <div id="quizMeta"></div>
-        <button id="shareBtn">Share</button>
-      </div>
-      <div id="quizBody"></div>
-      <div class="ad-slot" id="adPlay"></div>
-    </section>
+  <div class="row">
+    <button id="createBtn">Create & Share Link</button>
+    <button id="cancelBtn">Cancel</button>
+  </div>
+
+  <div class="ad-slot" id="adStart"></div>
+</section>
+
 
     <!-- Results -->
     <section id="resultsView" class="card hidden">
