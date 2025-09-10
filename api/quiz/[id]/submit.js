@@ -1,4 +1,5 @@
-export const config = { runtime: 'nodejs18.x' };
+export const config = { runtime: 'nodejs' };
+
 import { getQuiz, saveResult } from '../../_store.js';
 
 function json(body, status = 200) {
