@@ -152,7 +152,12 @@ async function route(){
     }
   };
 
-  // Sprinkle confetti when a quiz is created and show a toast after link share/copy
+     /* ------------------ Router ------------------ */
+     window.addEventListener("load", route);
+    window.addEventListener("hashchange", route);
+    document.addEventListener("DOMContentLoaded", route); // ← add this
+    route(); // ← and this
+// Sprinkle confetti when a quiz is created and show a toast after link share/copy
 
   // Our file uses addEventListener, so hook after submit instead:
   createBtn?.addEventListener('click', ()=>{
@@ -339,6 +344,9 @@ async function renderResults(id){
   if (!res.ok && !data?.ok){ alert(data?.error || "No results yet."); return; }
 
   const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
+
+  /* ------------------ Wire buttons ------------------ */
+  createBtn?.addEventListener("click", createQuiz);
 
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "";
