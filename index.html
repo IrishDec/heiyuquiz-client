@@ -28,10 +28,11 @@
   <script defer src="/consent.js"></script>
   <script defer src="/app.js"></script>
 </head>
-
+<!--start card-->
 <body>
   <main class="wrap">
- <section id="startCard" class="card">
+<!-- Start Card -->
+<section id="startCard" class="card">
   <h1>HeiyuQuiz</h1>
   <p class="muted">Create a link for your group, pick a category & region, then play 5 quick questions.</p>
 
@@ -65,20 +66,30 @@
 
   <div class="row">
     <button id="createBtn">Create & Share Link</button>
-    <button id="cancelBtn">Cancel</button>
   </div>
 
+  <!-- Start view ad slot -->
   <div class="ad-slot" id="adStart"></div>
 </section>
 
+<!-- Play View -->
+<section id="playView" class="card hidden">
+  <div class="top">
+    <div id="quizMeta"></div>
+    <button id="shareBtn">Share</button>
+  </div>
+  <div id="quizBody"></div>
+  <div class="ad-slot" id="adPlay"></div>
+</section>
 
-    <!-- Results -->
-    <section id="resultsView" class="card hidden">
-      <h2>Results</h2>
-      <ol id="scoreList"></ol>
-      <p class="muted">Screenshot this page and share it with your group ✨</p>
-      <div class="ad-slot" id="adResults"></div>
-    </section>
+<!-- Results -->
+<section id="resultsView" class="card hidden">
+  <h2>Results</h2>
+  <ol id="scoreList"></ol>
+  <p class="muted">Screenshot this page and share it with your group ✨</p>
+  <div class="ad-slot" id="adResults"></div>
+</section>
+
   </main>
 
   <!-- Consent Banner (one copy only, inside <body>) -->
