@@ -1,37 +1,71 @@
 // HeiyuQuiz — app.js (mobile spacing fixed)
 
-/* ---------- First-play gate (overlay kept below ad) ---------- */
+/* ---------- First-play gate (overlay kept below ad, mobile-safe) ---------- */
 function hasPlayedBefore(){ return localStorage.getItem("hq-played")==="true"; }
 function markPlayed(){ localStorage.setItem("hq-played","true"); }
-function checkPlayGate(){
-  if (hasPlayedBefore()){
-    const gate = document.createElement("div");
-    Object.assign(gate.style, {
-      position:"fixed", top:0, left:0, right:0, bottom:0, /* JS will adjust bottom for ad height */
-      background:"rgba(0,0,0,0.85)", display:"flex",
-      justifyContent:"center", alignItems:"center",
-      zIndex: 2147482000 // below .ad-banner
-    });
-    gate.className = "overlay-safe";
-    gate.innerHTML = `
-      <div style="background:#fff;padding:20px;max-width:320px;text-align:center;border-radius:12px">
-        <h2 style="margin:0 0 8px;">Watch an Ad to Continue</h2>
-        <p style="margin:0 0 12px;">Your first game was free 🎉. Watch a quick ad to play again!</p>
-        <button id="continueBtn" style="padding:10px 14px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">Continue</button>
-      </div>`;
-    document.body.appendChild(gate);
-    // expose for padding manager
-    window._hqGate = gate;
-    if (typeof window._applyAdPadding === "function") window._applyAdPadding();
 
-    document.getElementById("continueBtn")?.addEventListener("click", ()=>{
-      // TODO: replace with real rewarded ad
-      alert("Here you would watch an ad. Unlocking for now.");
-      gate.remove(); window._hqGate = null;
-    });
-  } else {
-    markPlayed();
+function checkPlayGate(){
+  if (!hasPlayedBefore()){ markPlayed(); return; }
+
+  const gate = document.createElement("div");
+  Object.assign(gate.style, {
+    position:"fixed", top:0, left:0, right:0, bottom:0, // we’ll adjust bottom after mount
+    background:"rgba(0,0,0,0.85)",
+    display:"flex", justifyContent:"center", alignItems:"center",
+    zIndex:2147482000  // below .ad-banner
+  });
+  gate.className = "overlay-safe";
+  gate.innerHTML = `
+    <div style="background:#fff;padding:20px;max-width:320px;text-align:center;border-radius:12px">
+      <h2 style="margin:0 0 8px;">Watch an Ad to Continue</h2>
+      <p style="margin:0 0 12px;">Your first game was free 🎉. Watch a quick ad to play again!</p>
+      <button id="continueBtn" style="padding:10px 14px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">Continue</button>
+    </div>
+  `;
+  document.body.appendChild(gate);
+
+  // expose for any other helpers
+  window._hqGate = gate;
+
+  // --- Set overlay bottom to actual banner height (fallback to 56px on small screens) ---
+  const banner = document.querySelector('.ad-banner');
+  let ro; // ResizeObserver reference
+
+  function setBottomForBanner(){
+    let h = 0;
+    if (banner) {
+      h = Math.max(0, Math.ceil(banner.getBoundingClientRect().height));
+    }
+    if (h === 0 && matchMedia("(max-width:540px)").matches) {
+      // deterministic compact footer height on phones if ad hasn't rendered yet
+      h = 56;
+    }
+    gate.style.bottom = (h ? h + "px" : "0");
   }
+
+  // initial + delayed passes (to catch late ad rendering)
+  setBottomForBanner();
+  setTimeout(setBottomForBanner, 400);
+  setTimeout(setBottomForBanner, 1200);
+  setTimeout(setBottomForBanner, 2500);
+
+  // react to future size changes
+  if ("ResizeObserver" in window && banner){
+    ro = new ResizeObserver(setBottomForBanner);
+    ro.observe(banner);
+    const ins = banner.querySelector('ins'); if (ins) ro.observe(ins);
+  }
+  window.addEventListener('resize', setBottomForBanner);
+
+  // button handler
+  document.getElementById("continueBtn")?.addEventListener("click", ()=>{
+    // TODO: replace with real rewarded ad
+    alert("Here you would watch an ad. Unlocking for now.");
+    if (ro) try { ro.disconnect(); } catch {}
+    window.removeEventListener('resize', setBottomForBanner);
+    gate.remove();
+    window._hqGate = null;
+  });
 }
 checkPlayGate();
 
