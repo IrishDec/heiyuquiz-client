@@ -340,12 +340,6 @@ async function renderResults(id){
 
   const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
 
-  createBtn?.addEventListener("click", createQuiz);
-  /* ------------------ Wire buttons ------------------ */
-  createBtn?.addEventListener("click", createQuiz);
-
-
-
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "";
   (data.results || []).forEach((row, i)=>{
