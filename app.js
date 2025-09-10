@@ -112,6 +112,8 @@ function show(el){
 /* ------------------ Router ------------------ */
 window.addEventListener("load", route);
 window.addEventListener("hashchange", route);
+document.addEventListener("DOMContentLoaded", route);
+route();
 
 async function route(){
   const [ , view, id ] = (location.hash.slice(1) || "").split("/");
@@ -152,12 +154,7 @@ async function route(){
     }
   };
 
-     /* ------------------ Router ------------------ */
-     window.addEventListener("load", route);
-    window.addEventListener("hashchange", route);
-    document.addEventListener("DOMContentLoaded", route); // ← add this
-    route(); // ← and this
-// Sprinkle confetti when a quiz is created and show a toast after link share/copy
+   // Sprinkle confetti when a quiz is created and show a toast after link share/copy
 
   // Our file uses addEventListener, so hook after submit instead:
   createBtn?.addEventListener('click', ()=>{
@@ -345,8 +342,7 @@ async function renderResults(id){
 
   const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
 
-  /* ------------------ Wire buttons ------------------ */
-  createBtn?.addEventListener("click", createQuiz);
+ 
 
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "";
@@ -356,5 +352,7 @@ async function renderResults(id){
     scoreList?.appendChild(li);
   });
 }
+ /* ------------------ Wire buttons ------------------ */
+  createBtn?.addEventListener("click", createQuiz);
 
 
