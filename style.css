@@ -1,9 +1,12 @@
 /* ===== Base layout ===== */
 *{box-sizing:border-box}
+:root{--radius:12px}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#fff;color:#111}
-.wrap{max-width:720px;margin:0 auto;padding:16px;padding-bottom:120px} /* JS will override bottom padding */
+.wrap{max-width:720px;margin:0 auto;padding:16px;padding-bottom:16px} /* JS bumps this only when an ad is visible */
 .hidden{display:none}
-.card{background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,.04);margin:12px 0}
+
+/* Cards & controls */
+.card{background:#fff;border:1px solid #eee;border-radius:var(--radius);padding:16px;box-shadow:0 4px 16px rgba(0,0,0,.04);margin:12px 0}
 .muted{color:#666}
 .lbl{display:block;margin-top:12px;font-weight:600}
 input,select,button{font-size:16px}
@@ -12,6 +15,7 @@ input,select{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;ba
 button{appearance:none;border:1px solid #ddd;background:#f9f9f9;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
 button:active{transform:translateY(1px)}
 
+/* Quiz UI */
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .q{border:1px solid #eee;border-radius:10px;padding:10px;margin:8px 0}
 .progress{font-size:12px;color:#666;margin-bottom:6px}
@@ -27,13 +31,17 @@ button:active{transform:translateY(1px)}
 .consent.hidden{display:none}
 .consent .row{display:flex;gap:8px;margin-top:8px}
 
-/* ===== Bottom ad banner ===== */
+/* ===== Bottom ad banner (no space unless visible) ===== */
 .ad-banner{
-  position:fixed;bottom:0;left:0;right:0;
+  position:fixed;left:0;right:0;bottom:0;
   background:#fff;border-top:1px solid #e5e5e5;text-align:center;
   z-index:2147483000;padding:4px 0
 }
+.ad-banner.hidden{display:none!important}
 .ad-banner ins.adsbygoogle{display:block;width:100%}
+
+/* Ensure overlays stay below ad */
+.overlay-safe{z-index:2147482000}
 
 /* ===== Mobile polish ===== */
 @media (max-width:480px){
@@ -47,28 +55,5 @@ button:active{transform:translateY(1px)}
   .q{padding:12px}
 }
 
-/* Ensure overlays stay below ad */
-.overlay-safe{z-index:2147482000}
-
-/* === DYNAMIC PADDING RESET — KEEP LAST === */
-/* JS will set real bottom padding based on actual ad height */
-.wrap{ padding-bottom:16px !important; }
-@media (max-width:480px){
-  .wrap{ padding-bottom:16px !important; }
-}
-/* Ad slot helpers */
-.ad-banner.hidden{ display:none !important; }
-.ad-banner ins.adsbygoogle{ display:block; width:100%; } /* no fixed height */
-
-/* Mobile footer ad: fixed compact height */
-@media (max-width:540px){
-  .ad-banner{
-    position:fixed; left:0; right:0; bottom:0;
-    height:56px; padding:0; overflow:hidden;
-    background:#fff; border-top:1px solid #e5e5e5; z-index:2147483000;
-  }
-  .ad-banner ins.adsbygoogle{ display:block; width:100%; height:56px !important; }
-  .wrap{ padding-bottom:64px !important; } /* room for the 56px bar */
-}
 
 
