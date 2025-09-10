@@ -9,6 +9,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 });
 
+// Decode &ouml;, &quot;, etc. from server text
+function decodeHTML(s){ const e=document.createElement('textarea'); e.innerHTML=String(s??""); return e.value; }
+
+
 /* ---------- First-play gate (overlay kept below ad, mobile-safe) ---------- */
 function hasPlayedBefore(){ return localStorage.getItem("hq-played")==="true"; }
 function markPlayed(){ localStorage.setItem("hq-played","true"); }
