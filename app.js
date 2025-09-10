@@ -83,7 +83,8 @@ function checkPlayGate(){
 checkPlayGate();
 
 /* ------------------ Config ------------------ */
-window.SERVER_URL = window.SERVER_URL || "";
+window.SERVER_URL = ""; // same-origin: calls go to https://www.heiyuquiz.com/api/...
+
 /* ------------------ Rules ------------------ */
 // Pick ONE: 24 hours or 3 hours
 const QUIZ_TTL_HOURS = 24;   // set to 3 if you prefer a 3-hour link
