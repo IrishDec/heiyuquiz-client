@@ -94,7 +94,6 @@ const resultsView = qs("#resultsView");
 const nameIn      = qs("#name");
 const categorySel = qs("#category");
 const createBtn   = qs("#createBtn");
-const openPlayBtn = qs("#openPlay");
 const shareBtn    = qs("#shareBtn");
 
 const quizMeta    = qs("#quizMeta");
@@ -203,7 +202,7 @@ async function route(){
   };
 
   // Sprinkle confetti when a quiz is created and show a toast after link share/copy
-  const originalCreate = createBtn?.onclick || null;
+
   // Our file uses addEventListener, so hook after submit instead:
   createBtn?.addEventListener('click', ()=>{
     // confetti fires a bit later to not block your create/share flow
