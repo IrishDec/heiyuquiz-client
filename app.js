@@ -102,8 +102,6 @@ const scoreList   = qs("#scoreList");
 
 const regionSel = qs("#region");
 const topicIn   = qs("#topic");
-const cancelBtn = qs("#cancelBtn");
-
 
 // ---- Ad slot: auto-collapse on no fill (kills mobile white gap) ----
 (function(){
@@ -389,6 +387,9 @@ async function renderResults(id){
 
   const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
 
+  createBtn?.addEventListener("click", createQuiz);
+
+
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "";
   (data.results || []).forEach((row, i)=>{
@@ -398,12 +399,4 @@ async function renderResults(id){
   });
 }
 
-/* ------------------ Wire buttons ------------------ */
-cancelBtn?.addEventListener("click", ()=>{
-  if (nameIn)      nameIn.value = "";
-  if (categorySel) categorySel.selectedIndex = 0;
-  if (regionSel)   regionSel.value = "global";
-  if (topicIn)     topicIn.value = "";
-  if (window.hqToast) hqToast("Cleared");
-});
 
