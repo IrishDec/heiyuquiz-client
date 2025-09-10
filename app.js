@@ -83,7 +83,7 @@ function checkPlayGate(){
 checkPlayGate();
 
 /* ------------------ Config ------------------ */
-window.SERVER_URL = ""; // same-origin: calls go to https://www.heiyuquiz.com/api/...
+window.SERVER_URL = ""; // same-origin so /api/* goes to your Vercel functions
 
 /* ------------------ Rules ------------------ */
 // Pick ONE: 24 hours or 3 hours
