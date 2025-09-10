@@ -83,7 +83,7 @@ function checkPlayGate(){
 checkPlayGate();
 
 /* ------------------ Config ------------------ */
-window.SERVER_URL = window.SERVER_URL || "https://heiyuquiz-server.onrender.com";
+window.SERVER_URL = window.SERVER_URL || "";
 /* ------------------ Rules ------------------ */
 // Pick ONE: 24 hours or 3 hours
 const QUIZ_TTL_HOURS = 24;   // set to 3 if you prefer a 3-hour link
