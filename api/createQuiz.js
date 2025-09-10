@@ -1,6 +1,8 @@
 export const config = { runtime: 'edge' };
-import { db, newId } from '../_store.js';
-import { buildQuestions } from '../_bank.js';
+
+import { store, makeQuiz, TTL_SEC } from './_store.js';   // <-- was ../_store.js
+import { debit, credit } from './_bank.js';               // <-- was ../_bank.js
+
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
