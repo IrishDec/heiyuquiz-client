@@ -84,16 +84,56 @@
     </div>
   </div>
 
-<!-- Bottom banner ad (responsive, no fixed height) -->
-<div class="ad-banner">
+<!-- Bottom ad (only shows when an ad actually renders) -->
+<div class="ad-banner" id="adFooter" style="display:none">
   <ins class="adsbygoogle"
-       style="display:block;width:100%"
+       style="display:block"
        data-ad-client="ca-pub-5334553173304707"
        data-ad-slot="2359208366"
        data-ad-format="auto"
        data-full-width-responsive="true"></ins>
 </div>
-<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({});
+  (function(){
+    const banner = document.getElementById('adFooter');
+    const slot   = banner.querySelector('.adsbygoogle');
+    const wrap   = document.querySelector('.wrap');
+
+    function applyPadding(){
+      const h = Math.max(0, Math.ceil(banner.getBoundingClientRect().height));
+      if (wrap) wrap.style.paddingBottom = (h ? h + 8 : 16) + 'px';
+      if (window._hqGate) window._hqGate.style.bottom = (h ? h + 'px' : '0');
+    }
+
+    function showIfReady(){
+      const ifr = slot.querySelector('iframe');
+      if (ifr && ifr.offsetHeight > 0){
+        banner.style.display = 'block';
+        applyPadding();
+      }
+    }
+
+    // watch for the ad iframe to appear
+    const mo = new MutationObserver(showIfReady);
+    mo.observe(slot, { childList:true, subtree:true });
+
+    // fallbacks
+    setTimeout(showIfReady, 500);
+    setTimeout(showIfReady, 1500);
+    setTimeout(function(){
+      if (!slot.querySelector('iframe')){
+        banner.style.display = 'none';
+        if (wrap) wrap.style.paddingBottom = '16px';
+        if (window._hqGate) window._hqGate.style.bottom = '0';
+      }
+    }, 2500);
+
+    // recalc on rotate/resize
+    window.addEventListener('resize', ()=>{ if (banner.style.display==='block') applyPadding(); });
+  })();
+</script>
+
 
 </body>
 </html>
