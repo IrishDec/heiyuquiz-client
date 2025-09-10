@@ -54,29 +54,52 @@ const quizMeta    = qs("#quizMeta");
 const quizBody    = qs("#quizBody");
 const scoreList   = qs("#scoreList");
 
-/* ---------- Dynamic spacing based on actual ad height ---------- */
-(function adPaddingManager(){
-  const wrap = document.querySelector('.wrap');
-  const ad   = document.querySelector('.ad-banner');
+// ---- Ad slot: auto-collapse on no fill (kills mobile white gap) ----
+(function(){
+  const wrap   = document.querySelector('.wrap');
+  const banner = document.querySelector('.ad-banner');
+  const slot   = banner?.querySelector('.adsbygoogle');
 
-  function apply(){
-    const h = ad ? Math.ceil(ad.getBoundingClientRect().height) : 0;
-    if (wrap) wrap.style.paddingBottom = (h ? h + 8 : 16) + 'px';
-    if (window._hqGate){
-      window._hqGate.style.bottom = (h || 0) + 'px';
+  if (!wrap || !banner || !slot) return;
+
+  function setPaddingByBanner(){
+    const h = Math.max(0, Math.ceil(banner.getBoundingClientRect().height));
+    wrap.style.paddingBottom = (h ? h + 8 : 16) + 'px';
+    if (window._hqGate) window._hqGate.style.bottom = (h ? h : 0) + 'px';
+  }
+
+  function collapse(){
+    banner.classList.add('hidden');
+    wrap.style.paddingBottom = '16px';
+    if (window._hqGate) window._hqGate.style.bottom = '0px';
+  }
+
+  // Watch for an iframe (ad render) and height changes
+  const mo = new MutationObserver(()=> {
+    const ifr = slot.querySelector('iframe');
+    if (ifr) {
+      setPaddingByBanner();
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(setPaddingByBanner);
+        ro.observe(banner);
+        ro.observe(ifr);
+      }
     }
-  }
-  // Observe ad size changes
-  if ('ResizeObserver' in window && ad){
-    const ro = new ResizeObserver(apply);
-    ro.observe(ad);
-    const ins = ad.querySelector('ins'); if (ins) ro.observe(ins);
-  }
-  window.addEventListener('resize', apply);
-  document.addEventListener('DOMContentLoaded', apply);
-  setTimeout(apply, 0); setTimeout(apply, 400); setTimeout(apply, 1200);
-  window._applyAdPadding = apply;
+  });
+  mo.observe(slot, { childList:true, subtree:true });
+
+  // Fallback: if after 2500ms there's no iframe or height < 30px → collapse
+  setTimeout(()=>{
+    const ifr = slot.querySelector('iframe');
+    const h = Math.ceil(banner.getBoundingClientRect().height);
+    if (!ifr || h < 30) collapse();
+    else setPaddingByBanner();
+  }, 2500);
+
+  // Also recalc on resize
+  window.addEventListener('resize', setPaddingByBanner);
 })();
+
 
 /* ------------------ View switcher ------------------ */
 function show(el){
