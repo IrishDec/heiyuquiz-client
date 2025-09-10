@@ -1,5 +1,6 @@
 export const config = { runtime: 'edge' };
-import { db } from '../../../_store.js';
+
+import { store } from '../../_store.js';                  // <-- was ../../../_store.js
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
