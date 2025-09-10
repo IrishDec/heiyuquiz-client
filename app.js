@@ -1,5 +1,3 @@
-lets speed this up 
-you clean this 
 // HeiyuQuiz — app.js (mobile spacing fixed)
 
 /* ---------- First-play gate (overlay kept below ad, mobile-safe) ---------- */
