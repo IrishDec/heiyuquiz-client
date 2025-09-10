@@ -84,7 +84,8 @@ checkPlayGate();
 
 /* ------------------ Config ------------------ */
 // app.js (near the top)
-window.SERVER_URL = "";
+window.SERVER_URL = location.origin;
+
 
 /* ------------------ Rules ------------------ */
 // Pick ONE: 24 hours or 3 hours
