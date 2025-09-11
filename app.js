@@ -207,163 +207,85 @@ async function route(){
 
 /* ------------------ Create quiz & share ------------------ */
 async function createQuiz(){
-  const name     = (nameIn?.value || "Player").trim();   // kept for future use
   const category = categorySel?.value || "General";
   const region   = regionSel?.value || "global";
   const topic    = (topicIn?.value || "").trim();
 
-  let res, data;
-  try{
-    res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({
-        category,
-        region,         // NEW
-        topic,          // NEW (server can ignore if unsupported)
-        amount: 5,
-        durationSec: DURATION_SEC
+  // UI feedback
+  createBtn?.setAttribute('disabled','');
+  if (createBtn) createBtn.textContent = 'Creating…';
 
+  try {
+    const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        category, region, topic,
+        amount: 5,
+        durationSec: typeof DURATION_SEC!=="undefined" ? DURATION_SEC : 86400
       })
     });
-    data = await res.json();
-  }catch{
-    alert("Network error creating quiz."); return;
-  }
 
-  if (!res.ok && !data?.ok){ alert(data?.error || "Failed to create quiz."); return; }
+    const raw = await res.text();
+    let data; try { data = JSON.parse(raw); } catch { data = null; }
 
-  const quizId = data.quizId || data.id;
-  if (!quizId){ alert("Create succeeded but no quiz ID returned."); return; }
-
-  const link = `${location.origin}${location.pathname}#/play/${quizId}`;
-
- try {
-  if (navigator.share) {
-    await navigator.share({
-      title: "HeiyuQuiz",
-      text: `Join my ${category}${region && region!=='global' ? ' • '+region.toUpperCase() : ''}${topic ? ' — '+topic : ''} quiz!`,
-      url: link
-    });
-  } else {
-    await navigator.clipboard.writeText(link);
-    window.hqToast && hqToast("Link copied!");
-    alert("Link copied! Share it in your group.");
-  }
-} catch (e) {
-  // User canceled or share failed → copy link instead
-  try {
-    await navigator.clipboard.writeText(link);
-    window.hqToast && hqToast("Link copied!");
-    alert("Link copied! Share it in your group.");
-  } catch {}
-}
-
-
-
-/* ------------------ Play view ------------------ */
-async function renderPlay(id){
-  let res, data;
-  try{
-    res = await fetch(`${window.SERVER_URL}/api/quiz/${id}`, { credentials:"omit" });
-    data = await res.json();
-  }catch{
-    // Network/JSON error → show message instead of blank
-    show(playView);
-    quizMeta && (quizMeta.textContent = "Couldn’t load that quiz.");
-    quizBody && (quizBody.innerHTML = `<p class="muted">Network error. Ask the host to resend the link.</p>`);
-    return false;
-  }
-
-  if (!res.ok || !data?.ok){
-  // Try to show results if quiz is closed/expired
-  try{
-    const r  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/results`);
-    const rd = await r.json();
-    if (r.ok && rd?.ok && Array.isArray(rd.results) && rd.results.length){
-      await renderResults(id);
-      addHomeCta('This quiz is closed. Here are the results.');
-      return true;
-    }
-  }catch{}
-
-  // Fallback: plain message + home CTA
-  show(playView);
-  quizMeta && (quizMeta.textContent = "Quiz not found or expired.");
-  quizBody && (quizBody.innerHTML = `<p class="muted">That link looks invalid or expired.</p>`);
-  addHomeCta();
-  return false;
-}
-
-  show(playView);
-  const metaBits = [category, closesAt && `Closes: ${closesAt}`, region && region.toUpperCase(), topic && `Topic: ${topic}`]
-    .filter(Boolean).join(" • ");
-  quizMeta && (quizMeta.textContent = metaBits || category);
-  quizBody && (quizBody.innerHTML = "");
-
-  const picks = new Array(questions.length).fill(null);
-
-  questions.forEach((q, idx)=>{
-    const wrap = document.createElement("div"); wrap.className = "q";
-    const prog = document.createElement("div"); prog.className = "progress"; prog.textContent = `Q ${idx+1}/${questions.length}`;
-    const h = document.createElement("h3"); h.textContent = decodeHTML(q.q || q.question || `Question ${idx+1}`);
-    const opts = document.createElement("div"); opts.className = "opts";
-    const options = q.options || q.choices || [];
-    options.forEach((opt, oidx)=>{
-      const b = document.createElement("button"); b.textContent = decodeHTML(String(opt));
-      b.onclick = ()=>{
-        picks[idx] = oidx;
-        [...opts.children].forEach(c => c.classList.remove("selected"));
-        b.classList.add("selected");
-      };
-      opts.appendChild(b);
-    });
-    wrap.appendChild(prog); wrap.appendChild(h); wrap.appendChild(opts);
-    quizBody?.appendChild(wrap);
-  });
-
-  const submit = document.createElement("button");
-  submit.textContent = "Submit Answers";
-  submit.style.marginTop = "12px";
-  submit.onclick = async ()=>{
-    const name = (nameIn?.value || "Player").trim();
-    let sRes, sData;
-    try{
-      sRes = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ name, picks })
-      });
-      sData = await sRes.json();
-    }catch{
-      window.hqToast && hqToast("Network error submitting.");
+    if (!res.ok || !data?.ok){
+      const msg = (data && (data.error || data.message)) || raw || `HTTP ${res.status}`;
+      alert(`Create failed: ${msg}`);
       return;
     }
-    if (!sRes.ok && !sData?.ok){
-      window.hqToast && hqToast(sData?.error || "Submit failed");
-      return;
+
+    const quizId = data.quizId || data.id;
+    if (!quizId){ alert('Create succeeded but no quiz ID returned.'); return; }
+
+    // Navigate immediately so play screen renders
+    location.hash = `/play/${quizId}`;
+
+    const link = `${location.origin}${location.pathname}#/play/${quizId}`;
+
+    // Always show a visible link panel (copy/open) so user has the link even if Share is canceled
+    let panel = document.getElementById('linkPanel');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'linkPanel';
+      panel.style.cssText = 'margin-top:10px;display:flex;gap:8px;flex-wrap:wrap';
+      panel.innerHTML = `
+        <input id="shareLink" readonly style="flex:1;min-width:220px;padding:10px;border:1px solid #ddd;border-radius:10px">
+        <button id="copyLinkBtn" style="padding:10px 14px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">Copy</button>
+        <a id="openLinkBtn" style="padding:10px 14px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;text-decoration:none" target="_blank">Open</a>
+      `;
+      startCard?.appendChild(panel);
     }
-    location.hash = `/results/${id}`;
-  };
-  quizBody?.appendChild(submit);
+    const inp = panel.querySelector('#shareLink'); if (inp) inp.value = link;
+    const openBtn = panel.querySelector('#openLinkBtn'); if (openBtn) openBtn.href = link;
+    const copyBtn = panel.querySelector('#copyLinkBtn');
+    copyBtn?.addEventListener('click', async ()=>{
+      try { await navigator.clipboard.writeText(link); window.hqToast && hqToast('Link copied!'); } catch {}
+    }, { once:true });
 
-  if (shareBtn){
-    shareBtn.onclick = async ()=>{
-      const link = `${location.origin}${location.pathname}#/play/${id}`;
-      try{
-        if (navigator.share){
-          await navigator.share({ title:"HeiyuQuiz", text:`Join this ${category} quiz!`, url: link });
-        }else{
-          await navigator.clipboard.writeText(link);
-          window.hqToast && hqToast("Link copied!");
-        }
-      }catch{}
-    };
+    // Try native share; if user cancels or it fails, we still have the panel & copy fallback
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "HeiyuQuiz",
+          text: `Join my ${category}${region && region!=='global' ? ' • '+region.toUpperCase() : ''}${topic ? ' — '+topic : ''} quiz!`,
+          url: link
+        });
+      } else {
+        await navigator.clipboard.writeText(link);
+        window.hqToast && hqToast("Link copied!");
+      }
+    } catch {
+      try { await navigator.clipboard.writeText(link); window.hqToast && hqToast("Link copied!"); } catch {}
+    }
+
+  } catch {
+    alert("Network error creating quiz.");
+  } finally {
+    createBtn?.removeAttribute('disabled');
+    if (createBtn) createBtn.textContent = 'Create & Share Link';
   }
-
-  return true;
 }
-
 
 
 /* ------------------ Results view ------------------ */
