@@ -212,8 +212,14 @@ async function createQuiz(){
   const topic    = (topicIn?.value || "").trim();
 
   // UI feedback
+  const originalLabel = createBtn?.textContent;
   createBtn?.setAttribute('disabled','');
   if (createBtn) createBtn.textContent = 'Creating…';
+
+  // Abort after 10s so it never hangs forever
+  const timeoutMs = 10000;
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
 
   try {
     const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
@@ -222,28 +228,29 @@ async function createQuiz(){
       body: JSON.stringify({
         category, region, topic,
         amount: 5,
-        durationSec: typeof DURATION_SEC!=="undefined" ? DURATION_SEC : 86400
-      })
+        durationSec: (typeof DURATION_SEC!=="undefined" ? DURATION_SEC : 86400)
+      }),
+      signal: ctrl.signal
     });
 
-    const raw = await res.text();
+    const raw = await res.text(); // read body once
     let data; try { data = JSON.parse(raw); } catch { data = null; }
 
     if (!res.ok || !data?.ok){
       const msg = (data && (data.error || data.message)) || raw || `HTTP ${res.status}`;
-      alert(`Create failed: ${msg}`);
+      console.error('createQuiz error:', {status: res.status, body: raw});
+      alert(`Create failed:\n${msg}`);
       return;
     }
 
     const quizId = data.quizId || data.id;
     if (!quizId){ alert('Create succeeded but no quiz ID returned.'); return; }
 
-    // Navigate immediately so play screen renders
+    // Navigate immediately so the play screen renders
     location.hash = `/play/${quizId}`;
 
+    // Build share link + simple fallback panel
     const link = `${location.origin}${location.pathname}#/play/${quizId}`;
-
-    // Always show a visible link panel (copy/open) so user has the link even if Share is canceled
     let panel = document.getElementById('linkPanel');
     if (!panel) {
       panel = document.createElement('div');
@@ -256,14 +263,14 @@ async function createQuiz(){
       `;
       startCard?.appendChild(panel);
     }
-    const inp = panel.querySelector('#shareLink'); if (inp) inp.value = link;
-    const openBtn = panel.querySelector('#openLinkBtn'); if (openBtn) openBtn.href = link;
+    panel.querySelector('#shareLink').value = link;
+    panel.querySelector('#openLinkBtn').href = link;
     const copyBtn = panel.querySelector('#copyLinkBtn');
-    copyBtn?.addEventListener('click', async ()=>{
+    copyBtn.onclick = async ()=>{
       try { await navigator.clipboard.writeText(link); window.hqToast && hqToast('Link copied!'); } catch {}
-    }, { once:true });
+    };
 
-    // Try native share; if user cancels or it fails, we still have the panel & copy fallback
+    // Try native share; fallback silently to clipboard
     try {
       if (navigator.share) {
         await navigator.share({
@@ -279,11 +286,17 @@ async function createQuiz(){
       try { await navigator.clipboard.writeText(link); window.hqToast && hqToast("Link copied!"); } catch {}
     }
 
-  } catch {
-    alert("Network error creating quiz.");
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      alert('Create timed out after 10s. Backend may be offline.');
+    } else {
+      alert('Network error creating quiz.');
+    }
+    console.error('createQuiz exception:', err);
   } finally {
+    clearTimeout(t);
     createBtn?.removeAttribute('disabled');
-    if (createBtn) createBtn.textContent = 'Create & Share Link';
+    if (createBtn) createBtn.textContent = originalLabel || 'Create & Share Link';
   }
 }
 
