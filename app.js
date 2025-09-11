@@ -68,7 +68,9 @@ function checkPlayGate(){
 checkPlayGate();
 
 /* ------------------ Config & Rules ------------------ */
-window.SERVER_URL = location.origin;     // calls your own /api/* on Vercel
+// app.js
+window.SERVER_URL = "https://heiyuquiz-server.onrender.com";
+
 const QUIZ_TTL_HOURS = 24;               // set to 3 if you prefer 3-hour links
 const DURATION_SEC    = QUIZ_TTL_HOURS * 3600;
 
