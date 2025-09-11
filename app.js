@@ -1,6 +1,6 @@
-// HeiyuQuiz — app.js (mobile spacing fixed)
+// HeiyuQuiz — app.js
 
-// If someone opens /?quiz=ABC123, convert it to #/play/ABC123
+/* --------- If someone opens /?quiz=ABC123, convert it to #/play/ABC123 --------- */
 document.addEventListener('DOMContentLoaded', ()=>{
   const u = new URL(location.href);
   const q = u.searchParams.get('quiz');
@@ -9,11 +9,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 });
 
+/* --------- Helpers --------- */
 // Decode &ouml;, &quot;, etc. from server text
 function decodeHTML(s){ const e=document.createElement('textarea'); e.innerHTML=String(s??""); return e.value; }
 
-
-/* ---------- First-play gate (overlay kept below ad, mobile-safe) ---------- */
+/* --------- First-play gate (overlay kept below ad, mobile-safe) --------- */
 function hasPlayedBefore(){ return localStorage.getItem("hq-played")==="true"; }
 function markPlayed(){ localStorage.setItem("hq-played","true"); }
 
@@ -22,7 +22,7 @@ function checkPlayGate(){
 
   const gate = document.createElement("div");
   Object.assign(gate.style, {
-    position:"fixed", top:0, left:0, right:0, bottom:0, // we’ll adjust bottom after mount
+    position:"fixed", top:0, left:0, right:0, bottom:0,
     background:"rgba(0,0,0,0.85)",
     display:"flex", justifyContent:"center", alignItems:"center",
     zIndex:2147482000  // below .ad-banner
@@ -36,33 +36,20 @@ function checkPlayGate(){
     </div>
   `;
   document.body.appendChild(gate);
-
-  // expose for any other helpers
   window._hqGate = gate;
 
-  // --- Set overlay bottom to actual banner height (fallback to 56px on small screens) ---
   const banner = document.querySelector('.ad-banner');
-  let ro; // ResizeObserver reference
-
+  let ro;
   function setBottomForBanner(){
     let h = 0;
-    if (banner) {
-      h = Math.max(0, Math.ceil(banner.getBoundingClientRect().height));
-    }
-    if (h === 0 && matchMedia("(max-width:540px)").matches) {
-      // deterministic compact footer height on phones if ad hasn't rendered yet
-      h = 56;
-    }
+    if (banner) h = Math.max(0, Math.ceil(banner.getBoundingClientRect().height));
+    if (h === 0 && matchMedia("(max-width:540px)").matches) h = 56;
     gate.style.bottom = (h ? h + "px" : "0");
   }
-
-  // initial + delayed passes (to catch late ad rendering)
   setBottomForBanner();
   setTimeout(setBottomForBanner, 400);
   setTimeout(setBottomForBanner, 1200);
   setTimeout(setBottomForBanner, 2500);
-
-  // react to future size changes
   if ("ResizeObserver" in window && banner){
     ro = new ResizeObserver(setBottomForBanner);
     ro.observe(banner);
@@ -70,9 +57,7 @@ function checkPlayGate(){
   }
   window.addEventListener('resize', setBottomForBanner);
 
-  // button handler
   document.getElementById("continueBtn")?.addEventListener("click", ()=>{
-    // TODO: replace with real rewarded ad
     alert("Here you would watch an ad. Unlocking for now.");
     if (ro) try { ro.disconnect(); } catch {}
     window.removeEventListener('resize', setBottomForBanner);
@@ -82,14 +67,9 @@ function checkPlayGate(){
 }
 checkPlayGate();
 
-/* ------------------ Config ------------------ */
-// app.js (near the top)
-window.SERVER_URL = location.origin;
-
-
-/* ------------------ Rules ------------------ */
-// Pick ONE: 24 hours or 3 hours
-const QUIZ_TTL_HOURS = 24;   // set to 3 if you prefer a 3-hour link
+/* ------------------ Config & Rules ------------------ */
+window.SERVER_URL = location.origin;     // calls your own /api/* on Vercel
+const QUIZ_TTL_HOURS = 24;               // set to 3 if you prefer 3-hour links
 const DURATION_SEC    = QUIZ_TTL_HOURS * 3600;
 
 /* ------------------ DOM ------------------ */
@@ -110,15 +90,13 @@ const scoreList   = qs("#scoreList");
 const regionSel = qs("#region");
 const topicIn   = qs("#topic");
 
-/* ------------------ View switcher ------------------ */
+/* ------------------ View switcher + home CTA ------------------ */
 function show(el){
   [startCard, playView, resultsView].forEach(e => e?.classList.add("hidden"));
   el?.classList.remove("hidden");
 }
 function addHomeCta(msg){
-  // remove a previous CTA if present
   document.querySelector('.home-cta')?.remove();
-
   const container = document.createElement('div');
   container.className = 'home-cta';
   container.style.marginTop = '12px';
@@ -126,11 +104,8 @@ function addHomeCta(msg){
     ${msg ? `<p class="muted" style="margin:0 0 8px">${msg}</p>` : ``}
     <button id="goHomeBtn">Start a new quiz</button>
   `;
-
-  // prefer resultsView if visible, otherwise playView
   const target = !resultsView?.classList.contains('hidden') ? resultsView : playView;
   target.appendChild(container);
-
   document.getElementById('goHomeBtn').onclick = ()=>{
     location.hash = '';
     show(startCard);
@@ -150,7 +125,8 @@ async function route(){
   else if (view === "results" && id) renderResults(id);
   else                             show(startCard);
 }
-/* ===== Beauty Pack helpers: toast + confetti ===== */
+
+/* ===== Beauty Pack: toast + confetti ===== */
 (function(){
   function ensureToast(){
     let t = document.querySelector('.toast');
@@ -167,7 +143,6 @@ async function route(){
     t.classList.add('show');
     setTimeout(()=>t.classList.remove('show'), ms);
   };
-
   window.hqConfetti = function(n=18){
     const colors = ['#6e56cf','#d6467e','#ffb224','#3dd6b7','#5b9eff'];
     for (let i=0;i<n;i++){
@@ -182,18 +157,10 @@ async function route(){
       setTimeout(()=>s.remove(), 1400);
     }
   };
-
-   // Sprinkle confetti when a quiz is created and show a toast after link share/copy
-
-  // Our file uses addEventListener, so hook after submit instead:
   createBtn?.addEventListener('click', ()=>{
-    // confetti fires a bit later to not block your create/share flow
     setTimeout(()=>hqConfetti(20), 300);
-    // optional toast hint (will still show even if native share opens)
     setTimeout(()=>hqToast('Share the link 🎉'), 800);
   });
-
-  // When results page loads, add a tiny celebration
   const _oldRenderResults = typeof renderResults === 'function' ? renderResults : null;
   if (_oldRenderResults){
     window.renderResults = async function(id){
@@ -203,7 +170,6 @@ async function route(){
     };
   }
 })();
-
 
 /* ------------------ Create quiz & share ------------------ */
 async function createQuiz(){
@@ -228,12 +194,12 @@ async function createQuiz(){
       body: JSON.stringify({
         category, region, topic,
         amount: 5,
-        durationSec: (typeof DURATION_SEC!=="undefined" ? DURATION_SEC : 86400)
+        durationSec: DURATION_SEC
       }),
       signal: ctrl.signal
     });
 
-    const raw = await res.text(); // read body once
+    const raw = await res.text();
     let data; try { data = JSON.parse(raw); } catch { data = null; }
 
     if (!res.ok || !data?.ok){
@@ -265,8 +231,7 @@ async function createQuiz(){
     }
     panel.querySelector('#shareLink').value = link;
     panel.querySelector('#openLinkBtn').href = link;
-    const copyBtn = panel.querySelector('#copyLinkBtn');
-    copyBtn.onclick = async ()=>{
+    panel.querySelector('#copyLinkBtn').onclick = async ()=>{
       try { await navigator.clipboard.writeText(link); window.hqToast && hqToast('Link copied!'); } catch {}
     };
 
@@ -300,6 +265,120 @@ async function createQuiz(){
   }
 }
 
+/* ------------------ Play view ------------------ */
+async function renderPlay(id){
+  let res, data;
+  try{
+    res = await fetch(`${window.SERVER_URL}/api/quiz/${id}`, { credentials:"omit" });
+    data = await res.json();
+  }catch{
+    show(playView);
+    quizMeta && (quizMeta.textContent = "Couldn’t load that quiz.");
+    quizBody && (quizBody.innerHTML = `<p class="muted">Network error. Ask the host to resend the link.</p>`);
+    return false;
+  }
+
+  if (!res.ok || !data?.ok){
+    // Try to show results if quiz is closed/expired
+    try{
+      const r  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/results`);
+      const rd = await r.json();
+      if (r.ok && rd?.ok && Array.isArray(rd.results) && rd.results.length){
+        await renderResults(id);
+        addHomeCta('This quiz is closed. Here are the results.');
+        return true;
+      }
+    }catch{}
+    show(playView);
+    quizMeta && (quizMeta.textContent = "Quiz not found or expired.");
+    quizBody && (quizBody.innerHTML = `<p class="muted">That link looks invalid or expired.</p>`);
+    addHomeCta();
+    return false;
+  }
+
+  // --- extract meta + ensure questions array ---
+  const category = data.category || "Quiz";
+  const closesAt = data.closesAt ? new Date(data.closesAt).toLocaleTimeString() : "";
+  const region   = data.region || "";
+  const topic    = data.topic  || "";
+
+  let questions = data.questions;
+  if (!Array.isArray(questions) || questions.length === 0){
+    console.warn("No questions from server; using demo set so UI isn’t blank.");
+    questions = Array.from({length:5}, (_,i)=>({
+      q: `Sample question #${i+1}?`,
+      options: ["Option A","Option B","Option C","Option D"]
+    }));
+  }
+
+  show(playView);
+  const metaBits = [category, closesAt && `Closes: ${closesAt}`, region && region.toUpperCase(), topic && `Topic: ${topic}`]
+    .filter(Boolean).join(" • ");
+  quizMeta && (quizMeta.textContent = metaBits || category);
+  quizBody && (quizBody.innerHTML = "");
+
+  const picks = new Array(questions.length).fill(null);
+
+  questions.forEach((q, idx)=>{
+    const wrap = document.createElement("div"); wrap.className = "q";
+    const prog = document.createElement("div"); prog.className = "progress"; prog.textContent = `Q ${idx+1}/${questions.length}`;
+    const h = document.createElement("h3"); h.textContent = decodeHTML(q.q || q.question || `Question ${idx+1}`);
+    const opts = document.createElement("div"); opts.className = "opts";
+    const options = q.options || q.choices || [];
+    options.forEach((opt, oidx)=>{
+      const b = document.createElement("button"); b.textContent = decodeHTML(String(opt));
+      b.onclick = ()=>{
+        picks[idx] = oidx;
+        [...opts.children].forEach(c => c.classList.remove("selected"));
+        b.classList.add("selected");
+      };
+      opts.appendChild(b);
+    });
+    wrap.appendChild(prog); wrap.appendChild(h); wrap.appendChild(opts);
+    quizBody?.appendChild(wrap);
+  });
+
+  const submit = document.createElement("button");
+  submit.textContent = "Submit Answers";
+  submit.style.marginTop = "12px";
+  submit.onclick = async ()=>{
+    const name = (nameIn?.value || "Player").trim();
+    let sRes, sData;
+    try{
+      sRes = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ name, picks })
+      });
+      sData = await sRes.json();
+    }catch{
+      window.hqToast && hqToast("Network error submitting.");
+      return;
+    }
+    if (!sRes.ok && !sData?.ok){
+      window.hqToast && hqToast(sData?.error || "Submit failed");
+      return;
+    }
+    location.hash = `/results/${id}`;
+  };
+  quizBody?.appendChild(submit);
+
+  if (shareBtn){
+    shareBtn.onclick = async ()=>{
+      const link = `${location.origin}${location.pathname}#/play/${id}`;
+      try{
+        if (navigator.share){
+          await navigator.share({ title:"HeiyuQuiz", text:`Join this ${category} quiz!`, url: link });
+        }else{
+          await navigator.clipboard.writeText(link);
+          window.hqToast && hqToast("Link copied!");
+        }
+      }catch{}
+    };
+  }
+
+  return true;
+}
 
 /* ------------------ Results view ------------------ */
 async function renderResults(id){
@@ -314,19 +393,17 @@ async function renderResults(id){
 
   const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
 
- 
-
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "";
   (data.results || []).forEach((row, i)=>{
     const li = document.createElement("li");
     li.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
     scoreList?.appendChild(li);
-  addHomeCta(); // lets players jump back to start
-
   });
+  addHomeCta(); // lets players jump back to start
 }
- /* ------------------ Wire buttons ------------------ */
-  createBtn?.addEventListener("click", createQuiz);
+
+/* ------------------ Wire buttons ------------------ */
+createBtn?.addEventListener("click", createQuiz);
 
 
