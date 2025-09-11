@@ -238,19 +238,27 @@ async function createQuiz(){
 
   const link = `${location.origin}${location.pathname}#/play/${quizId}`;
 
-  try{
-    if (navigator.share){
-      await navigator.share({
-        title: "HeiyuQuiz",
-        text: `Join my ${category}${region && region!=='global' ? ' • '+region.toUpperCase() : ''}${topic ? ' — '+topic : ''} quiz!`,
-        url: link
-      });
-    }else{
-      await navigator.clipboard.writeText(link);
-      alert("Link copied! Share it in your group.");
-    }
-  }catch{/* user canceled share */}
+ try {
+  if (navigator.share) {
+    await navigator.share({
+      title: "HeiyuQuiz",
+      text: `Join my ${category}${region && region!=='global' ? ' • '+region.toUpperCase() : ''}${topic ? ' — '+topic : ''} quiz!`,
+      url: link
+    });
+  } else {
+    await navigator.clipboard.writeText(link);
+    window.hqToast && hqToast("Link copied!");
+    alert("Link copied! Share it in your group.");
+  }
+} catch (e) {
+  // User canceled or share failed → copy link instead
+  try {
+    await navigator.clipboard.writeText(link);
+    window.hqToast && hqToast("Link copied!");
+    alert("Link copied! Share it in your group.");
+  } catch {}
 }
+
 
 
 /* ------------------ Play view ------------------ */
