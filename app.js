@@ -266,20 +266,23 @@ async function createQuiz(){
 }
 
 /* ------------------ Play view ------------------ */
+/* ------------------ Play view ------------------ */
 async function renderPlay(id){
   let res, data;
   try{
     res = await fetch(`${window.SERVER_URL}/api/quiz/${id}`, { credentials:"omit" });
     data = await res.json();
   }catch{
+    // Network/JSON error → show message instead of blank
     show(playView);
-    quizMeta && (quizMeta.textContent = "Couldn’t load that quiz.");
-    quizBody && (quizBody.innerHTML = `<p class="muted">Network error. Ask the host to resend the link.</p>`);
+    if (quizMeta) quizMeta.textContent = "Couldn’t load that quiz.";
+    if (quizBody) quizBody.innerHTML = `<p class="muted">Network error. Ask the host to resend the link.</p>`;
+    addHomeCta();
     return false;
   }
 
+  // If quiz missing/closed, try to show results instead
   if (!res.ok || !data?.ok){
-    // Try to show results if quiz is closed/expired
     try{
       const r  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/results`);
       const rd = await r.json();
@@ -290,20 +293,20 @@ async function renderPlay(id){
       }
     }catch{}
     show(playView);
-    quizMeta && (quizMeta.textContent = "Quiz not found or expired.");
-    quizBody && (quizBody.innerHTML = `<p class="muted">That link looks invalid or expired.</p>`);
+    if (quizMeta) quizMeta.textContent = "Quiz not found or expired.";
+    if (quizBody) quizBody.innerHTML = `<p class="muted">That link looks invalid or expired.</p>`;
     addHomeCta();
     return false;
   }
 
-  // --- extract meta + ensure questions array ---
+  // ✅ DEFINE EVERYTHING BEFORE USING IT
   const category = data.category || "Quiz";
   const closesAt = data.closesAt ? new Date(data.closesAt).toLocaleTimeString() : "";
   const region   = data.region || "";
   const topic    = data.topic  || "";
+  let   questions = Array.isArray(data.questions) ? data.questions : [];
 
-  let questions = data.questions;
-  if (!Array.isArray(questions) || questions.length === 0){
+  if (questions.length === 0){
     console.warn("No questions from server; using demo set so UI isn’t blank.");
     questions = Array.from({length:5}, (_,i)=>({
       q: `Sample question #${i+1}?`,
@@ -312,10 +315,11 @@ async function renderPlay(id){
   }
 
   show(playView);
+
   const metaBits = [category, closesAt && `Closes: ${closesAt}`, region && region.toUpperCase(), topic && `Topic: ${topic}`]
     .filter(Boolean).join(" • ");
-  quizMeta && (quizMeta.textContent = metaBits || category);
-  quizBody && (quizBody.innerHTML = "");
+  if (quizMeta) quizMeta.textContent = metaBits || category;
+  if (quizBody) quizBody.innerHTML = "";
 
   const picks = new Array(questions.length).fill(null);
 
@@ -343,23 +347,21 @@ async function renderPlay(id){
   submit.style.marginTop = "12px";
   submit.onclick = async ()=>{
     const name = (nameIn?.value || "Player").trim();
-    let sRes, sData;
     try{
-      sRes = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
+      const sRes  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ name, picks })
       });
-      sData = await sRes.json();
+      const sData = await sRes.json();
+      if (!sRes.ok || !sData?.ok){
+        window.hqToast && hqToast(sData?.error || "Submit failed");
+        return;
+      }
+      location.hash = `/results/${id}`;
     }catch{
       window.hqToast && hqToast("Network error submitting.");
-      return;
     }
-    if (!sRes.ok && !sData?.ok){
-      window.hqToast && hqToast(sData?.error || "Submit failed");
-      return;
-    }
-    location.hash = `/results/${id}`;
   };
   quizBody?.appendChild(submit);
 
@@ -379,6 +381,7 @@ async function renderPlay(id){
 
   return true;
 }
+
 
 /* ------------------ Results view ------------------ */
 async function renderResults(id){
