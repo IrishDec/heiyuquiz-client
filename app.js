@@ -380,10 +380,10 @@ if (playNameIn && !playNameIn.value) playNameIn.value = getSavedName() || (nameI
         body: JSON.stringify({ name, picks })
       });
       const sData = await sRes.json();
-      if (!sRes.ok || !sData?.ok){
-        window.hqToast && hqToast(sData?.error || "Submit failed");
-        return;
-      }
+      if (!res.ok || !data?.ok){ 
+  alert(data?.error || "No results yet."); 
+  return; 
+}
       location.hash = `/results/${id}`;
     }catch{
       window.hqToast && hqToast("Network error submitting.");
