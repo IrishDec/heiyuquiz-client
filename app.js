@@ -423,54 +423,49 @@ async function renderPlay(id){
 
   return true;
 }
-/* ------------------ Results view (gated + live auto-refresh) ------------------ */
+/* ------------------ Results view (live auto-refresh) ------------------ */
 async function renderResults(id){
   // stop any previous poller
   if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
 
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
-  // ---- GATE: hide results + CTA until user acts this session ----
-const ackKey = `hq-ack-${id}`;
-const acknowledged = sessionStorage.getItem(ackKey) === '1';
 
-// always remove any previously shown CTA at entry
-document.querySelector('.home-cta')?.remove();
+  // ---- GATE: hide results + CTA until user acts THIS session ----
+  const ackKey   = `hq-ack-${id}`;        // session gate key
+  const shareKey = `hq-shared-${id}`;     // optional metric
+  const acknowledged = sessionStorage.getItem(ackKey) === '1';
 
-// hide the list until acknowledged
-if (!acknowledged) {
-  if (scoreList) scoreList.style.display = 'none';
-  let gate = document.getElementById('resultsGateMsg');
-  if (!gate){
-    gate = document.createElement('p');
-    gate.id = 'resultsGateMsg';
-    gate.className = 'muted';
-    gate.textContent = 'Tap Copy, Share, or Skip to view results and start a new quiz.';
-    resultsView?.appendChild(gate);
+  // always remove any previously shown CTA at entry
+  document.querySelector('.home-cta')?.remove();
+
+  if (!acknowledged) {
+    if (scoreList) scoreList.style.display = 'none';
+    let gate = document.getElementById('resultsGateMsg');
+    if (!gate){
+      gate = document.createElement('p');
+      gate.id = 'resultsGateMsg';
+      gate.className = 'muted';
+      gate.textContent = 'Tap Copy, Share, or Skip to view results and start a new quiz.';
+      resultsView?.appendChild(gate);
+    }
+  } else {
+    if (scoreList) scoreList.style.display = '';
+    addHomeCta();
   }
-} else {
-  if (scoreList) scoreList.style.display = '';
-  addHomeCta();
-}
 
+  // ---- Actions (Copy / Share / Skip) — available to everyone ----
+  const link = `${location.origin}${location.pathname}#/play/${id}`;
 
-  const link      = `${location.origin}${location.pathname}#/play/${id}`;
-  const ackKey    = `hq-ack-${id}`;      // session gate to reveal results + Start
-  const shareKey  = `hq-shared-${id}`;   // optional: track sharing (persists)
-
-  // clean up any old persistent gate so it doesn't auto-unlock
-  try { localStorage.removeItem(ackKey); } catch {}
-
-  // ===== Actions panel (Copy / Share / Skip) =====
   (function ensureActions(){
     let p = document.getElementById('resultsActions');
     if (!p){
       p = document.createElement('div');
       p.id = 'resultsActions';
-      p.style.cssText = 'margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap';
+      p.style.cssText = 'margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center';
       p.innerHTML = `
         <input id="resultsShareLink" readonly
-               style="display:none;flex:1;min-width:220px;padding:10px;border:1px solid #ddd;border-radius:10px">
+               style="display:none">
         <button id="resultsCopyBtn"
                 style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
           Copy quiz link
@@ -481,7 +476,7 @@ if (!acknowledged) {
         </button>
         <button id="resultsSkipBtn"
                 style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#fff;font-weight:600;cursor:pointer">
-          Skip share — see results
+          Skip — see results
         </button>
       `;
       resultsView?.insertBefore(p, resultsView.firstChild);
@@ -492,12 +487,10 @@ if (!acknowledged) {
     const skipBtn  = document.getElementById('resultsSkipBtn');
     if (inp) inp.value = link;
 
-    function unlock(){
+    function unlockStart(){
       try { sessionStorage.setItem(ackKey, '1'); } catch {}
-      // reveal results
-      const gateMsg = document.getElementById('resultsGateMsg'); gateMsg?.remove();
+      document.getElementById('resultsGateMsg')?.remove();
       if (scoreList) scoreList.style.display = '';
-      // show Start CTA
       document.querySelector('.home-cta') || addHomeCta();
     }
 
@@ -505,20 +498,26 @@ if (!acknowledged) {
       try { await navigator.clipboard.writeText(link); } catch {}
       try { localStorage.setItem(shareKey, '1'); } catch {}
       window.hqToast && hqToast('Link copied!');
-      unlock();
+      unlockStart();
     };
+
     if (shareBtn) shareBtn.onclick = async ()=>{
       try{
-        if (navigator.share){ await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link }); }
-        else { await navigator.clipboard.writeText(link); }
+        if (navigator.share){
+          await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
+        } else {
+          await navigator.clipboard.writeText(link);
+        }
       }catch{}
       try { localStorage.setItem(shareKey, '1'); } catch {}
       window.hqToast && hqToast('Ready to share!');
-      unlock();
+      unlockStart();
     };
-    if (skipBtn) skipBtn.onclick = unlock;
+
+    if (skipBtn) skipBtn.onclick = unlockStart;
   })();
 
+  // ---- Results fetch + render ----
   const me = (getSavedName() || (nameIn?.value || '')).trim();
 
   async function fetchResults(){
@@ -540,15 +539,6 @@ if (!acknowledged) {
       const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
       li.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
       if (isMe) { li.style.fontWeight = "700"; li.style.textDecoration = "underline"; }
-
-      // add "See answers" link on the right
-      const a = document.createElement('a');
-      a.textContent = 'See answers';
-      a.href = `#/answers/${id}?n=${encodeURIComponent(row.name || '')}`;
-      a.style.cssText = 'margin-left:8px; font-size:12px;';
-      li.appendChild(document.createTextNode(' '));
-      li.appendChild(a);
-
       scoreList.appendChild(li);
     });
   }
@@ -562,25 +552,7 @@ if (!acknowledged) {
     if (scoreList) scoreList.innerHTML = `<li class="muted">No results yet — check back soon.</li>`;
   }
 
-  // gate visibility until user acts THIS session
-  const acknowledged = sessionStorage.getItem(ackKey) === '1';
-  if (!acknowledged){
-    if (scoreList) scoreList.style.display = 'none';
-    let gate = document.getElementById('resultsGateMsg');
-    if (!gate){
-      gate = document.createElement('p');
-      gate.id = 'resultsGateMsg';
-      gate.className = 'muted';
-      gate.textContent = 'Tap Copy, Share, or Skip to view results and start a new quiz.';
-      resultsView?.appendChild(gate);
-    }
-    // ensure Start CTA is hidden until unlock
-    document.querySelector('.home-cta')?.remove();
-  } else {
-    addHomeCta();
-  }
-
-  // live poll (every 4s for ~2 min)
+  // short-lived poller (every 4s for ~2 minutes)
   const startedAt = Date.now();
   function stop(){
     if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
@@ -589,24 +561,20 @@ if (!acknowledged) {
   }
   window._hqPoll = {
     id: setInterval(async ()=>{
-      if (Date.now() - startedAt > 120000) return stop();
+      if (Date.now() - startedAt > 120000) return stop(); // 2 min
       try{
         const data = await fetchResults();
         const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
-        // don't touch gate when redrawing
-        if (scoreList && scoreList.style.display !== 'none') {
-          draw(data.results || [], total);
-        } else {
-          // still update in background so when revealed it's fresh
-          scoreList && draw(data.results || [], total);
-          if (scoreList) scoreList.style.display = 'none';
-        }
-      }catch{}
+        draw(data.results || [], total);
+      }catch{/* keep last */}
     }, 4000)
   };
   window.addEventListener("hashchange", stop);
   window.addEventListener("beforeunload", stop);
+
+  // NOTE: no addHomeCta() here — it appears only after Copy/Share/Skip via unlockStart()
 }
+
 
 
 /* ------------------ Wire buttons ------------------ */
