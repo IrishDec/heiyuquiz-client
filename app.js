@@ -643,18 +643,7 @@ async function showMyAnswers(){
   panel.appendChild(list);
   panel.scrollIntoView({ behavior:'smooth', block:'start' });
 }
-
-    }
-    list.forEach((row, i)=>{
-      const li = document.createElement("li");
-      const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
-      li.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
-      if (isMe) { li.style.fontWeight = "700"; li.style.textDecoration = "underline"; }
-      scoreList.appendChild(li);
-    });
-  }
-
-  // initial load
+ // initial load
   try{
     const data = await fetchResults();
     const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
