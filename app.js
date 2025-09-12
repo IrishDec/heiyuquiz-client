@@ -390,6 +390,24 @@ if (playNameIn && !playNameIn.value) playNameIn.value = getSavedName() || (nameI
     }
   };
   quizBody?.appendChild(submit);
+  // Quick link to see current results
+let viewBtn = document.getElementById('viewResultsBtn');
+if (!viewBtn){
+  viewBtn = document.createElement('button');
+  viewBtn.id = 'viewResultsBtn';
+  viewBtn.textContent = 'View Results';
+  viewBtn.style.margin = '8px 0 0';
+  viewBtn.style.background = '#fff';
+  viewBtn.style.border = '1px solid #ddd';
+  viewBtn.style.borderRadius = '10px';
+  viewBtn.style.padding = '8px 12px';
+  viewBtn.style.fontWeight = '600';
+  viewBtn.onclick = ()=>{ location.hash = `/results/${id}`; };
+  quizBody?.appendChild(viewBtn);
+} else {
+  viewBtn.onclick = ()=>{ location.hash = `/results/${id}`; };
+}
+
 
   if (shareBtn){
     shareBtn.onclick = async ()=>{
