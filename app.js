@@ -430,6 +430,29 @@ async function renderResults(id){
 
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
+  // ---- GATE: hide results + CTA until user acts this session ----
+const ackKey = `hq-ack-${id}`;
+const acknowledged = sessionStorage.getItem(ackKey) === '1';
+
+// always remove any previously shown CTA at entry
+document.querySelector('.home-cta')?.remove();
+
+// hide the list until acknowledged
+if (!acknowledged) {
+  if (scoreList) scoreList.style.display = 'none';
+  let gate = document.getElementById('resultsGateMsg');
+  if (!gate){
+    gate = document.createElement('p');
+    gate.id = 'resultsGateMsg';
+    gate.className = 'muted';
+    gate.textContent = 'Tap Copy, Share, or Skip to view results and start a new quiz.';
+    resultsView?.appendChild(gate);
+  }
+} else {
+  if (scoreList) scoreList.style.display = '';
+  addHomeCta();
+}
+
 
   const link      = `${location.origin}${location.pathname}#/play/${id}`;
   const ackKey    = `hq-ack-${id}`;      // session gate to reveal results + Start
