@@ -159,7 +159,97 @@ input:focus,select:focus{
   0%{ transform:translate(var(--x,0), -20px) rotate(0); }
   100%{ transform:translate(var(--x,0), calc(100vh - 120px)) rotate(240deg); }
 }
+/* === HeiyuQuiz Play Page – Cute/Cartoon UI pass === */
 
+/* Category themes (auto-applied by app.js) */
+:root{
+  --theme: #6e56cf;          /* default (General) */
+  --theme-soft: rgba(110,86,207,.12);
+}
+html[data-theme*="sport"] { --theme:#22c55e; --theme-soft:rgba(34,197,94,.12); }   /* green */
+html[data-theme*="movie"] { --theme:#f97316; --theme-soft:rgba(249,115,22,.12); }  /* orange */
+html[data-theme*="music"] { --theme:#ec4899; --theme-soft:rgba(236,72,153,.12); }  /* pink */
+html[data-theme*="history"]{ --theme:#3b82f6; --theme-soft:rgba(59,130,246,.12);} /* blue */
+html[data-theme*="science"]{ --theme:#06b6d4; --theme-soft:rgba(6,182,212,.12);}  /* cyan */
+
+/* Play card */
+#playView .card{
+  border:0;
+  background:linear-gradient(180deg,#fff, #fff8);
+  backdrop-filter:saturate(140%) blur(4px);
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+/* Question block = rounded, pill header, gentle glow */
+.q{
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:16px;
+  padding:14px;
+  background:#fff;
+  box-shadow:0 6px 18px rgba(0,0,0,.05);
+}
+.q h3{
+  margin:8px 0 12px;
+  font-size:18px;
+  line-height:1.25;
+}
+
+/* Progress pill */
+.progress{
+  display:inline-block;
+  font-weight:700;
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:var(--theme-soft);
+  color:var(--theme);
+}
+
+/* Options grid – big, tap-friendly */
+.opts{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+@media (max-width:480px){ .opts{ grid-template-columns:1fr; } }
+
+.opts button{
+  background:#fff;
+  border:2px solid rgba(0,0,0,.06);
+  border-radius:14px;
+  padding:14px 12px;
+  text-align:left;
+  font-weight:700;
+  line-height:1.25;
+  box-shadow:0 4px 12px rgba(0,0,0,.05);
+  transition:transform .06s ease, border-color .15s, box-shadow .15s, background .15s;
+  position:relative;
+  overflow:hidden;
+}
+.opts button:active{ transform:translateY(1px) scale(.99); }
+.opts button:hover{ border-color:#d6d6d6; box-shadow:0 8px 18px rgba(0,0,0,.06); }
+
+/* Selected = chunky colorful outline + soft glow */
+.opts button.selected{
+  border-color:var(--theme);
+  box-shadow:0 0 0 4px var(--theme-soft), 0 10px 24px rgba(0,0,0,.06);
+}
+
+/* Tiny emoji badge (cartoon vibe) */
+.opts button::before{
+  content:"✨";
+  position:absolute; right:10px; top:8px; opacity:.25; font-size:18px;
+}
+.opts button.selected::before{ content:"✅"; opacity:1; }
+
+/* Sticky submit button above the ad */
+.sticky-submit{
+  position:sticky;
+  bottom:calc(70px + env(safe-area-inset-bottom, 0px)); /* sits above ad/footer */
+  background:linear-gradient(90deg,#6e56cf,#d6467e,#ffb224);
+  color:#fff; border:0; border-radius:14px;
+  padding:14px; font-weight:800; width:100%;
+  box-shadow:0 12px 28px rgba(214,70,126,.25);
+}
+
+/* Micro polish */
+.muted{ color:#667085; }
 
 
 
