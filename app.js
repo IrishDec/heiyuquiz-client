@@ -177,7 +177,6 @@ async function route(){
     };
   }
 })();
-
 /* ------------------ Create quiz & share (play-first) ------------------ */
 async function createQuiz(){
   const category = categorySel?.value || "General";
@@ -188,9 +187,13 @@ async function createQuiz(){
   createBtn?.setAttribute('disabled','');
   if (createBtn) createBtn.textContent = 'Creating…';
 
-  // safety: 10s timeout
+  // tiny warm-up to wake the backend (ignore errors)
+  try { await fetch(`${window.SERVER_URL}/api/health`, { cache:'no-store' }); } catch {}
+
+  // give slow cold starts time to respond
   const ctrl = new AbortController();
-  const t = setTimeout(()=>ctrl.abort(), 10000);
+  const TIMEOUT_MS = 25000; // was 10000
+  const timer = setTimeout(()=>ctrl.abort(), TIMEOUT_MS);
 
   try {
     const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
@@ -215,10 +218,10 @@ async function createQuiz(){
     const quizId = data.quizId || data.id;
     if (!quizId){ alert('Create succeeded but no quiz ID returned.'); return; }
 
-    // Go straight to the play screen
+    // go straight to play
     location.hash = `/play/${quizId}`;
 
-    // Store host flag + link (we unlock sharing after submit)
+    // store host flag + link; sharing unlocks after submit
     const link = `${location.origin}${location.pathname}#/play/${quizId}`;
     try {
       localStorage.setItem(`hq-host-${quizId}`, '1');
@@ -227,15 +230,19 @@ async function createQuiz(){
     window.hqToast && hqToast('Play first — sharing unlocks after you submit ✅');
 
   } catch (err) {
-    if (err.name === 'AbortError') alert('Create timed out after 10s. Backend may be offline.');
-    else alert('Network error creating quiz.');
+    if (err.name === 'AbortError') {
+      alert('Create timed out (25s). The server may be waking up — please try again.');
+    } else {
+      alert('Network error creating quiz.');
+    }
     console.error('createQuiz exception:', err);
   } finally {
-    clearTimeout(t);
+    clearTimeout(timer);
     createBtn?.removeAttribute('disabled');
     if (createBtn) createBtn.textContent = originalLabel;
   }
 }
+
 
 
 
