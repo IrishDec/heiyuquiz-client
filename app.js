@@ -428,7 +428,7 @@ async function renderResults(id){
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
 
-  // ✅ Share tools — show only for the host who created this quiz
+  // Share tools — host only
   const link   = `${location.origin}${location.pathname}#/play/${id}`;
   const isHost = localStorage.getItem(`hq-host-${id}`) === '1';
 
@@ -456,13 +456,16 @@ async function renderResults(id){
     const copyBtn = document.getElementById('resultsCopyBtn');
     const nativeBtn = document.getElementById('resultsNativeShare');
     if (inp) inp.value = link;
+
     if (copyBtn) copyBtn.onclick = async ()=>{
       try {
         await navigator.clipboard.writeText(link);
         localStorage.setItem(`hq-shared-${id}`, '1');
         window.hqToast && hqToast('Link copied!');
+        document.querySelector('.home-cta') || addHomeCta();
       } catch {}
     };
+
     if (nativeBtn) nativeBtn.onclick = async ()=>{
       try{
         if (navigator.share){
@@ -472,6 +475,7 @@ async function renderResults(id){
         }
         localStorage.setItem(`hq-shared-${id}`, '1');
         window.hqToast && hqToast('Link ready to share!');
+        document.querySelector('.home-cta') || addHomeCta();
       }catch{}
     };
   } else {
@@ -533,7 +537,9 @@ async function renderResults(id){
   window.addEventListener("hashchange", stop);
   window.addEventListener("beforeunload", stop);
 
-  addHomeCta(); // back to start
+  // Gate the "Back to start" CTA on sharing
+  const hasShared = localStorage.getItem(`hq-shared-${id}`) === '1';
+  if (hasShared) addHomeCta();
 }
 
 
