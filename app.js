@@ -279,7 +279,6 @@ async function renderPlay(id){
     res = await fetch(`${window.SERVER_URL}/api/quiz/${id}`, { credentials:"omit" });
     data = await res.json();
   }catch{
-    // Network/JSON error → show message instead of blank
     show(playView);
     if (quizMeta) quizMeta.textContent = "Couldn’t load that quiz.";
     if (quizBody) quizBody.innerHTML = `<p class="muted">Network error. Ask the host to resend the link.</p>`;
@@ -322,22 +321,20 @@ async function renderPlay(id){
 
   show(playView);
 
-// --- compact name bar (Play view) ---
-let nameBar = document.getElementById('playNameBar');
-if (!nameBar) {
-  nameBar = document.createElement('div');
-  nameBar.id = 'playNameBar';
-  nameBar.style.cssText = 'display:flex;gap:8px;align-items:center;margin:6px 0 10px';
-  nameBar.innerHTML = `
-    <input id="playName" placeholder="Your name" maxlength="24"
-      style="flex:1;min-width:140px;padding:8px 10px;border:1px solid #ddd;border-radius:10px"/>
-  `;
-  // insert above the quiz body
-  playView?.insertBefore(nameBar, playView.firstChild);
-}
-const playNameIn = document.getElementById('playName');
-if (playNameIn && !playNameIn.value) playNameIn.value = getSavedName() || (nameIn?.value || '');
-
+  // --- compact name bar (Play view) ---
+  let nameBar = document.getElementById('playNameBar');
+  if (!nameBar) {
+    nameBar = document.createElement('div');
+    nameBar.id = 'playNameBar';
+    nameBar.style.cssText = 'display:flex;gap:8px;align-items:center;margin:6px 0 10px';
+    nameBar.innerHTML = `
+      <input id="playName" placeholder="Your name" maxlength="24"
+        style="flex:1;min-width:140px;padding:8px 10px;border:1px solid #ddd;border-radius:10px"/>
+    `;
+    playView?.insertBefore(nameBar, playView.firstChild);
+  }
+  const playNameIn = document.getElementById('playName');
+  if (playNameIn && !playNameIn.value) playNameIn.value = getSavedName() || (nameIn?.value || '');
 
   const metaBits = [category, closesAt && `Closes: ${closesAt}`, region && region.toUpperCase(), topic && `Topic: ${topic}`]
     .filter(Boolean).join(" • ");
@@ -369,9 +366,9 @@ if (playNameIn && !playNameIn.value) playNameIn.value = getSavedName() || (nameI
   submit.textContent = "Submit Answers";
   submit.style.marginTop = "12px";
   submit.onclick = async ()=>{
-  const name = (document.getElementById('playName')?.value || nameIn?.value || 'Player').trim();
-  if (!name) { window.hqToast && hqToast('Enter your name'); return; }
-  saveName(name);
+    const name = (document.getElementById('playName')?.value || nameIn?.value || 'Player').trim();
+    if (!name) { window.hqToast && hqToast('Enter your name'); return; }
+    saveName(name);
 
     try{
       const sRes  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
@@ -380,34 +377,44 @@ if (playNameIn && !playNameIn.value) playNameIn.value = getSavedName() || (nameI
         body: JSON.stringify({ name, picks })
       });
       const sData = await sRes.json();
-      if (!res.ok || !data?.ok){ 
-  alert(data?.error || "No results yet."); 
-  return; 
-}
+
+      // ✅ Check submit response, not the earlier fetch
+      if (!sRes.ok || !sData?.ok){
+        window.hqToast && hqToast(sData?.error || "Submit failed");
+        return;
+      }
+
+      // Mark this user as done for this quiz
+      try { localStorage.setItem(`hq-done-${id}`, '1'); } catch {}
+
       location.hash = `/results/${id}`;
     }catch{
       window.hqToast && hqToast("Network error submitting.");
     }
   };
   quizBody?.appendChild(submit);
-  // Quick link to see current results
-let viewBtn = document.getElementById('viewResultsBtn');
-if (!viewBtn){
-  viewBtn = document.createElement('button');
-  viewBtn.id = 'viewResultsBtn';
-  viewBtn.textContent = 'View Results';
-  viewBtn.style.margin = '8px 0 0';
-  viewBtn.style.background = '#fff';
-  viewBtn.style.border = '1px solid #ddd';
-  viewBtn.style.borderRadius = '10px';
-  viewBtn.style.padding = '8px 12px';
-  viewBtn.style.fontWeight = '600';
-  viewBtn.onclick = ()=>{ location.hash = `/results/${id}`; };
-  quizBody?.appendChild(viewBtn);
-} else {
-  viewBtn.onclick = ()=>{ location.hash = `/results/${id}`; };
-}
 
+  // Show "View Results" only if quiz is closed or this user already played
+  const isClosed = data.closesAt && Date.now() > data.closesAt;
+  const alreadyPlayed = localStorage.getItem(`hq-done-${id}`) === '1';
+  if (isClosed || alreadyPlayed) {
+    let viewBtn = document.getElementById('viewResultsBtn');
+    if (!viewBtn){
+      viewBtn = document.createElement('button');
+      viewBtn.id = 'viewResultsBtn';
+      viewBtn.textContent = isClosed ? 'Quiz closed — View Results' : 'View Results';
+      viewBtn.style.margin = '8px 0 0';
+      viewBtn.style.background = '#fff';
+      viewBtn.style.border = '1px solid #ddd';
+      viewBtn.style.borderRadius = '10px';
+      viewBtn.style.padding = '8px 12px';
+      viewBtn.style.fontWeight = '600';
+      viewBtn.onclick = ()=>{ location.hash = `/results/${id}`; };
+      quizBody?.appendChild(viewBtn);
+    } else {
+      viewBtn.onclick = ()=>{ location.hash = `/results/${id}`; };
+    }
+  }
 
   if (shareBtn){
     shareBtn.onclick = async ()=>{
@@ -472,7 +479,7 @@ async function renderResults(id){
     if (scoreList) scoreList.innerHTML = `<li class="muted">No results yet — check back soon.</li>`;
   }
 
-  // start a short-lived poller (every 4s for ~2 minutes)
+  // short-lived poller (every 4s for ~2 minutes)
   const startedAt = Date.now();
   function stop(){
     if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
@@ -492,8 +499,9 @@ async function renderResults(id){
   window.addEventListener("hashchange", stop);
   window.addEventListener("beforeunload", stop);
 
-  addHomeCta(); // lets players jump back to start
+  addHomeCta();
 }
+
 
 /* ------------------ Wire buttons ------------------ */
 createBtn?.addEventListener("click", createQuiz);
