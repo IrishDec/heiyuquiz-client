@@ -92,6 +92,11 @@ const scoreList   = qs("#scoreList");
 const regionSel = qs("#region");
 const topicIn   = qs("#topic");
 
+// --- Name helpers for Play view ---
+function getSavedName(){ return localStorage.getItem('hq-name') || ''; }
+function saveName(n){ localStorage.setItem('hq-name', (n || '').slice(0, 24)); }
+
+
 /* ------------------ View switcher + home CTA ------------------ */
 function show(el){
   [startCard, playView, resultsView].forEach(e => e?.classList.add("hidden"));
@@ -268,7 +273,6 @@ async function createQuiz(){
 }
 
 /* ------------------ Play view ------------------ */
-/* ------------------ Play view ------------------ */
 async function renderPlay(id){
   let res, data;
   try{
@@ -318,6 +322,23 @@ async function renderPlay(id){
 
   show(playView);
 
+// --- compact name bar (Play view) ---
+let nameBar = document.getElementById('playNameBar');
+if (!nameBar) {
+  nameBar = document.createElement('div');
+  nameBar.id = 'playNameBar';
+  nameBar.style.cssText = 'display:flex;gap:8px;align-items:center;margin:6px 0 10px';
+  nameBar.innerHTML = `
+    <input id="playName" placeholder="Your name" maxlength="24"
+      style="flex:1;min-width:140px;padding:8px 10px;border:1px solid #ddd;border-radius:10px"/>
+  `;
+  // insert above the quiz body
+  playView?.insertBefore(nameBar, playView.firstChild);
+}
+const playNameIn = document.getElementById('playName');
+if (playNameIn && !playNameIn.value) playNameIn.value = getSavedName() || (nameIn?.value || '');
+
+
   const metaBits = [category, closesAt && `Closes: ${closesAt}`, region && region.toUpperCase(), topic && `Topic: ${topic}`]
     .filter(Boolean).join(" • ");
   if (quizMeta) quizMeta.textContent = metaBits || category;
@@ -348,7 +369,10 @@ async function renderPlay(id){
   submit.textContent = "Submit Answers";
   submit.style.marginTop = "12px";
   submit.onclick = async ()=>{
-    const name = (nameIn?.value || "Player").trim();
+  const name = (document.getElementById('playName')?.value || nameIn?.value || 'Player').trim();
+  if (!name) { window.hqToast && hqToast('Enter your name'); return; }
+  saveName(name);
+
     try{
       const sRes  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
         method:"POST",
