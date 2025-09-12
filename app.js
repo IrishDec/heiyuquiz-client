@@ -298,6 +298,39 @@ async function renderPlay(id){
   }
 
   show(playView);
+ // --- submit button ---
+const submit = document.createElement("button");
+submit.className = "sticky-submit";             // big sticky CTA
+submit.textContent = "Submit Answers";
+submit.onclick = async ()=>{
+  const name = (document.getElementById('playName')?.value || nameIn?.value || 'Player').trim();
+  if (!name) { window.hqToast && hqToast('Enter your name'); return; }
+  saveName(name);
+
+  try{
+    const sRes  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ name, picks })
+    });
+    const sData = await sRes.json();
+
+    if (!sRes.ok || !sData?.ok){
+      window.hqToast && hqToast(sData?.error || "Submit failed");
+      return;
+    }
+
+    // mark done + remember what this user picked (for future features)
+    try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
+    try { localStorage.setItem(`hq-done-${id}`, '1'); } catch {}
+
+    location.hash = `/results/${id}`;
+  }catch{
+    window.hqToast && hqToast("Network error submitting.");
+  }
+};
+quizBody?.appendChild(submit);
+
 
   // --- share button: hidden until you've submitted this quiz once ---
   const alreadyPlayed = localStorage.getItem(`hq-done-${id}`) === '1';
@@ -320,50 +353,88 @@ async function renderPlay(id){
     }
   }
 
-  // --- compact name bar (Play view) ---
-  let nameBar = document.getElementById('playNameBar');
-  if (!nameBar) {
-    nameBar = document.createElement('div');
-    nameBar.id = 'playNameBar';
-    nameBar.style.cssText = 'display:flex;gap:8px;align-items:center;margin:6px 0 10px';
-    nameBar.innerHTML = `
-      <input id="playName" placeholder="Your name" maxlength="24"
-        style="flex:1;min-width:140px;padding:8px 10px;border:1px solid #ddd;border-radius:10px"/>
-    `;
-    playView?.insertBefore(nameBar, playView.firstChild);
-  }
-  const playNameIn = document.getElementById('playName');
-  if (playNameIn && !playNameIn.value) playNameIn.value = getSavedName() || (nameIn?.value || '');
+ show(playView);
 
-  const metaBits = [category, closesAt && `Closes: ${closesAt}`, region && region.toUpperCase(), topic && `Topic: ${topic}`]
-    .filter(Boolean).join(" • ");
-  if (quizMeta) quizMeta.textContent = metaBits || category;
-  if (quizBody) quizBody.innerHTML = "";
+// --- compact name bar (Play view) ---
+let nameBar = document.getElementById('playNameBar');
+if (!nameBar) {
+  nameBar = document.createElement('div');
+  nameBar.id = 'playNameBar';
+  nameBar.style.cssText = 'display:flex;gap:8px;align-items:center;margin:6px 0 10px';
+  nameBar.innerHTML = `
+    <input id="playName" placeholder="Your name" maxlength="24"
+      style="flex:1;min-width:140px;padding:8px 10px;border:1px solid #ddd;border-radius:10px"/>
+  `;
+  playView?.insertBefore(nameBar, playView.firstChild);
+}
+const playNameIn = document.getElementById('playName');
+if (playNameIn && !playNameIn.value) playNameIn.value = getSavedName() || (nameIn?.value || '');
 
-  const picks = new Array(questions.length).fill(null);
+const metaBits = [category, closesAt && `Closes: ${closesAt}`, region && region.toUpperCase(), topic && `Topic: ${topic}`]
+  .filter(Boolean).join(" • ");
+if (quizMeta) quizMeta.textContent = metaBits || category;
+if (quizBody) quizBody.innerHTML = "";
 
-  questions.forEach((q, idx)=>{
-    const wrap = document.createElement("div"); wrap.className = "q";
-    const prog = document.createElement("div"); prog.className = "progress"; prog.textContent = `Q ${idx+1}/${questions.length}`;
-    const h = document.createElement("h3"); h.textContent = decodeHTML(q.q || q.question || `Question ${idx+1}`);
-    const opts = document.createElement("div"); opts.className = "opts";
-    const options = q.options || q.choices || [];
-    options.forEach((opt, oidx)=>{
-      const b = document.createElement("button"); b.textContent = decodeHTML(String(opt));
-      b.onclick = ()=>{
-        picks[idx] = oidx;
-        [...opts.children].forEach(c => c.classList.remove("selected"));
-        b.classList.add("selected");
-      };
-      opts.appendChild(b);
-    });
-    wrap.appendChild(prog); wrap.appendChild(h); wrap.appendChild(opts);
-    quizBody?.appendChild(wrap);
+// Build questions
+const picks = new Array(questions.length).fill(null);
+questions.forEach((q, idx)=>{
+  const wrap = document.createElement("div"); wrap.className = "q";
+  const prog = document.createElement("div"); prog.className = "progress"; prog.textContent = `Q ${idx+1}/${questions.length}`;
+  const h = document.createElement("h3"); h.textContent = decodeHTML(q.q || q.question || `Question ${idx+1}`);
+  const opts = document.createElement("div"); opts.className = "opts";
+  const options = q.options || q.choices || [];
+  options.forEach((opt, oidx)=>{
+    const b = document.createElement("button"); b.textContent = decodeHTML(String(opt));
+    b.onclick = ()=>{
+      picks[idx] = oidx;
+      [...opts.children].forEach(c => c.classList.remove("selected"));
+      b.classList.add("selected");
+    };
+    opts.appendChild(b);
   });
+  wrap.appendChild(prog); wrap.appendChild(h); wrap.appendChild(opts);
+  quizBody?.appendChild(wrap);
+});
 
- 
-  quizBody?.appendChild(submit);
+// Submit (sticky at bottom, only appended once)
+const submit = document.createElement("button");
+submit.className = "sticky-submit";
+submit.textContent = "Submit Answers";
+submit.onclick = async ()=>{
+  const name = (document.getElementById('playName')?.value || nameIn?.value || 'Player').trim();
+  if (!name) { window.hqToast && hqToast('Enter your name'); return; }
+  saveName(name);
 
+  try{
+    const sRes  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ name, picks })
+    });
+    const sData = await sRes.json();
+
+    if (!sRes.ok || !sData?.ok){
+      window.hqToast && hqToast(sData?.error || "Submit failed");
+      return;
+    }
+    try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
+    try { localStorage.setItem(`hq-done-${id}`, '1'); } catch {}
+    location.hash = `/results/${id}`;
+  }catch{
+    window.hqToast && hqToast("Network error submitting.");
+  }
+};
+quizBody?.appendChild(submit);
+
+ //  keep content visible above sticky button
+let spacer = document.getElementById('submitSpacer');
+if (!spacer) {
+  spacer = document.createElement('div');
+  spacer.id = 'submitSpacer';
+  spacer.style.height = '84px'; // ~button height + gap
+  quizBody?.appendChild(spacer);
+}
+  
   // Show "View Results" only if quiz is closed or this user already played
   const isClosed = data.closesAt && Date.now() > data.closesAt;
   if (isClosed || alreadyPlayed) {
