@@ -178,18 +178,17 @@ async function route(){
   }
 })();
 
-/* ------------------ Create quiz (share deferred until after submit) ------------------ */
+/* ------------------ Create quiz & share (play-first) ------------------ */
 async function createQuiz(){
   const category = categorySel?.value || "General";
   const region   = regionSel?.value || "global";
   const topic    = (topicIn?.value || "").trim();
 
-  // UI feedback
-  const originalLabel = createBtn?.textContent;
+  const originalLabel = createBtn?.textContent || 'Create & Share Link';
   createBtn?.setAttribute('disabled','');
   if (createBtn) createBtn.textContent = 'Creating…';
 
-  // Abort after 10s
+  // safety: 10s timeout
   const ctrl = new AbortController();
   const t = setTimeout(()=>ctrl.abort(), 10000);
 
@@ -200,48 +199,44 @@ async function createQuiz(){
       body: JSON.stringify({
         category, region, topic,
         amount: 5,
-        durationSec: DURATION_SEC
+        durationSec: (typeof DURATION_SEC!=="undefined" ? DURATION_SEC : 86400)
       }),
       signal: ctrl.signal
     });
 
     const raw = await res.text();
-    let data; try { data = JSON.parse(raw); } catch {}
+    let data; try { data = JSON.parse(raw); } catch { data = null; }
 
     if (!res.ok || !data?.ok){
-      const msg = (data && (data.error || data.message)) || raw || `HTTP ${res.status}`;
-      alert(`Create failed:\n${msg}`);
+      alert(`Create failed:\n${(data && (data.error || data.message)) || raw || `HTTP ${res.status}`}`);
       return;
     }
 
     const quizId = data.quizId || data.id;
     if (!quizId){ alert('Create succeeded but no quiz ID returned.'); return; }
 
-    // Navigate to play screen
+    // Go straight to the play screen
     location.hash = `/play/${quizId}`;
 
-    // Save link but DO NOT show/share yet — host must play first
+    // Store host flag + link (we unlock sharing after submit)
     const link = `${location.origin}${location.pathname}#/play/${quizId}`;
     try {
       localStorage.setItem(`hq-host-${quizId}`, '1');
       localStorage.setItem(`hq-link-${quizId}`, link);
     } catch {}
-
-    window.hqToast && hqToast('Play first — share unlocks after you submit ✅');
+    window.hqToast && hqToast('Play first — sharing unlocks after you submit ✅');
 
   } catch (err) {
-    if (err.name === 'AbortError') {
-      alert('Create timed out after 10s. Backend may be offline.');
-    } else {
-      alert('Network error creating quiz.');
-    }
+    if (err.name === 'AbortError') alert('Create timed out after 10s. Backend may be offline.');
+    else alert('Network error creating quiz.');
     console.error('createQuiz exception:', err);
   } finally {
     clearTimeout(t);
     createBtn?.removeAttribute('disabled');
-    if (createBtn) createBtn.textContent = originalLabel || 'Create & Share Link';
+    if (createBtn) createBtn.textContent = originalLabel;
   }
 }
+
 
 
 /* ------------------ Play view ------------------ */
@@ -534,8 +529,6 @@ async function renderResults(id){
 
   addHomeCta(); // back to start
 }
-
-
 
 /* ------------------ Wire buttons ------------------ */
 createBtn?.addEventListener("click", createQuiz);
