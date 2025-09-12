@@ -409,26 +409,71 @@ if (playNameIn && !playNameIn.value) playNameIn.value = getSavedName() || (nameI
 }
 
 
-/* ------------------ Results view ------------------ */
+/* ------------------ Results view (live auto-refresh) ------------------ */
 async function renderResults(id){
-  let res, data;
-  try{
-    res = await fetch(`${window.SERVER_URL}/api/quiz/${id}/results`);
-    data = await res.json();
-  }catch{
-    alert("Network error loading results."); return;
+  // clear any previous poller
+  if (window._hqPoll) {
+    try { clearInterval(window._hqPoll.id); } catch {}
+    window._hqPoll = null;
   }
-  if (!res.ok && !data?.ok){ alert(data?.error || "No results yet."); return; }
-
-  const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
 
   show(resultsView);
-  if (scoreList) scoreList.innerHTML = "";
-  (data.results || []).forEach((row, i)=>{
-    const li = document.createElement("li");
-    li.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
-    scoreList?.appendChild(li);
-  });
+  if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
+
+  const me = (getSavedName() || (nameIn?.value || '')).trim();
+
+  async function fetchResults(){
+    const res = await fetch(`${window.SERVER_URL}/api/quiz/${id}/results`);
+    const data = await res.json();
+    if (!res.ok || !data?.ok) throw new Error(data?.error || "No results yet");
+    return data;
+  }
+
+  function draw(list, total){
+    if (!scoreList) return;
+    scoreList.innerHTML = "";
+    if (!list?.length){
+      scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
+      return;
+    }
+    list.forEach((row, i)=>{
+      const li = document.createElement("li");
+      const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
+      li.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
+      if (isMe) { li.style.fontWeight = "700"; li.style.textDecoration = "underline"; }
+      scoreList.appendChild(li);
+    });
+  }
+
+  // initial load
+  try{
+    const data = await fetchResults();
+    const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
+    draw(data.results || [], total);
+  }catch{
+    if (scoreList) scoreList.innerHTML = `<li class="muted">No results yet — check back soon.</li>`;
+  }
+
+  // start a short-lived poller (every 4s for ~2 minutes)
+  const startedAt = Date.now();
+  function stop(){
+    if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
+    window.removeEventListener("hashchange", stop);
+    window.removeEventListener("beforeunload", stop);
+  }
+  window._hqPoll = {
+    id: setInterval(async ()=>{
+      if (Date.now() - startedAt > 120000) return stop(); // 2 min
+      try{
+        const data = await fetchResults();
+        const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
+        draw(data.results || [], total);
+      }catch{/* keep last */}
+    }, 4000)
+  };
+  window.addEventListener("hashchange", stop);
+  window.addEventListener("beforeunload", stop);
+
   addHomeCta(); // lets players jump back to start
 }
 
