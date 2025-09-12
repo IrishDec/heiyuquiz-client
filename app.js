@@ -446,7 +446,7 @@ async function renderResults(id){
       gate = document.createElement('p');
       gate.id = 'resultsGateMsg';
       gate.className = 'muted';
-      gate.textContent = 'Tap Copy, Share, or Skip to view results and start a new quiz.';
+      gate.textContent = 'Too see results, Copy Share, or Skip.';
       resultsView?.appendChild(gate);
     }
   } else {
