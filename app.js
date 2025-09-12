@@ -431,71 +431,69 @@ async function renderResults(id){
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
 
- // Actions panel — for everyone (copy / share / skip)
-const link    = `${location.origin}${location.pathname}#/play/${id}`;
-const ackKey  = `hq-ack-${id}`;      // user has acknowledged results (unlocks Start)
-const shareKey= `hq-shared-${id}`;   // optional: track sharing
+  // Actions panel — copy/share/skip (link field is hidden)
+  const link     = `${location.origin}${location.pathname}#/play/${id}`;
+  const ackKey   = `hq-ack-${id}`;      // user acknowledged results (unlocks Start)
+  const shareKey = `hq-shared-${id}`;   // optional: track sharing
 
-(function ensureActions(){
-  let p = document.getElementById('resultsActions');
-  if (!p){
-    p = document.createElement('div');
-    p.id = 'resultsActions';
-    p.style.cssText = 'margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap';
-    p.innerHTML = `
-      <input id="resultsShareLink" readonly
-             style="display:none;flex:1;min-width:220px;padding:10px;border:1px solid #ddd;border-radius:10px">
-      <button id="resultsCopyBtn"
-              style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
-        Copy quiz link
-      </button>
-      <button id="resultsNativeShare"
-              style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
-        Share quiz now
-      </button>
-      <button id="resultsSkipBtn"
-              style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#fff;font-weight:600;cursor:pointer">
-        Skip share — see results
-      </button>
-    `;
-    resultsView?.insertBefore(p, resultsView.firstChild);
-  }
+  (function ensureActions(){
+    let p = document.getElementById('resultsActions');
+    if (!p){
+      p = document.createElement('div');
+      p.id = 'resultsActions';
+      p.style.cssText = 'margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap';
+      p.innerHTML = `
+        <input id="resultsShareLink" readonly
+               style="display:none;flex:1;min-width:220px;padding:10px;border:1px solid #ddd;border-radius:10px">
+        <button id="resultsCopyBtn"
+                style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
+          Copy quiz link
+        </button>
+        <button id="resultsNativeShare"
+                style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
+          Share quiz now
+        </button>
+        <button id="resultsSkipBtn"
+                style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#fff;font-weight:600;cursor:pointer">
+          Skip share — see results
+        </button>
+      `;
+      resultsView?.insertBefore(p, resultsView.firstChild);
+    }
 
-  const inp      = document.getElementById('resultsShareLink');
-  const copyBtn  = document.getElementById('resultsCopyBtn');
-  const shareBtn = document.getElementById('resultsNativeShare');
-  const skipBtn  = document.getElementById('resultsSkipBtn');
-  if (inp) inp.value = link; // keep the link (hidden)
+    const inp      = document.getElementById('resultsShareLink');
+    const copyBtn  = document.getElementById('resultsCopyBtn');
+    const shareBtn = document.getElementById('resultsNativeShare');
+    const skipBtn  = document.getElementById('resultsSkipBtn');
+    if (inp) inp.value = link; // keep the link (hidden input)
 
-  function unlockStart(){
-    try { localStorage.setItem(ackKey, '1'); } catch {}
-    document.querySelector('.home-cta') || addHomeCta();
-  }
+    function unlockStart(){
+      try { localStorage.setItem(ackKey, '1'); } catch {}
+      document.querySelector('.home-cta') || addHomeCta();
+    }
 
-  if (copyBtn) copyBtn.onclick = async ()=>{
-    try { await navigator.clipboard.writeText(link); } catch {}
-    try { localStorage.setItem(shareKey, '1'); } catch {}
-    window.hqToast && hqToast('Link copied!');
-    unlockStart();
-  };
+    if (copyBtn) copyBtn.onclick = async ()=>{
+      try { await navigator.clipboard.writeText(link); } catch {}
+      try { localStorage.setItem(shareKey, '1'); } catch {}
+      window.hqToast && hqToast('Link copied!');
+      unlockStart();
+    };
 
-  if (shareBtn) shareBtn.onclick = async ()=>{
-    try{
-      if (navigator.share){
-        await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
-      } else {
-        await navigator.clipboard.writeText(link);
-      }
-    }catch{}
-    try { localStorage.setItem(shareKey, '1'); } catch {}
-    window.hqToast && hqToast('Ready to share!');
-    unlockStart();
-  };
+    if (shareBtn) shareBtn.onclick = async ()=>{
+      try{
+        if (navigator.share){
+          await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
+        } else {
+          await navigator.clipboard.writeText(link);
+        }
+      }catch{}
+      try { localStorage.setItem(shareKey, '1'); } catch {}
+      window.hqToast && hqToast('Ready to share!');
+      unlockStart();
+    };
 
-  if (skipBtn) skipBtn.onclick = unlockStart;
-})();
-
-
+    if (skipBtn) skipBtn.onclick = unlockStart;
+  })();
 
   const me = (getSavedName() || (nameIn?.value || '')).trim();
 
@@ -506,6 +504,7 @@ const shareKey= `hq-shared-${id}`;   // optional: track sharing
     return data;
   }
 
+  // draw leaderboard + "See answers" link per player
   function draw(list, total){
     if (!scoreList) return;
     scoreList.innerHTML = "";
@@ -515,9 +514,20 @@ const shareKey= `hq-shared-${id}`;   // optional: track sharing
     }
     list.forEach((row, i)=>{
       const li = document.createElement("li");
+      li.style.position = 'relative';
+
+      const name = document.createElement('span');
       const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
-      li.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
-      if (isMe) { li.style.fontWeight = "700"; li.style.textDecoration = "underline"; }
+      name.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
+      if (isMe) { name.style.fontWeight = "700"; name.style.textDecoration = "underline"; }
+      li.appendChild(name);
+
+      const a = document.createElement('a');
+      a.textContent = 'See answers';
+      a.style.cssText = 'position:absolute; right:0; top:0; font-size:12px;';
+      a.href = `#/answers/${id}?n=${encodeURIComponent(row.name || '')}`;
+      li.appendChild(a);
+
       scoreList.appendChild(li);
     });
   }
@@ -551,12 +561,10 @@ const shareKey= `hq-shared-${id}`;   // optional: track sharing
   window.addEventListener("hashchange", stop);
   window.addEventListener("beforeunload", stop);
 
-  // Gate the "Back to start" CTA on sharing
-const acknowledged = localStorage.getItem(`hq-ack-${id}`) === '1';
-if (acknowledged) addHomeCta();
-
+  // Gate the "Start a new quiz" CTA on acknowledgement
+  const acknowledged = localStorage.getItem(`hq-ack-${id}`) === '1';
+  if (acknowledged) addHomeCta();
 }
-
 
 /* ------------------ Wire buttons ------------------ */
 createBtn?.addEventListener("click", createQuiz);
