@@ -280,6 +280,10 @@ async function renderPlay(id){
 
   // ✅ DEFINE EVERYTHING BEFORE USING IT
   const category = data.category || "Quiz";
+    // ✅ Theme the page by category (drives the CSS above)
+  const catSlug = String(category || 'general').toLowerCase();
+  document.documentElement.setAttribute('data-theme', catSlug);
+
   const closesAt = data.closesAt ? new Date(data.closesAt).toLocaleTimeString() : "";
   const region   = data.region || "";
   const topic    = data.topic  || "";
@@ -358,8 +362,8 @@ async function renderPlay(id){
   });
 
   const submit = document.createElement("button");
+  submit.className = "sticky-submit";   // makes it the sticky, big CTA
   submit.textContent = "Submit Answers";
-  submit.style.marginTop = "12px";
   submit.onclick = async ()=>{
     const name = (document.getElementById('playName')?.value || nameIn?.value || 'Player').trim();
     if (!name) { window.hqToast && hqToast('Enter your name'); return; }
