@@ -361,35 +361,7 @@ async function renderPlay(id){
     quizBody?.appendChild(wrap);
   });
 
-  const submit = document.createElement("button");
-  submit.className = "sticky-submit";   // makes it the sticky, big CTA
-  submit.textContent = "Submit Answers";
-  submit.onclick = async ()=>{
-    const name = (document.getElementById('playName')?.value || nameIn?.value || 'Player').trim();
-    if (!name) { window.hqToast && hqToast('Enter your name'); return; }
-    saveName(name);
-
-    try{
-      const sRes  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ name, picks })
-      });
-      const sData = await sRes.json();
-
-      if (!sRes.ok || !sData?.ok){
-        window.hqToast && hqToast(sData?.error || "Submit failed");
-        return;
-      }
-
-      // Mark this user as done for this quiz
-      try { localStorage.setItem(`hq-done-${id}`, '1'); } catch {}
-
-      location.hash = `/results/${id}`;
-    }catch{
-      window.hqToast && hqToast("Network error submitting.");
-    }
-  };
+ 
   quizBody?.appendChild(submit);
 
   // Show "View Results" only if quiz is closed or this user already played
@@ -425,58 +397,70 @@ async function renderResults(id){
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
 
-  // Share tools — host only
-  const link   = `${location.origin}${location.pathname}#/play/${id}`;
-  const isHost = localStorage.getItem(`hq-host-${id}`) === '1';
+ // Actions panel — for everyone (copy / share / skip)
+const link    = `${location.origin}${location.pathname}#/play/${id}`;
+const ackKey  = `hq-ack-${id}`;      // user has acknowledged results (unlocks Start)
+const shareKey= `hq-shared-${id}`;   // optional: track sharing
 
-  if (isHost) {
-    let p = document.getElementById('resultsShare');
-    if (!p){
-      p = document.createElement('div');
-      p.id = 'resultsShare';
-      p.style.cssText = 'margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap';
-      p.innerHTML = `
-        <input id="resultsShareLink" readonly
-               style="flex:1;min-width:220px;padding:10px;border:1px solid #ddd;border-radius:10px">
-        <button id="resultsCopyBtn"
-                style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
-          Copy
-        </button>
-        <button id="resultsNativeShare"
-                style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
-          Share
-        </button>
-      `;
-      resultsView?.insertBefore(p, resultsView.firstChild);
-    }
-    const inp = document.getElementById('resultsShareLink');
-    const copyBtn = document.getElementById('resultsCopyBtn');
-    const nativeBtn = document.getElementById('resultsNativeShare');
-    if (inp) inp.value = link;
-
-    const markShared = ()=>{
-      try { localStorage.setItem(`hq-shared-${id}`, '1'); } catch {}
-      window.hqToast && hqToast('Link ready to share!');
-      if (!document.querySelector('.home-cta')) addHomeCta();
-    };
-
-    if (copyBtn) copyBtn.onclick = async ()=>{
-      try { await navigator.clipboard.writeText(link); markShared(); } catch {}
-    };
-    if (nativeBtn) nativeBtn.onclick = async ()=>{
-      try {
-        if (navigator.share){
-          await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
-        } else {
-          await navigator.clipboard.writeText(link);
-        }
-        markShared();
-      } catch {}
-    };
-  } else {
-    // Not the host → hide share tools on results
-    document.getElementById('resultsShare')?.remove();
+(function ensureActions(){
+  let p = document.getElementById('resultsActions');
+  if (!p){
+    p = document.createElement('div');
+    p.id = 'resultsActions';
+    p.style.cssText = 'margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap';
+    p.innerHTML = `
+      <input id="resultsShareLink" readonly
+             style="flex:1;min-width:220px;padding:10px;border:1px solid #ddd;border-radius:10px">
+      <button id="resultsCopyBtn"
+              style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
+        Copy
+      </button>
+      <button id="resultsNativeShare"
+              style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
+        Share
+      </button>
+      <button id="resultsSkipBtn"
+              style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#fff;font-weight:600;cursor:pointer">
+        Skip — show Start
+      </button>
+    `;
+    resultsView?.insertBefore(p, resultsView.firstChild);
   }
+
+  const inp      = document.getElementById('resultsShareLink');
+  const copyBtn  = document.getElementById('resultsCopyBtn');
+  const shareBtn = document.getElementById('resultsNativeShare');
+  const skipBtn  = document.getElementById('resultsSkipBtn');
+  if (inp) inp.value = link;
+
+  function unlockStart(){
+    try { localStorage.setItem(ackKey, '1'); } catch {}
+    document.querySelector('.home-cta') || addHomeCta();
+  }
+
+  if (copyBtn) copyBtn.onclick = async ()=>{
+    try { await navigator.clipboard.writeText(link); } catch {}
+    try { localStorage.setItem(shareKey, '1'); } catch {}
+    window.hqToast && hqToast('Link copied!');
+    unlockStart();
+  };
+
+  if (shareBtn) shareBtn.onclick = async ()=>{
+    try{
+      if (navigator.share){
+        await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
+      } else {
+        await navigator.clipboard.writeText(link);
+      }
+    }catch{}
+    try { localStorage.setItem(shareKey, '1'); } catch {}
+    window.hqToast && hqToast('Ready to share!');
+    unlockStart();
+  };
+
+  if (skipBtn) skipBtn.onclick = unlockStart;
+})();
+
 
   const me = (getSavedName() || (nameIn?.value || '')).trim();
 
@@ -533,10 +517,10 @@ async function renderResults(id){
   window.addEventListener("beforeunload", stop);
 
   // Gate the "Back to start" CTA on sharing
-  const hasShared = localStorage.getItem(`hq-shared-${id}`) === '1';
-  if (hasShared) addHomeCta();
-}
+const acknowledged = localStorage.getItem(`hq-ack-${id}`) === '1';
+if (acknowledged) addHomeCta();
 
+}
 
 
 /* ------------------ Wire buttons ------------------ */
