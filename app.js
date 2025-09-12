@@ -423,7 +423,7 @@ async function renderPlay(id){
 
   return true;
 }
-/* ------------------ Results view (live auto-refresh) ------------------ */
+/* ------------------ Results view (gated + live auto-refresh) ------------------ */
 async function renderResults(id){
   // stop any previous poller
   if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
@@ -431,11 +431,14 @@ async function renderResults(id){
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
 
-  // Actions panel — copy/share/skip (link field is hidden)
-  const link     = `${location.origin}${location.pathname}#/play/${id}`;
-  const ackKey   = `hq-ack-${id}`;      // user acknowledged results (unlocks Start)
-  const shareKey = `hq-shared-${id}`;   // optional: track sharing
+  const link      = `${location.origin}${location.pathname}#/play/${id}`;
+  const ackKey    = `hq-ack-${id}`;      // session gate to reveal results + Start
+  const shareKey  = `hq-shared-${id}`;   // optional: track sharing (persists)
 
+  // clean up any old persistent gate so it doesn't auto-unlock
+  try { localStorage.removeItem(ackKey); } catch {}
+
+  // ===== Actions panel (Copy / Share / Skip) =====
   (function ensureActions(){
     let p = document.getElementById('resultsActions');
     if (!p){
@@ -460,15 +463,18 @@ async function renderResults(id){
       `;
       resultsView?.insertBefore(p, resultsView.firstChild);
     }
-
     const inp      = document.getElementById('resultsShareLink');
     const copyBtn  = document.getElementById('resultsCopyBtn');
     const shareBtn = document.getElementById('resultsNativeShare');
     const skipBtn  = document.getElementById('resultsSkipBtn');
-    if (inp) inp.value = link; // keep the link (hidden input)
+    if (inp) inp.value = link;
 
-    function unlockStart(){
-      try { localStorage.setItem(ackKey, '1'); } catch {}
+    function unlock(){
+      try { sessionStorage.setItem(ackKey, '1'); } catch {}
+      // reveal results
+      const gateMsg = document.getElementById('resultsGateMsg'); gateMsg?.remove();
+      if (scoreList) scoreList.style.display = '';
+      // show Start CTA
       document.querySelector('.home-cta') || addHomeCta();
     }
 
@@ -476,23 +482,18 @@ async function renderResults(id){
       try { await navigator.clipboard.writeText(link); } catch {}
       try { localStorage.setItem(shareKey, '1'); } catch {}
       window.hqToast && hqToast('Link copied!');
-      unlockStart();
+      unlock();
     };
-
     if (shareBtn) shareBtn.onclick = async ()=>{
       try{
-        if (navigator.share){
-          await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
-        } else {
-          await navigator.clipboard.writeText(link);
-        }
+        if (navigator.share){ await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link }); }
+        else { await navigator.clipboard.writeText(link); }
       }catch{}
       try { localStorage.setItem(shareKey, '1'); } catch {}
       window.hqToast && hqToast('Ready to share!');
-      unlockStart();
+      unlock();
     };
-
-    if (skipBtn) skipBtn.onclick = unlockStart;
+    if (skipBtn) skipBtn.onclick = unlock;
   })();
 
   const me = (getSavedName() || (nameIn?.value || '')).trim();
@@ -504,7 +505,6 @@ async function renderResults(id){
     return data;
   }
 
-  // draw leaderboard + "See answers" link per player
   function draw(list, total){
     if (!scoreList) return;
     scoreList.innerHTML = "";
@@ -514,18 +514,16 @@ async function renderResults(id){
     }
     list.forEach((row, i)=>{
       const li = document.createElement("li");
-      li.style.position = 'relative';
-
-      const name = document.createElement('span');
       const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
-      name.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
-      if (isMe) { name.style.fontWeight = "700"; name.style.textDecoration = "underline"; }
-      li.appendChild(name);
+      li.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
+      if (isMe) { li.style.fontWeight = "700"; li.style.textDecoration = "underline"; }
 
+      // add "See answers" link on the right
       const a = document.createElement('a');
       a.textContent = 'See answers';
-      a.style.cssText = 'position:absolute; right:0; top:0; font-size:12px;';
       a.href = `#/answers/${id}?n=${encodeURIComponent(row.name || '')}`;
+      a.style.cssText = 'margin-left:8px; font-size:12px;';
+      li.appendChild(document.createTextNode(' '));
       li.appendChild(a);
 
       scoreList.appendChild(li);
@@ -541,7 +539,25 @@ async function renderResults(id){
     if (scoreList) scoreList.innerHTML = `<li class="muted">No results yet — check back soon.</li>`;
   }
 
-  // short-lived poller (every 4s for ~2 minutes)
+  // gate visibility until user acts THIS session
+  const acknowledged = sessionStorage.getItem(ackKey) === '1';
+  if (!acknowledged){
+    if (scoreList) scoreList.style.display = 'none';
+    let gate = document.getElementById('resultsGateMsg');
+    if (!gate){
+      gate = document.createElement('p');
+      gate.id = 'resultsGateMsg';
+      gate.className = 'muted';
+      gate.textContent = 'Tap Copy, Share, or Skip to view results and start a new quiz.';
+      resultsView?.appendChild(gate);
+    }
+    // ensure Start CTA is hidden until unlock
+    document.querySelector('.home-cta')?.remove();
+  } else {
+    addHomeCta();
+  }
+
+  // live poll (every 4s for ~2 min)
   const startedAt = Date.now();
   function stop(){
     if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
@@ -550,21 +566,25 @@ async function renderResults(id){
   }
   window._hqPoll = {
     id: setInterval(async ()=>{
-      if (Date.now() - startedAt > 120000) return stop(); // 2 min
+      if (Date.now() - startedAt > 120000) return stop();
       try{
         const data = await fetchResults();
         const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
-        draw(data.results || [], total);
-      }catch{/* keep last */}
+        // don't touch gate when redrawing
+        if (scoreList && scoreList.style.display !== 'none') {
+          draw(data.results || [], total);
+        } else {
+          // still update in background so when revealed it's fresh
+          scoreList && draw(data.results || [], total);
+          if (scoreList) scoreList.style.display = 'none';
+        }
+      }catch{}
     }, 4000)
   };
   window.addEventListener("hashchange", stop);
   window.addEventListener("beforeunload", stop);
-
-  // Gate the "Start a new quiz" CTA on acknowledgement
-  const acknowledged = localStorage.getItem(`hq-ack-${id}`) === '1';
-  if (acknowledged) addHomeCta();
 }
+
 
 /* ------------------ Wire buttons ------------------ */
 createBtn?.addEventListener("click", createQuiz);
