@@ -287,24 +287,27 @@ async function renderPlay(id){
   }
 
   show(playView);
-  if (shareBtn) shareBtn.style.display = 'none';
 
-const alreadyPlayed = localStorage.getItem(`hq-done-${id}`) === '1';
-if (alreadyPlayed && shareBtn){
-  const link = localStorage.getItem(`hq-link-${id}`) || `${location.origin}${location.pathname}#/play/${id}`;
-  shareBtn.style.display = '';
-  shareBtn.onclick = async ()=>{
-    try{
-      if (navigator.share){
-        await navigator.share({ title:"HeiyuQuiz", text:"Join this quiz!", url: link });
-      } else {
-        await navigator.clipboard.writeText(link);
-        window.hqToast && hqToast("Link copied!");
-      }
-    }catch{}
-  };
-}
-
+  // --- share button: hidden until you've submitted this quiz once ---
+  const alreadyPlayed = localStorage.getItem(`hq-done-${id}`) === '1';
+  if (shareBtn){
+    if (alreadyPlayed){
+      const link = localStorage.getItem(`hq-link-${id}`) || `${location.origin}${location.pathname}#/play/${id}`;
+      shareBtn.style.display = '';
+      shareBtn.onclick = async ()=>{
+        try{
+          if (navigator.share){
+            await navigator.share({ title:"HeiyuQuiz", text:`Join this ${category} quiz!`, url: link });
+          } else {
+            await navigator.clipboard.writeText(link);
+            window.hqToast && hqToast("Link copied!");
+          }
+        }catch{}
+      };
+    } else {
+      shareBtn.style.display = 'none';
+    }
+  }
 
   // --- compact name bar (Play view) ---
   let nameBar = document.getElementById('playNameBar');
@@ -363,7 +366,6 @@ if (alreadyPlayed && shareBtn){
       });
       const sData = await sRes.json();
 
-      // ✅ Check submit response, not the earlier fetch
       if (!sRes.ok || !sData?.ok){
         window.hqToast && hqToast(sData?.error || "Submit failed");
         return;
@@ -381,7 +383,6 @@ if (alreadyPlayed && shareBtn){
 
   // Show "View Results" only if quiz is closed or this user already played
   const isClosed = data.closesAt && Date.now() > data.closesAt;
-  const alreadyPlayed = localStorage.getItem(`hq-done-${id}`) === '1';
   if (isClosed || alreadyPlayed) {
     let viewBtn = document.getElementById('viewResultsBtn');
     if (!viewBtn){
@@ -399,20 +400,6 @@ if (alreadyPlayed && shareBtn){
     } else {
       viewBtn.onclick = ()=>{ location.hash = `/results/${id}`; };
     }
-  }
-
-  if (shareBtn){
-    shareBtn.onclick = async ()=>{
-      const link = `${location.origin}${location.pathname}#/play/${id}`;
-      try{
-        if (navigator.share){
-          await navigator.share({ title:"HeiyuQuiz", text:`Join this ${category} quiz!`, url: link });
-        }else{
-          await navigator.clipboard.writeText(link);
-          window.hqToast && hqToast("Link copied!");
-        }
-      }catch{}
-    };
   }
 
   return true;
