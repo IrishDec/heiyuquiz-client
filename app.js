@@ -428,11 +428,11 @@ async function renderResults(id){
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
 
-  // ✅ Correct play link for this quiz (uses your current origin/path + hash)
-  const link = `${location.origin}${location.pathname}#/play/${id}`;
+  // ✅ Share tools — show only for the host who created this quiz
+  const link   = `${location.origin}${location.pathname}#/play/${id}`;
+  const isHost = localStorage.getItem(`hq-host-${id}`) === '1';
 
-  // Lightweight share panel at the top of Results
-  (function ensureSharePanel(){
+  if (isHost) {
     let p = document.getElementById('resultsShare');
     if (!p){
       p = document.createElement('div');
@@ -457,19 +457,27 @@ async function renderResults(id){
     const nativeBtn = document.getElementById('resultsNativeShare');
     if (inp) inp.value = link;
     if (copyBtn) copyBtn.onclick = async ()=>{
-      try { await navigator.clipboard.writeText(link); window.hqToast && hqToast('Link copied!'); } catch {}
+      try {
+        await navigator.clipboard.writeText(link);
+        localStorage.setItem(`hq-shared-${id}`, '1');
+        window.hqToast && hqToast('Link copied!');
+      } catch {}
     };
     if (nativeBtn) nativeBtn.onclick = async ()=>{
       try{
         if (navigator.share){
           await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
-        }else{
+        } else {
           await navigator.clipboard.writeText(link);
-          window.hqToast && hqToast('Link copied!');
         }
+        localStorage.setItem(`hq-shared-${id}`, '1');
+        window.hqToast && hqToast('Link ready to share!');
       }catch{}
     };
-  })();
+  } else {
+    // Not the host → hide share tools on results
+    document.getElementById('resultsShare')?.remove();
+  }
 
   const me = (getSavedName() || (nameIn?.value || '')).trim();
 
@@ -527,6 +535,7 @@ async function renderResults(id){
 
   addHomeCta(); // back to start
 }
+
 
 /* ------------------ Wire buttons ------------------ */
 createBtn?.addEventListener("click", createQuiz);
