@@ -528,12 +528,122 @@ async function renderResults(id){
     return data;
   }
 
-  function draw(list, total){
-    if (!scoreList) return;
-    scoreList.innerHTML = "";
-    if (!list?.length){
-      scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
-      return;
+  // 🔄 REPLACE your existing draw(...) with this:
+function draw(list, total){
+  if (!scoreList) return;
+  scoreList.innerHTML = "";
+
+  if (!list?.length){
+    scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
+    return;
+  }
+
+  list.forEach((row, i)=>{
+    const li = document.createElement("li");
+    const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
+
+    const label = document.createElement('span');
+    label.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
+    if (isMe) { label.style.fontWeight = "700"; }
+
+    li.appendChild(label);
+
+    // 👉 “See answers” link for **this** player (the one on this device)
+    if (isMe){
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = 'See answers';
+      btn.style.marginLeft = '8px';
+      btn.style.border = '0';
+      btn.style.background = 'transparent';
+      btn.style.textDecoration = 'underline';
+      btn.style.cursor = 'pointer';
+      btn.onclick = showMyAnswers;           // defined below
+      li.appendChild(btn);
+    }
+
+    scoreList.appendChild(li);
+  });
+}
+
+// ➕ Add this helper RIGHT UNDER draw()
+async function showMyAnswers(){
+  // 1) pull my picks
+  let picks;
+  try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
+  if (!Array.isArray(picks)){
+    window.hqToast && hqToast('No saved answers on this device.');
+    return;
+  }
+
+  // 2) fetch quiz to get questions/correct answers
+  let qRes, qData, questions = [];
+  try{
+    qRes = await fetch(`${window.SERVER_URL}/api/quiz/${id}`);
+    qData = await qRes.json();
+    questions = Array.isArray(qData?.questions) ? qData.questions : [];
+  }catch{
+    window.hqToast && hqToast('Could not load answers.');
+    return;
+  }
+
+  // 3) build/refresh the panel
+  let panel = document.getElementById('answersPanel');
+  if (!panel){
+    panel = document.createElement('div');
+    panel.id = 'answersPanel';
+    panel.style.marginTop = '12px';
+    panel.style.padding = '12px';
+    panel.style.border = '1px solid #eee';
+    panel.style.borderRadius = '12px';
+    panel.style.background = '#fff';
+    resultsView?.appendChild(panel);
+  }
+  panel.innerHTML = `<h3 style="margin:0 0 8px">Your answers</h3>`;
+
+  // helper to resolve correct index from various backends
+  function getCorrectIndex(q){
+    if (typeof q.correctIndex === 'number') return q.correctIndex;
+    if (typeof q.answerIndex === 'number')  return q.answerIndex;
+    if (typeof q.correct === 'number')      return q.correct;
+    // sometimes the correct option text is stored:
+    if (q.answer && Array.isArray(q.options)){
+      const idx = q.options.findIndex(o => String(o).trim() === String(q.answer).trim());
+      if (idx >= 0) return idx;
+    }
+    return null;
+  }
+
+  const list = document.createElement('div');
+
+  questions.forEach((q, i)=>{
+    const myPick = picks[i];
+    const options = q.options || q.choices || [];
+    const correctIdx = getCorrectIndex(q);
+
+    const myText = (myPick != null && options[myPick] != null) ? String(options[myPick]) : '(no answer)';
+    const correctText = (correctIdx != null && options[correctIdx] != null) ? String(options[correctIdx]) : '(unknown)';
+
+    const isCorrect = (correctIdx != null && myPick === correctIdx);
+
+    const row = document.createElement('div');
+    row.style.padding = '8px 0';
+    row.style.borderTop = '1px solid #f1f1f1';
+    row.innerHTML = `
+      <div style="font-weight:600;margin:4px 0">${decodeHTML(q.q || q.question || `Question ${i+1}`)}</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span>${isCorrect ? '✅' : '❌'} <strong>Your answer:</strong> ${decodeHTML(myText)}</span>
+        <span class="muted">·</span>
+        <span><strong>Correct:</strong> ${decodeHTML(correctText)}</span>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  panel.appendChild(list);
+  panel.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
     }
     list.forEach((row, i)=>{
       const li = document.createElement("li");
