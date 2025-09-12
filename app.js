@@ -444,18 +444,18 @@ const shareKey= `hq-shared-${id}`;   // optional: track sharing
     p.style.cssText = 'margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap';
     p.innerHTML = `
       <input id="resultsShareLink" readonly
-             style="flex:1;min-width:220px;padding:10px;border:1px solid #ddd;border-radius:10px">
+             style="display:none;flex:1;min-width:220px;padding:10px;border:1px solid #ddd;border-radius:10px">
       <button id="resultsCopyBtn"
               style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
-        Copy
+        Copy quiz link
       </button>
       <button id="resultsNativeShare"
               style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
-        Share
+        Share quiz now
       </button>
       <button id="resultsSkipBtn"
               style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#fff;font-weight:600;cursor:pointer">
-        Skip — show Start
+        Skip share — see results
       </button>
     `;
     resultsView?.insertBefore(p, resultsView.firstChild);
@@ -465,7 +465,7 @@ const shareKey= `hq-shared-${id}`;   // optional: track sharing
   const copyBtn  = document.getElementById('resultsCopyBtn');
   const shareBtn = document.getElementById('resultsNativeShare');
   const skipBtn  = document.getElementById('resultsSkipBtn');
-  if (inp) inp.value = link;
+  if (inp) inp.value = link; // keep the link (hidden)
 
   function unlockStart(){
     try { localStorage.setItem(ackKey, '1'); } catch {}
@@ -494,6 +494,7 @@ const shareKey= `hq-shared-${id}`;   // optional: track sharing
 
   if (skipBtn) skipBtn.onclick = unlockStart;
 })();
+
 
 
   const me = (getSavedName() || (nameIn?.value || '')).trim();
