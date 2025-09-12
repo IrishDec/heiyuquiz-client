@@ -420,10 +420,7 @@ async function renderPlay(id){
 /* ------------------ Results view (live auto-refresh) ------------------ */
 async function renderResults(id){
   // stop any previous poller
-  if (window._hqPoll) {
-    try { clearInterval(window._hqPoll.id); } catch {}
-    window._hqPoll = null;
-  }
+  if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
 
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
@@ -457,26 +454,24 @@ async function renderResults(id){
     const nativeBtn = document.getElementById('resultsNativeShare');
     if (inp) inp.value = link;
 
-    if (copyBtn) copyBtn.onclick = async ()=>{
-      try {
-        await navigator.clipboard.writeText(link);
-        localStorage.setItem(`hq-shared-${id}`, '1');
-        window.hqToast && hqToast('Link copied!');
-        document.querySelector('.home-cta') || addHomeCta();
-      } catch {}
+    const markShared = ()=>{
+      try { localStorage.setItem(`hq-shared-${id}`, '1'); } catch {}
+      window.hqToast && hqToast('Link ready to share!');
+      if (!document.querySelector('.home-cta')) addHomeCta();
     };
 
+    if (copyBtn) copyBtn.onclick = async ()=>{
+      try { await navigator.clipboard.writeText(link); markShared(); } catch {}
+    };
     if (nativeBtn) nativeBtn.onclick = async ()=>{
-      try{
+      try {
         if (navigator.share){
           await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
         } else {
           await navigator.clipboard.writeText(link);
         }
-        localStorage.setItem(`hq-shared-${id}`, '1');
-        window.hqToast && hqToast('Link ready to share!');
-        document.querySelector('.home-cta') || addHomeCta();
-      }catch{}
+        markShared();
+      } catch {}
     };
   } else {
     // Not the host → hide share tools on results
@@ -541,6 +536,7 @@ async function renderResults(id){
   const hasShared = localStorage.getItem(`hq-shared-${id}`) === '1';
   if (hasShared) addHomeCta();
 }
+
 
 
 /* ------------------ Wire buttons ------------------ */
