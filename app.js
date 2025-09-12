@@ -178,7 +178,7 @@ async function route(){
   }
 })();
 
-/* ------------------ Create quiz & share ------------------ */
+/* ------------------ Create quiz (share deferred until after submit) ------------------ */
 async function createQuiz(){
   const category = categorySel?.value || "General";
   const region   = regionSel?.value || "global";
@@ -189,10 +189,9 @@ async function createQuiz(){
   createBtn?.setAttribute('disabled','');
   if (createBtn) createBtn.textContent = 'Creating…';
 
-  // Abort after 10s so it never hangs forever
-  const timeoutMs = 10000;
+  // Abort after 10s
   const ctrl = new AbortController();
-  const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+  const t = setTimeout(()=>ctrl.abort(), 10000);
 
   try {
     const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
@@ -207,11 +206,10 @@ async function createQuiz(){
     });
 
     const raw = await res.text();
-    let data; try { data = JSON.parse(raw); } catch { data = null; }
+    let data; try { data = JSON.parse(raw); } catch {}
 
     if (!res.ok || !data?.ok){
       const msg = (data && (data.error || data.message)) || raw || `HTTP ${res.status}`;
-      console.error('createQuiz error:', {status: res.status, body: raw});
       alert(`Create failed:\n${msg}`);
       return;
     }
@@ -219,44 +217,17 @@ async function createQuiz(){
     const quizId = data.quizId || data.id;
     if (!quizId){ alert('Create succeeded but no quiz ID returned.'); return; }
 
-    // Navigate immediately so the play screen renders
+    // Navigate to play screen
     location.hash = `/play/${quizId}`;
 
-    // Build share link + simple fallback panel
+    // Save link but DO NOT show/share yet — host must play first
     const link = `${location.origin}${location.pathname}#/play/${quizId}`;
-    let panel = document.getElementById('linkPanel');
-    if (!panel) {
-      panel = document.createElement('div');
-      panel.id = 'linkPanel';
-      panel.style.cssText = 'margin-top:10px;display:flex;gap:8px;flex-wrap:wrap';
-      panel.innerHTML = `
-        <input id="shareLink" readonly style="flex:1;min-width:220px;padding:10px;border:1px solid #ddd;border-radius:10px">
-        <button id="copyLinkBtn" style="padding:10px 14px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">Copy</button>
-        <a id="openLinkBtn" style="padding:10px 14px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;text-decoration:none" target="_blank">Open</a>
-      `;
-      startCard?.appendChild(panel);
-    }
-    panel.querySelector('#shareLink').value = link;
-    panel.querySelector('#openLinkBtn').href = link;
-    panel.querySelector('#copyLinkBtn').onclick = async ()=>{
-      try { await navigator.clipboard.writeText(link); window.hqToast && hqToast('Link copied!'); } catch {}
-    };
-
-    // Try native share; fallback silently to clipboard
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: "HeiyuQuiz",
-          text: `Join my ${category}${region && region!=='global' ? ' • '+region.toUpperCase() : ''}${topic ? ' — '+topic : ''} quiz!`,
-          url: link
-        });
-      } else {
-        await navigator.clipboard.writeText(link);
-        window.hqToast && hqToast("Link copied!");
-      }
-    } catch {
-      try { await navigator.clipboard.writeText(link); window.hqToast && hqToast("Link copied!"); } catch {}
-    }
+      localStorage.setItem(`hq-host-${quizId}`, '1');
+      localStorage.setItem(`hq-link-${quizId}`, link);
+    } catch {}
+
+    window.hqToast && hqToast('Play first — share unlocks after you submit ✅');
 
   } catch (err) {
     if (err.name === 'AbortError') {
@@ -271,6 +242,7 @@ async function createQuiz(){
     if (createBtn) createBtn.textContent = originalLabel || 'Create & Share Link';
   }
 }
+
 
 /* ------------------ Play view ------------------ */
 async function renderPlay(id){
@@ -320,6 +292,24 @@ async function renderPlay(id){
   }
 
   show(playView);
+  if (shareBtn) shareBtn.style.display = 'none';
+
+const alreadyPlayed = localStorage.getItem(`hq-done-${id}`) === '1';
+if (alreadyPlayed && shareBtn){
+  const link = localStorage.getItem(`hq-link-${id}`) || `${location.origin}${location.pathname}#/play/${id}`;
+  shareBtn.style.display = '';
+  shareBtn.onclick = async ()=>{
+    try{
+      if (navigator.share){
+        await navigator.share({ title:"HeiyuQuiz", text:"Join this quiz!", url: link });
+      } else {
+        await navigator.clipboard.writeText(link);
+        window.hqToast && hqToast("Link copied!");
+      }
+    }catch{}
+  };
+}
+
 
   // --- compact name bar (Play view) ---
   let nameBar = document.getElementById('playNameBar');
@@ -436,7 +426,7 @@ async function renderPlay(id){
 
 /* ------------------ Results view (live auto-refresh) ------------------ */
 async function renderResults(id){
-  // clear any previous poller
+  // stop any previous poller
   if (window._hqPoll) {
     try { clearInterval(window._hqPoll.id); } catch {}
     window._hqPoll = null;
@@ -444,6 +434,49 @@ async function renderResults(id){
 
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
+
+  // ✅ Correct play link for this quiz (uses your current origin/path + hash)
+  const link = `${location.origin}${location.pathname}#/play/${id}`;
+
+  // Lightweight share panel at the top of Results
+  (function ensureSharePanel(){
+    let p = document.getElementById('resultsShare');
+    if (!p){
+      p = document.createElement('div');
+      p.id = 'resultsShare';
+      p.style.cssText = 'margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap';
+      p.innerHTML = `
+        <input id="resultsShareLink" readonly
+               style="flex:1;min-width:220px;padding:10px;border:1px solid #ddd;border-radius:10px">
+        <button id="resultsCopyBtn"
+                style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
+          Copy
+        </button>
+        <button id="resultsNativeShare"
+                style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
+          Share
+        </button>
+      `;
+      resultsView?.insertBefore(p, resultsView.firstChild);
+    }
+    const inp = document.getElementById('resultsShareLink');
+    const copyBtn = document.getElementById('resultsCopyBtn');
+    const nativeBtn = document.getElementById('resultsNativeShare');
+    if (inp) inp.value = link;
+    if (copyBtn) copyBtn.onclick = async ()=>{
+      try { await navigator.clipboard.writeText(link); window.hqToast && hqToast('Link copied!'); } catch {}
+    };
+    if (nativeBtn) nativeBtn.onclick = async ()=>{
+      try{
+        if (navigator.share){
+          await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
+        }else{
+          await navigator.clipboard.writeText(link);
+          window.hqToast && hqToast('Link copied!');
+        }
+      }catch{}
+    };
+  })();
 
   const me = (getSavedName() || (nameIn?.value || '')).trim();
 
@@ -499,8 +532,9 @@ async function renderResults(id){
   window.addEventListener("hashchange", stop);
   window.addEventListener("beforeunload", stop);
 
-  addHomeCta();
+  addHomeCta(); // back to start
 }
+
 
 
 /* ------------------ Wire buttons ------------------ */
