@@ -129,8 +129,7 @@ route();
 async function route(){
   const [ , view, id ] = (location.hash.slice(1) || "").split("/");
   if (view === "play" && id)      renderPlay(id);
-  else if (view === "results" && id) renderResults(id);
-  else if (view === "answers" && id) renderAnswers(id);   
+  else if (view === "results" && id) renderResults(id);  
   else                             show(startCard);
 }
 
