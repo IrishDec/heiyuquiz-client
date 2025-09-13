@@ -599,6 +599,17 @@ button:disabled{
 }
 .see-answers:active { opacity: .7; }
 
+/* App header logo */
+#appHeader{
+  display:flex; justify-content:center; align-items:center;
+  padding:14px 0 6px; margin:0 auto; max-width:900px;
+}
+#appHeader img{
+  width: clamp(150px, 32vw, 260px);
+  height:auto; display:block;
+  border-radius:14px;          /* soft edges for the glow image */
+  box-shadow: 0 8px 28px rgba(80, 60, 200, .25);
+}
 
 
 
