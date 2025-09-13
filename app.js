@@ -243,9 +243,6 @@ async function createQuiz(){
   }
 }
 
-
-
-
 /* ------------------ Play view ------------------ */
 async function renderPlay(id){
   let res, data;
@@ -401,11 +398,10 @@ async function renderPlay(id){
   }
 
 // --- Only show "View Results" when the quiz is truly CLOSED ---
-document.getElementById('viewResultsBtn')?.remove(); // kill any stray one
+document.getElementById('viewResultsBtn')?.remove(); // remove any stray one
 
-const closesAtMs = data.closesAt ? new Date(data.closesAt).getTime() : 0;
-const isClosed = closesAtMs && Date.now() > closesAtMs;
-
+const isClosed = Number(data.closesAt) && Date.now() > Number(data.closesAt);
+if (isClosed) {
   const viewBtn = document.createElement('button');
   viewBtn.id = 'viewResultsBtn';
   viewBtn.textContent = 'Quiz closed — View Results';
@@ -419,8 +415,8 @@ const isClosed = closesAtMs && Date.now() > closesAtMs;
   quizBody?.appendChild(viewBtn);
 }
 
+return true;
 
-  return true;
 }
 /* ------------------ Results view (live auto-refresh) ------------------ */
 async function renderResults(id){
