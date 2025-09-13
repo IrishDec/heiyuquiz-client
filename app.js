@@ -432,32 +432,34 @@ async function renderResults(id){
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
 
-  // ---- GATE: hide results + CTA until user acts THIS session ----
-  const ackKey   = `hq-ack-${id}`;        // session gate key
+  // ---- gate: hide results + CTA until user acts THIS session ----
+  const ackKey   = `hq-ack-${id}`;        // session key
   const shareKey = `hq-shared-${id}`;     // optional metric
-  const acknowledged = sessionStorage.getItem(ackKey) === '1';
+  const link     = `${location.origin}${location.pathname}#/play/${id}`;
 
-  // always remove any previously shown CTA at entry
   document.querySelector('.home-cta')?.remove();
 
-  if (!acknowledged) {
-    if (scoreList) scoreList.style.display = 'none';
-    let gate = document.getElementById('resultsGateMsg');
-    if (!gate){
-      gate = document.createElement('p');
-      gate.id = 'resultsGateMsg';
-      gate.className = 'muted';
-      gate.textContent = 'Too see results, Copy Share, or Skip.';
-      resultsView?.appendChild(gate);
+  function setGate(ack){
+    if (!scoreList) return;
+    if (!ack){
+      scoreList.style.display = 'none';
+      let gate = document.getElementById('resultsGateMsg');
+      if (!gate){
+        gate = document.createElement('p');
+        gate.id = 'resultsGateMsg';
+        gate.className = 'muted';
+        gate.textContent = 'To see results, copy, share, or skip.';
+        resultsView?.appendChild(gate);
+      }
+    } else {
+      document.getElementById('resultsGateMsg')?.remove();
+      scoreList.style.display = '';
+      document.querySelector('.home-cta') || addHomeCta();
     }
-  } else {
-    if (scoreList) scoreList.style.display = '';
-    addHomeCta();
   }
+  setGate(sessionStorage.getItem(ackKey) === '1');
 
-  // ---- Actions (Copy / Share / Skip) — available to everyone ----
-  const link = `${location.origin}${location.pathname}#/play/${id}`;
-
+  // ---- actions (Copy / Share / Skip) ----
   (function ensureActions(){
     let p = document.getElementById('resultsActions');
     if (!p){
@@ -465,8 +467,7 @@ async function renderResults(id){
       p.id = 'resultsActions';
       p.style.cssText = 'margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center';
       p.innerHTML = `
-        <input id="resultsShareLink" readonly
-               style="display:none">
+        <input id="resultsShareLink" readonly style="display:none">
         <button id="resultsCopyBtn"
                 style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
           Copy quiz link
@@ -488,20 +489,17 @@ async function renderResults(id){
     const skipBtn  = document.getElementById('resultsSkipBtn');
     if (inp) inp.value = link;
 
-    function unlockStart(){
+    function unlock(){
       try { sessionStorage.setItem(ackKey, '1'); } catch {}
-      document.getElementById('resultsGateMsg')?.remove();
-      if (scoreList) scoreList.style.display = '';
-      document.querySelector('.home-cta') || addHomeCta();
+      try { localStorage.setItem(shareKey, '1'); } catch {}
+      setGate(true);
+      window.hqToast && hqToast('Ready!');
     }
 
     if (copyBtn) copyBtn.onclick = async ()=>{
       try { await navigator.clipboard.writeText(link); } catch {}
-      try { localStorage.setItem(shareKey, '1'); } catch {}
-      window.hqToast && hqToast('Link copied!');
-      unlockStart();
+      unlock();
     };
-
     if (shareBtn) shareBtn.onclick = async ()=>{
       try{
         if (navigator.share){
@@ -510,17 +508,12 @@ async function renderResults(id){
           await navigator.clipboard.writeText(link);
         }
       }catch{}
-      try { localStorage.setItem(shareKey, '1'); } catch {}
-      window.hqToast && hqToast('Ready to share!');
-      unlockStart();
+      unlock();
     };
-
-    if (skipBtn) skipBtn.onclick = unlockStart;
+    if (skipBtn) skipBtn.onclick = unlock;
   })();
 
-  // ---- Results fetch + render ----
-  const me = (getSavedName() || (nameIn?.value || '')).trim();
-
+  // ---- results fetch + render ----
   async function fetchResults(){
     const res = await fetch(`${window.SERVER_URL}/api/quiz/${id}/results`);
     const data = await res.json();
@@ -528,110 +521,117 @@ async function renderResults(id){
     return data;
   }
 
-  // 🔄 REPLACE your existing draw(...) with this:
-function draw(list, total){
-  if (!scoreList) return;
-  scoreList.innerHTML = "";
+  function draw(list, total){
+    if (!scoreList) return;
+    scoreList.innerHTML = "";
 
-  if (!list?.length){
-    scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
-    return;
-  }
-
-  list.forEach((row, i)=>{
-    const li = document.createElement("li");
-    const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
-
-    const label = document.createElement('span');
-    label.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
-    if (isMe) { label.style.fontWeight = "700"; }
-
-    li.appendChild(label);
-
-    // 👉 “See answers” link for **this** player (the one on this device)
-    if (isMe){
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.textContent = 'See answers';
-      btn.style.marginLeft = '8px';
-      btn.style.border = '0';
-      btn.style.background = 'transparent';
-      btn.style.textDecoration = 'underline';
-      btn.style.cursor = 'pointer';
-      btn.onclick = showMyAnswers;           // defined below
-      li.appendChild(btn);
+    if (!list?.length){
+      scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
+      return;
     }
 
-    scoreList.appendChild(li);
-  });
-}
+    const me = (getSavedName() || (nameIn?.value || '')).trim().toLowerCase();
 
-// ➕ Add this helper RIGHT UNDER draw()
-async function showMyAnswers(){
-  const me = (getSavedName() || (nameIn?.value || '')).trim();
-  if (!me){ window.hqToast && hqToast('No name found'); return; }
+    list.forEach((row, i)=>{
+      const li = document.createElement("li");
+      const isMe = me && row.name && row.name.toLowerCase() === me;
 
-  let data;
-  try{
-    const r = await fetch(`${window.SERVER_URL}/api/quiz/${currentQuizId || id}/answers?name=${encodeURIComponent(me)}`);
-    data = await r.json();
-    if (!r.ok || !data?.ok) throw new Error(data?.error || 'Failed');
-  }catch(e){
-    window.hqToast && hqToast('Could not load answers.');
-    console.error(e);
-    return;
+      const label = document.createElement('span');
+      label.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
+      if (isMe) label.style.fontWeight = "700";
+      li.appendChild(label);
+
+      // Only the current player gets a "See answers" link
+      if (isMe){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = 'See answers';
+        btn.style.marginLeft = '8px';
+        btn.style.border = '0';
+        btn.style.background = 'transparent';
+        btn.style.textDecoration = 'underline';
+        btn.style.cursor = 'pointer';
+        btn.onclick = ()=> showMyAnswers(id);
+        li.appendChild(btn);
+      }
+
+      scoreList.appendChild(li);
+    });
   }
 
-  const { questions = [], correct = [] } = data;
+  async function showMyAnswers(quizId){
+    // saved picks on this device
+    let picks; try { picks = JSON.parse(localStorage.getItem(`hq-picks-${quizId}`) || "null"); } catch {}
+    if (!Array.isArray(picks)){ window.hqToast && hqToast('No saved answers on this device.'); return; }
 
-  let panel = document.getElementById('answersPanel');
-  if (!panel){
-    panel = document.createElement('div');
-    panel.id = 'answersPanel';
-    panel.style.marginTop = '12px';
-    panel.style.padding = '12px';
-    panel.style.border = '1px solid #eee';
-    panel.style.borderRadius = '12px';
-    panel.style.background = '#fff';
-    resultsView?.appendChild(panel);
+    // normalized answers from server
+    let resp, data;
+    try{
+      resp = await fetch(`${window.SERVER_URL}/api/quiz/${quizId}/answers`);
+      data = await resp.json();
+      if (!resp.ok || !data?.ok) throw new Error(data?.error || 'Failed');
+    }catch(e){
+      console.error(e);
+      window.hqToast && hqToast('Could not load answers.');
+      return;
+    }
+
+    const questions = Array.isArray(data.questions) ? data.questions : [];
+    const correct = Array.isArray(data.correct)
+      ? data.correct
+      : questions.map(q=>{
+          if (typeof q.correctIndex === 'number') return q.correctIndex;
+          if (typeof q.answerIndex  === 'number') return q.answerIndex;
+          if (typeof q.correct      === 'number') return q.correct;
+          if (q.answer && Array.isArray(q.options)){
+            const idx = q.options.findIndex(o => String(o).trim().toLowerCase() === String(q.answer).trim().toLowerCase());
+            return idx >= 0 ? idx : null;
+          }
+          return null;
+        });
+
+    let panel = document.getElementById('answersPanel');
+    if (!panel){
+      panel = document.createElement('div');
+      panel.id = 'answersPanel';
+      panel.style.marginTop = '12px';
+      panel.style.padding = '12px';
+      panel.style.border = '1px solid #eee';
+      panel.style.borderRadius = '12px';
+      panel.style.background = '#fff';
+      resultsView?.appendChild(panel);
+    }
+    panel.innerHTML = `<h3 style="margin:0 0 8px">Your answers</h3>`;
+
+    const holder = document.createElement('div');
+    questions.forEach((q, i)=>{
+      const opts    = q.options || q.choices || [];
+      const myIdx   = picks[i];
+      const corIdx  = correct[i];
+
+      const myText  = (myIdx != null && opts[myIdx] != null) ? String(opts[myIdx]) : '(no answer)';
+      const corText = (corIdx != null && opts[corIdx] != null) ? String(opts[corIdx]) : '(unknown)';
+      const ok      = (corIdx != null && myIdx === corIdx);
+
+      const row = document.createElement('div');
+      row.style.padding = '10px 0';
+      row.style.borderTop = '1px solid #f1f1f1';
+      row.innerHTML = `
+        <div style="font-weight:700;margin:4px 0">${decodeHTML(q.q || q.question || \`Question ${i+1}\`)}</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <span>${ok ? '✅' : '❌'} <strong>Your answer:</strong> ${decodeHTML(myText)}</span>
+          <span class="muted">·</span>
+          <span><strong>Correct:</strong> ${decodeHTML(corText)}</span>
+        </div>
+      `;
+      holder.appendChild(row);
+    });
+
+    panel.appendChild(holder);
+    panel.scrollIntoView({ behavior:'smooth', block:'start' });
   }
-  panel.innerHTML = `<h3 style="margin:0 0 8px">Your answers</h3>`;
 
-  // your saved picks from this device
-  let picks; try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
-  if (!Array.isArray(picks)) picks = [];
-
-  const list = document.createElement('div');
-  questions.forEach((q, i)=>{
-    const opts = q.options || [];
-    const myIdx = picks[i];
-    const corIdx = correct[i];
-
-    const myText = (myIdx != null && opts[myIdx] != null) ? String(opts[myIdx]) : '(no answer)';
-    const corText = (corIdx != null && opts[corIdx] != null) ? String(opts[corIdx]) : '(unknown)';
-    const isCorrect = (corIdx != null && myIdx === corIdx);
-
-    const row = document.createElement('div');
-    row.style.padding = '10px 0';
-    row.style.borderTop = '1px solid #f1f1f1';
-    row.innerHTML = `
-      <div style="font-weight:700;margin:4px 0">${decodeHTML(q.q || q.question || `Question ${i+1}`)}</div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <span>${isCorrect ? '✅' : '❌'} <strong>Your answer:</strong> ${decodeHTML(myText)}</span>
-        <span class="muted">·</span>
-        <span><strong>Correct:</strong> ${decodeHTML(corText)}</span>
-      </div>
-    `;
-    list.appendChild(row);
-  });
-
-  panel.appendChild(list);
-  panel.scrollIntoView({ behavior:'smooth', block:'start' });
-}
-
-}
-
- // initial load
+  // initial load
   try{
     const data = await fetchResults();
     const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
@@ -660,10 +660,8 @@ async function showMyAnswers(){
   window.addEventListener("hashchange", stop);
   window.addEventListener("beforeunload", stop);
 
-  // NOTE: no addHomeCta() here — it appears only after Copy/Share/Skip via unlockStart()
+  // NOTE: no addHomeCta() at the very end — it appears via unlock()
 }
-
-
 
 /* ------------------ Wire buttons ------------------ */
 createBtn?.addEventListener("click", createQuiz);
