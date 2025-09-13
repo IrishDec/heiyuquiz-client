@@ -1,0 +1,45 @@
+// --- ADD THIS: returns sanitized questions with a reliable correctIndex ---
+app.get('/api/quiz/:id/answers', (req, res) => {
+  const { id } = req.params;
+
+  // ⬇️ Adjust this line to match your store:
+  // If you have Map: quizzes.get(id)
+  // If you have function: store.getQuiz(id)
+  const quiz = quizzes?.get ? quizzes.get(id) : (store.getQuiz ? store.getQuiz(id) : null);
+
+  if (!quiz) return res.status(404).json({ ok:false, error:'Quiz not found' });
+
+  const questions = (quiz.questions || []).map(q => {
+    const options = q.options || q.choices || [];
+    return {
+      q: q.q || q.question || '',
+      options,
+      correctIndex: resolveCorrectIndex(q, options)
+    };
+  });
+
+  res.json({ ok:true, id, questions });
+});
+
+// --- helper to normalize various backends into a single correctIndex ---
+function resolveCorrectIndex(q, options){
+  if (typeof q.correctIndex === 'number') return q.correctIndex;
+  if (typeof q.answerIndex  === 'number') return q.answerIndex;
+  if (typeof q.correct      === 'number') return q.correct;
+
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  if (q.answerLetter){
+    const idx = letters.indexOf(String(q.answerLetter).toUpperCase());
+    if (idx >= 0 && idx < options.length) return idx;
+  }
+
+  const answerText = q.answerText || q.correctAnswer || q.answer;
+  if (answerText != null){
+    const norm = s => String(s).trim().toLowerCase().replace(/\s+/g,' ');
+    const target = norm(answerText);
+    for (let i = 0; i < options.length; i++){
+      if (norm(options[i]) === target) return i;
+    }
+  }
+  return null; // unknown
+}
