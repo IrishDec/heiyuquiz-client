@@ -539,6 +539,45 @@ button:disabled{
   -webkit-mask-image:none !important;
   mask-image:none !important;
 }
+/* Hard mask the old tick area, then show the brand dot on top */
+.q .opts button{
+  background-image:none !important;
+  background-position:9999px 9999px !important;
+}
+
+.q .opts button::before{
+  /* filled white square to cover any legacy tick */
+  content:"";
+  position:absolute;
+  left:16px; top:50%;
+  transform:translateY(-50%);
+  width:22px; height:22px;
+  border:2px solid #e5e7eb;
+  border-radius:6px;
+  background:#fff !important;   /* <-- mask */
+  z-index:2;                     /* sits above any old background */
+}
+
+.q .opts button::after{
+  /* brand round dot */
+  content:"";
+  position:absolute;
+  left:16px; top:50%;
+  transform:translateY(-50%);
+  width:22px; height:22px;
+  border-radius:50%;
+  background:var(--brand, #6e56cf);
+  opacity:0;
+  z-index:3;                     /* above the white square */
+  transition:opacity .12s ease;
+}
+
+.q .opts button.selected::after{ opacity:1 !important; }
+
+/* Nuclear option: hide any inline icons inside options */
+.q .opts button svg,
+.q .opts button i,
+.q .opts button .icon { display:none !important; }
 
 
 
