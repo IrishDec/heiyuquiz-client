@@ -92,18 +92,6 @@ const scoreList   = qs("#scoreList");
 const regionSel = qs("#region");
 const topicIn   = qs("#topic");
 
-// Ensure header logo exists at top of the page
-(function ensureHeader(){
-  if (document.getElementById('appHeader')) return;
-  const header = document.createElement('div');
-  header.id = 'appHeader';
-  header.innerHTML = `<img src="./logo.png" alt="HeiyuQuiz logo" loading="eager" decoding="async">`;
-
-  // insert before the first view so it’s above Start/Play/Results
-  const firstView = document.getElementById('startCard') || document.body.firstChild;
-  document.body.insertBefore(header, firstView);
-})();
-
 
 // --- Name helpers for Play view ---
 function getSavedName(){ return localStorage.getItem('hq-name') || ''; }
