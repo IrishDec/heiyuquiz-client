@@ -515,7 +515,7 @@ async function renderResults(id){
     return data;
   }
 
-  function draw(list, total){
+   function draw(list, total){
     if (!scoreList) return;
     scoreList.innerHTML = "";
 
@@ -526,105 +526,97 @@ async function renderResults(id){
 
     const me = (getSavedName() || (nameIn?.value || '')).trim().toLowerCase();
 
-   list.forEach((row, i)=>{
-  const li = document.createElement("li");
-  const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
+    list.forEach((row, i)=>{
+      const li = document.createElement("li");
+      const isMe = me && row.name && row.name.toLowerCase() === me;
 
-  // Inline layout
-  li.style.display = 'flex';
-  li.style.alignItems = 'center';
-  li.style.justifyContent = 'space-between';
-  li.style.gap = '8px';
+      // inline layout so the button sits on the right
+      li.style.display = 'flex';
+      li.style.alignItems = 'center';
+      li.style.justifyContent = 'space-between';
+      li.style.gap = '8px';
 
-  const label = document.createElement('span');
-  label.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
-  label.style.flex = '1';
-  if (isMe) label.style.fontWeight = '700';
-  li.appendChild(label);
+      const label = document.createElement('span');
+      label.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
+      label.style.flex = '1';
+      if (isMe) label.style.fontWeight = '700';
+      li.appendChild(label);
 
-  // Small inline “See answers” only for THIS device’s player
-  if (isMe){
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'see-answers';
-    btn.textContent = 'See answers';
-    btn.onclick = showMyAnswers;
-    li.appendChild(btn);
+      if (isMe){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'see-answers';
+        btn.textContent = 'See answers';
+        btn.onclick = showMyAnswers;   // defined below (outside draw)
+        li.appendChild(btn);
+      }
+
+      scoreList.appendChild(li);
+    });
+  } // <-- close draw properly
+
+  // Build the "My answers" panel using the server's /answers route
+  async function showMyAnswers(){
+    const me = (getSavedName() || (nameIn?.value || '')).trim();
+    if (!me){ window.hqToast && hqToast('No name found'); return; }
+
+    // 1) Fetch sanitized questions with correctIndex
+    let resp, payload;
+    try{
+      resp = await fetch(`${window.SERVER_URL}/api/quiz/${id}/answers`);
+      payload = await resp.json();
+    }catch{ payload = null; }
+    if (!resp?.ok || !payload?.ok){
+      window.hqToast && hqToast('Could not load answers.');
+      return;
+    }
+    const questions = Array.isArray(payload.questions) ? payload.questions : [];
+
+    // 2) Load my picks saved at submit time
+    let picks; try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
+    if (!Array.isArray(picks)) picks = [];
+
+    // 3) Panel
+    let panel = document.getElementById('answersPanel');
+    if (!panel){
+      panel = document.createElement('div');
+      panel.id = 'answersPanel';
+      panel.style.marginTop = '12px';
+      panel.style.padding = '12px';
+      panel.style.border = '1px solid #eee';
+      panel.style.borderRadius = '12px';
+      panel.style.background = '#fff';
+      resultsView?.appendChild(panel);
+    }
+    panel.innerHTML = `<h3 style="margin:0 0 8px">Your answers</h3>`;
+
+    const list = document.createElement('div');
+    questions.forEach((q, i)=>{
+      const opts = q.options || [];
+      const myIdx = picks[i];
+      const corIdx = (typeof q.correctIndex === 'number') ? q.correctIndex : null;
+
+      const myText  = (myIdx != null && opts[myIdx]  != null) ? String(opts[myIdx])  : '(no answer)';
+      const corText = (corIdx != null && opts[corIdx] != null) ? String(opts[corIdx]) : '(unknown)';
+      const isCorrect = (corIdx != null && myIdx === corIdx);
+
+      const row = document.createElement('div');
+      row.style.padding = '10px 0';
+      row.style.borderTop = '1px solid #f1f1f1';
+      row.innerHTML = `
+        <div style="font-weight:700;margin:4px 0">${decodeHTML(q.q || q.question || `Question ${i+1}`)}</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <span>${isCorrect ? '✅' : '❌'} <strong>Your answer:</strong> ${decodeHTML(myText)}</span>
+          <span class="muted">·</span>
+          <span><strong>Correct:</strong> ${decodeHTML(corText)}</span>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    panel.appendChild(list);
+    panel.scrollIntoView({ behavior:'smooth', block:'start' });
   }
-
-  scoreList.appendChild(li);
-});
-
-
-// Client-only: build the "My answers" panel using the server's /answers route
-async function showMyAnswers(){
-  // quiz id from current hash (works on #/results/ABC123)
-  const m = location.hash.match(/results\/([^/]+)/);
-  const id = m && m[1];
-  if (!id) { window.hqToast && hqToast('No quiz id'); return; }
-
-  const me = (getSavedName() || (nameIn?.value || '')).trim();
-  if (!me) { window.hqToast && hqToast('No name found'); return; }
-
-  // 1) Fetch sanitized questions with correctIndex from the backend
-  let resp, payload;
-  try{
-    resp = await fetch(`${window.SERVER_URL}/api/quiz/${id}/answers`);
-    payload = await resp.json();
-  }catch{ payload = null; }
-  if (!resp?.ok || !payload?.ok) {
-    window.hqToast && hqToast('Could not load answers.');
-    return;
-  }
-  const questions = Array.isArray(payload.questions) ? payload.questions : [];
-
-  // 2) Load my picks saved at submit time on this device
-  let picks;
-  try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
-  if (!Array.isArray(picks)) picks = [];
-
-  // 3) Build/refresh the panel
-  let panel = document.getElementById('answersPanel');
-  if (!panel){
-    panel = document.createElement('div');
-    panel.id = 'answersPanel';
-    panel.style.marginTop = '12px';
-    panel.style.padding = '12px';
-    panel.style.border = '1px solid #eee';
-    panel.style.borderRadius = '12px';
-    panel.style.background = '#fff';
-    resultsView?.appendChild(panel);
-  }
-  panel.innerHTML = `<h3 style="margin:0 0 8px">Your answers</h3>`;
-
-  const list = document.createElement('div');
-  questions.forEach((q, i)=>{
-    const opts = q.options || [];
-    const myIdx = picks[i];
-    const corIdx = (typeof q.correctIndex === 'number') ? q.correctIndex : null;
-
-    const myText  = (myIdx != null && opts[myIdx]  != null) ? String(opts[myIdx])  : '(no answer)';
-    const corText = (corIdx != null && opts[corIdx] != null) ? String(opts[corIdx]) : '(unknown)';
-    const isCorrect = (corIdx != null && myIdx === corIdx);
-
-    const row = document.createElement('div');
-    row.style.padding = '10px 0';
-    row.style.borderTop = '1px solid #f1f1f1';
-    row.innerHTML = `
-      <div style="font-weight:700;margin:4px 0">${decodeHTML(q.q || q.question || `Question ${i+1}`)}</div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <span>${isCorrect ? '✅' : '❌'} <strong>Your answer:</strong> ${decodeHTML(myText)}</span>
-        <span class="muted">·</span>
-        <span><strong>Correct:</strong> ${decodeHTML(corText)}</span>
-      </div>
-    `;
-    list.appendChild(row);
-  });
-
-  panel.appendChild(list);
-  panel.scrollIntoView({ behavior:'smooth', block:'start' });
-}
-
 
   // initial load
   try{
