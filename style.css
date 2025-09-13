@@ -613,6 +613,24 @@ button:disabled{
   height: auto;
   display:block;
 }
+/* Sticky app header */
+#appHeader{
+  position: sticky;
+  top: env(safe-area-inset-top, 0);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0 6px;
+  background: #fff;                /* solid so content doesn’t show through */
+  border-bottom: 1px solid #eee;   /* subtle divider */
+}
+
+#appHeader img{
+  width: clamp(160px, 34vw, 260px);
+  height: auto;
+  display: block;
+}
 
 
 
