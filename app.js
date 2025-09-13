@@ -93,67 +93,70 @@ const regionSel = qs("#region");
 const topicIn   = qs("#topic");
 const countrySel  = qs("#country");   
 
-// Load countries (cached) into #country
+// Load countries (cached) into #country and pin priority countries at the top
 (async function loadCountries(){
-  if (!countrySel) return;
+  // If the element isn't in the DOM yet, wait for it
+  if (!countrySel) {
+    document.addEventListener('DOMContentLoaded', loadCountries);
+    return;
+  }
+
+  const PRIORITY = ['IE','GB','US','CA','AU','NZ']; // put your targets here in order
   const CACHE_KEY = 'hq-countries-v1';
   const CACHE_TTL_MS = 7 * 24 * 3600 * 1000;
 
+  function fill(list){
+    const priSet = new Set(PRIORITY);
+    const top  = PRIORITY.map(code => list.find(c => c.code === code)).filter(Boolean);
+    const rest = list.filter(c => !priSet.has(c.code)); // already A→Z from fetch step
+
+    const opt = c => `<option value="${c.code}">${c.flag ? c.flag + ' ' : ''}${c.name}</option>`;
+
+    countrySel.innerHTML =
+      `<option value="">Any country</option>` +
+      (top.length ? top.map(opt).join('') + `<option value="" disabled>──────────</option>` : '') +
+      rest.map(opt).join('');
+
+    // restore previous choice
+    const saved = localStorage.getItem('hq-country') || '';
+    if (saved && countrySel.querySelector(`option[value="${saved}"]`)) {
+      countrySel.value = saved;
+    }
+    countrySel.onchange = () => {
+      try { localStorage.setItem('hq-country', countrySel.value || ''); } catch {}
+    };
+  }
+
   try {
+    // use cache if fresh
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
     const cachedAt = Number(localStorage.getItem(CACHE_KEY + ':at') || 0);
     if (cached && Date.now() - cachedAt < CACHE_TTL_MS) {
       fill(cached);
-    } else {
-      const resp = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,region,flag');
-      const data = await resp.json();
-      const list = (Array.isArray(data) ? data : []).map(c => ({
+      return;
+    }
+
+    // fetch + normalize + sort A→Z
+    const resp = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,region,flag');
+    const data = await resp.json();
+    const list = (Array.isArray(data) ? data : [])
+      .map(c => ({
         name: c?.name?.common || '',
         code: c?.cca2 || '',
         region: c?.region || '',
         flag: c?.flag || ''
-      })).filter(x => x.code && x.name)
-        .sort((a,b)=> a.name.localeCompare(b.name));
+      }))
+      .filter(x => x.code && x.name)
+      .sort((a,b)=> a.name.localeCompare(b.name));
 
-      localStorage.setItem(CACHE_KEY, JSON.stringify(list));
-      localStorage.setItem(CACHE_KEY + ':at', String(Date.now()));
-      fill(list);
-    }
+    localStorage.setItem(CACHE_KEY, JSON.stringify(list));
+    localStorage.setItem(CACHE_KEY + ':at', String(Date.now()));
+    fill(list);
   } catch (e) {
     console.warn('Country load failed', e);
+    countrySel.innerHTML = `<option value="">Any country</option>`;
   }
-
-  // Put your preferred countries here, in the exact order you want:
-const PRIORITY = ['IE','GB','US','CA','AU','NZ']; // ← edit this list
-
-function fill(list){
-  // Split into top (priority) and rest
-  const priSet = new Set(PRIORITY);
-  const top  = PRIORITY.map(code => list.find(c => c.code === code)).filter(Boolean);
-  const rest = list.filter(c => !priSet.has(c.code)); // already alphabetized from fetch step
-
-  // Helper to render one option
-  const opt = c => `<option value="${c.code}">${c.flag ? c.flag + ' ' : ''}${c.name}</option>`;
-
-  // Build the options: Any → pinned (if any) → separator → rest
-  countrySel.innerHTML =
-    `<option value="">Any country</option>` +
-    (top.length ? top.map(opt).join('') + `<option value="" disabled>──────────</option>` : '') +
-    rest.map(opt).join('');
-
-  // Restore previous choice if still present
-  const saved = localStorage.getItem('hq-country') || '';
-  if (saved && countrySel.querySelector(`option[value="${saved}"]`)) {
-    countrySel.value = saved;
-  }
-
-  countrySel.onchange = () => {
-    try { localStorage.setItem('hq-country', countrySel.value || ''); } catch {}
-  };
-}
-
-
-
+})();
 
 // --- Name helpers for Play view ---
 function getSavedName(){ return localStorage.getItem('hq-name') || ''; }
