@@ -568,26 +568,22 @@ function draw(list, total){
 
 // ➕ Add this helper RIGHT UNDER draw()
 async function showMyAnswers(){
-  // 1) pull my picks
-  let picks;
-  try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
-  if (!Array.isArray(picks)){
-    window.hqToast && hqToast('No saved answers on this device.');
-    return;
-  }
+  const me = (getSavedName() || (nameIn?.value || '')).trim();
+  if (!me){ window.hqToast && hqToast('No name found'); return; }
 
-  // 2) fetch quiz to get questions/correct answers
-  let qRes, qData, questions = [];
+  let data;
   try{
-    qRes = await fetch(`${window.SERVER_URL}/api/quiz/${id}`);
-    qData = await qRes.json();
-    questions = Array.isArray(qData?.questions) ? qData.questions : [];
-  }catch{
+    const r = await fetch(`${window.SERVER_URL}/api/quiz/${currentQuizId || id}/answers?name=${encodeURIComponent(me)}`);
+    data = await r.json();
+    if (!r.ok || !data?.ok) throw new Error(data?.error || 'Failed');
+  }catch(e){
     window.hqToast && hqToast('Could not load answers.');
+    console.error(e);
     return;
   }
 
-  // 3) build/refresh the panel
+  const { questions = [], correct = [] } = data;
+
   let panel = document.getElementById('answersPanel');
   if (!panel){
     panel = document.createElement('div');
@@ -601,40 +597,29 @@ async function showMyAnswers(){
   }
   panel.innerHTML = `<h3 style="margin:0 0 8px">Your answers</h3>`;
 
-  // helper to resolve correct index from various backends
-  function getCorrectIndex(q){
-    if (typeof q.correctIndex === 'number') return q.correctIndex;
-    if (typeof q.answerIndex === 'number')  return q.answerIndex;
-    if (typeof q.correct === 'number')      return q.correct;
-    // sometimes the correct option text is stored:
-    if (q.answer && Array.isArray(q.options)){
-      const idx = q.options.findIndex(o => String(o).trim() === String(q.answer).trim());
-      if (idx >= 0) return idx;
-    }
-    return null;
-  }
+  // your saved picks from this device
+  let picks; try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
+  if (!Array.isArray(picks)) picks = [];
 
   const list = document.createElement('div');
-
   questions.forEach((q, i)=>{
-    const myPick = picks[i];
-    const options = q.options || q.choices || [];
-    const correctIdx = getCorrectIndex(q);
+    const opts = q.options || [];
+    const myIdx = picks[i];
+    const corIdx = correct[i];
 
-    const myText = (myPick != null && options[myPick] != null) ? String(options[myPick]) : '(no answer)';
-    const correctText = (correctIdx != null && options[correctIdx] != null) ? String(options[correctIdx]) : '(unknown)';
-
-    const isCorrect = (correctIdx != null && myPick === correctIdx);
+    const myText = (myIdx != null && opts[myIdx] != null) ? String(opts[myIdx]) : '(no answer)';
+    const corText = (corIdx != null && opts[corIdx] != null) ? String(opts[corIdx]) : '(unknown)';
+    const isCorrect = (corIdx != null && myIdx === corIdx);
 
     const row = document.createElement('div');
-    row.style.padding = '8px 0';
+    row.style.padding = '10px 0';
     row.style.borderTop = '1px solid #f1f1f1';
     row.innerHTML = `
-      <div style="font-weight:600;margin:4px 0">${decodeHTML(q.q || q.question || `Question ${i+1}`)}</div>
+      <div style="font-weight:700;margin:4px 0">${decodeHTML(q.q || q.question || `Question ${i+1}`)}</div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <span>${isCorrect ? '✅' : '❌'} <strong>Your answer:</strong> ${decodeHTML(myText)}</span>
         <span class="muted">·</span>
-        <span><strong>Correct:</strong> ${decodeHTML(correctText)}</span>
+        <span><strong>Correct:</strong> ${decodeHTML(corText)}</span>
       </div>
     `;
     list.appendChild(row);
@@ -643,6 +628,9 @@ async function showMyAnswers(){
   panel.appendChild(list);
   panel.scrollIntoView({ behavior:'smooth', block:'start' });
 }
+
+}
+
  // initial load
   try{
     const data = await fetchResults();
