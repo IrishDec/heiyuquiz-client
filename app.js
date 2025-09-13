@@ -526,32 +526,35 @@ async function renderResults(id){
 
     const me = (getSavedName() || (nameIn?.value || '')).trim().toLowerCase();
 
-    list.forEach((row, i)=>{
-      const li = document.createElement("li");
-      const isMe = me && row.name && row.name.toLowerCase() === me;
+   list.forEach((row, i)=>{
+  const li = document.createElement("li");
+  const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
 
-      const label = document.createElement('span');
-      label.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
-      if (isMe) label.style.fontWeight = "700";
-      li.appendChild(label);
+  // Inline layout
+  li.style.display = 'flex';
+  li.style.alignItems = 'center';
+  li.style.justifyContent = 'space-between';
+  li.style.gap = '8px';
 
-      // Only the current player gets a "See answers" link
-      if (isMe){
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = 'See answers';
-        btn.style.marginLeft = '8px';
-        btn.style.border = '0';
-        btn.style.background = 'transparent';
-        btn.style.textDecoration = 'underline';
-        btn.style.cursor = 'pointer';
-        btn.onclick = ()=> showMyAnswers(id);
-        li.appendChild(btn);
-      }
+  const label = document.createElement('span');
+  label.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
+  label.style.flex = '1';
+  if (isMe) label.style.fontWeight = '700';
+  li.appendChild(label);
 
-      scoreList.appendChild(li);
-    });
+  // Small inline “See answers” only for THIS device’s player
+  if (isMe){
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'see-answers';
+    btn.textContent = 'See answers';
+    btn.onclick = showMyAnswers;
+    li.appendChild(btn);
   }
+
+  scoreList.appendChild(li);
+});
+
 
 // Client-only: build the "My answers" panel using the server's /answers route
 async function showMyAnswers(){
