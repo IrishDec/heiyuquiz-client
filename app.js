@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 });
 
-const USE_AI = false; // leave this false for now
+const USE_AI = true;
 
 /* --------- Helpers --------- */
 // Decode &ouml;, &quot;, etc. from server text
