@@ -400,26 +400,25 @@ async function renderPlay(id){
     quizBody?.appendChild(spacer);
   }
 
-  // Optional: View Results shortcut if closed or already played
-  const isClosed = data.closesAt && Date.now() > data.closesAt;
-  if (isClosed || alreadyPlayed) {
-    let viewBtn = document.getElementById('viewResultsBtn');
-    if (!viewBtn){
-      viewBtn = document.createElement('button');
-      viewBtn.id = 'viewResultsBtn';
-      viewBtn.textContent = isClosed ? 'Quiz closed — View Results' : 'View Results';
-      viewBtn.style.margin = '8px 0 0';
-      viewBtn.style.background = '#fff';
-      viewBtn.style.border = '1px solid #ddd';
-      viewBtn.style.borderRadius = '10px';
-      viewBtn.style.padding = '8px 12px';
-      viewBtn.style.fontWeight = '600';
-      viewBtn.onclick = ()=>{ location.hash = `/results/${id}`; };
-      quizBody?.appendChild(viewBtn);
-    } else {
-      viewBtn.onclick = ()=>{ location.hash = `/results/${id}`; };
-    }
-  }
+// --- Only show "View Results" when the quiz is truly CLOSED ---
+document.getElementById('viewResultsBtn')?.remove(); // kill any stray one
+
+const closesAtMs = data.closesAt ? new Date(data.closesAt).getTime() : 0;
+const isClosed = closesAtMs && Date.now() > closesAtMs;
+
+  const viewBtn = document.createElement('button');
+  viewBtn.id = 'viewResultsBtn';
+  viewBtn.textContent = 'Quiz closed — View Results';
+  viewBtn.style.margin = '8px 0 0';
+  viewBtn.style.background = '#fff';
+  viewBtn.style.border = '1px solid #ddd';
+  viewBtn.style.borderRadius = '10px';
+  viewBtn.style.padding = '8px 12px';
+  viewBtn.style.fontWeight = '600';
+  viewBtn.onclick = () => { location.hash = `/results/${id}`; };
+  quizBody?.appendChild(viewBtn);
+}
+
 
   return true;
 }
