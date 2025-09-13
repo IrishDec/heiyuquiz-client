@@ -541,30 +541,6 @@ async function renderResults(id){
   });
 }
 
-
-
-      const isMe = me && row.name && row.name.toLowerCase() === me;
-      const label = document.createElement('span');
-      label.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
-      label.style.flex = '1';
-      if (isMe) label.style.fontWeight = '700';
-      li.appendChild(label);
-
-      // tiny inline “See answers” just for this device’s player
-      if (isMe){
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'see-answers';
-        btn.textContent = 'See answers';
-        btn.style.cssText = 'padding:6px 10px;border:0;border-radius:10px;background:#f0f2ff;font-weight:600;cursor:pointer';
-        btn.onclick = showMyAnswers;
-        li.appendChild(btn);
-      }
-
-      scoreList.appendChild(li);
-    });
-  }
-
   // Client-only “My answers” panel (uses /api/quiz/:id/answers)
   async function showMyAnswers(){
     let resp, payload;
