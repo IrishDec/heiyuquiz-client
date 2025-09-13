@@ -101,7 +101,7 @@ const countrySel  = qs("#country");
     return;
   }
 
-  const PRIORITY = ['IE','GB','US','CA','AU','NZ']; // put your targets here in order
+  const PRIORITY = ['IE','GB-NIR','GB-SCT','GB-WLS','GB-ENG','GB','US','CA','AU','NZ']; // put your targets here in order
   const CACHE_KEY = 'hq-countries-v1';
   const CACHE_TTL_MS = 7 * 24 * 3600 * 1000;
 
