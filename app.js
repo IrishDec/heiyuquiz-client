@@ -516,27 +516,31 @@ async function renderResults(id){
   }
 
   function draw(list, total){
-    if (!scoreList) return;
-    scoreList.innerHTML = "";
+  if (!scoreList) return;
+  scoreList.innerHTML = "";
 
-    if (!list?.length){
-      scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
-      return;
+  if (!list || !list.length){
+    scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
+    return;
+  }
+
+  const meName = (getSavedName() || (nameIn?.value || "")).trim().toLowerCase();
+
+  list.forEach((row, i) => {
+    const li = document.createElement("li");
+    const isMe = meName && row.name && row.name.toLowerCase() === meName;
+
+    // keep dash on one line
+    li.textContent = `${i + 1}. ${row.name}\u00A0—\u00A0${row.score}/${total}`;
+
+    if (isMe) {
+      li.style.fontWeight = "700";
+      li.style.textDecoration = "underline";
     }
+    scoreList.appendChild(li);
+  });
+}
 
-    const me = (getSavedName() || (nameIn?.value || '')).trim().toLowerCase();
-
-   list.forEach((row, i) => {
-  const li = document.createElement('li');
-  const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
-
-  // keep the dash glued with non-breaking spaces
-  li.textContent = `${i + 1}. ${row.name}\u00A0—\u00A0${row.score}/${total}`;
-
-  if (isMe) { li.style.fontWeight = '700'; li.style.textDecoration = 'underline'; }
-
-  scoreList.appendChild(li);
-});
 
 
       const isMe = me && row.name && row.name.toLowerCase() === me;
