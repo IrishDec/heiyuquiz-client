@@ -96,6 +96,19 @@ const topicIn   = qs("#topic");
 function getSavedName(){ return localStorage.getItem('hq-name') || ''; }
 function saveName(n){ localStorage.setItem('hq-name', (n || '').slice(0, 24)); }
 
+// Ensure header logo exists at top of the page
+(function ensureHeader(){
+  if (document.getElementById('appHeader')) return;
+  const header = document.createElement('div');
+  header.id = 'appHeader';
+  header.innerHTML = `<img src="./logo.png" alt="HeiyuQuiz logo" loading="eager" decoding="async">`;
+
+  // insert before the first view so it’s above Start/Play/Results
+  const firstView = document.getElementById('startCard') || document.body.firstChild;
+  document.body.insertBefore(header, firstView);
+})();
+
+
 
 /* ------------------ View switcher + home CTA ------------------ */
 function show(el){
