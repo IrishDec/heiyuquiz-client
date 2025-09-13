@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 });
 
+const USE_AI = false; // leave this false for now
+
 /* --------- Helpers --------- */
 // Decode &ouml;, &quot;, etc. from server text
 function decodeHTML(s){ const e=document.createElement('textarea'); e.innerHTML=String(s??""); return e.value; }
