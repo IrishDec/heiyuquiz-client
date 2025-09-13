@@ -93,68 +93,29 @@ const regionSel = qs("#region");
 const topicIn   = qs("#topic");
 const countrySel  = qs("#country");   
 
-// Load countries (cached) into #country
+// Load countries (cached) into #country and pin priority countries at the top
 (async function loadCountries(){
-  const countrySel = document.querySelector('#country');
-  if (!countrySel) return;
+  // If the element isn't in the DOM yet, wait for it
+  if (!countrySel) {
+    document.addEventListener('DOMContentLoaded', loadCountries);
+    return;
+  }
 
+  const PRIORITY = ['IE','GB','US','CA','AU','NZ']; // put your targets here in order
   const CACHE_KEY = 'hq-countries-v1';
   const CACHE_TTL_MS = 7 * 24 * 3600 * 1000;
-  const TOP_FIRST = ['IE','GB','US','CA','AU','NZ'];
-
-  // Custom UK nations (visual entries, value still GB)
-  const CUSTOM_UK = [
-    { name: 'England (UK)',          code: 'GB', flag: '🇬🇧' },
-    { name: 'Scotland (UK)',         code: 'GB', flag: '🇬🇧' },
-    { name: 'Wales (UK)',            code: 'GB', flag: '🇬🇧' },
-    { name: 'Northern Ireland (UK)', code: 'GB', flag: '🇬🇧' },
-  ];
-
-  function prioritize(list, topCodes){
-    const byCode = new Map(list.map(c => [c.code, c]));
-    const out = [];
-    // push each top code once if present
-    topCodes.forEach(code => { if (byCode.has(code)) out.push(byCode.get(code)); });
-    // append the rest (deduped)
-    list.forEach(c => { if (!out.includes(c)) out.push(c); });
-    return out;
-  }
-
-  try {
-    // try cache
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    const cachedAt = Number(localStorage.getItem(CACHE_KEY + ':at') || 0);
-    if (cached && Date.now() - cachedAt < CACHE_TTL_MS) {
-      fill(cached);
-    } else {
-      const resp = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,region,flag');
-      const data = await resp.json();
-      const base = (Array.isArray(data) ? data : []).map(c => ({
-        name:  c?.name?.common || '',
-        code:  (c?.cca2 || '').toUpperCase(),
-        region:c?.region || '',
-        flag:  c?.flag || ''
-      })).filter(x => x.code && x.name)
-        .sort((a,b)=> a.name.localeCompare(b.name));
-
-      // merge custom UK nations at the very top (visual only)
-      const merged = [...CUSTOM_UK, ...base];
-
-      // prioritize your top countries near the top (after UK nations)
-      const prioritized = prioritize(merged, TOP_FIRST);
-
-      localStorage.setItem(CACHE_KEY, JSON.stringify(prioritized));
-      localStorage.setItem(CACHE_KEY + ':at', String(Date.now()));
-      fill(prioritized);
-    }
-  } catch (e) {
-    console.warn('Country load failed', e);
-  }
 
   function fill(list){
+    const priSet = new Set(PRIORITY);
+    const top  = PRIORITY.map(code => list.find(c => c.code === code)).filter(Boolean);
+    const rest = list.filter(c => !priSet.has(c.code)); // already A→Z from fetch step
+
+    const opt = c => `<option value="${c.code}">${c.flag ? c.flag + ' ' : ''}${c.name}</option>`;
+
     countrySel.innerHTML =
       `<option value="">Any country</option>` +
-      list.map(c => `<option value="${c.code}">${c.flag ? c.flag + ' ' : ''}${c.name}</option>`).join('');
+      (top.length ? top.map(opt).join('') + `<option value="" disabled>──────────</option>` : '') +
+      rest.map(opt).join('');
 
     // restore previous choice
     const saved = localStorage.getItem('hq-country') || '';
@@ -165,8 +126,37 @@ const countrySel  = qs("#country");
       try { localStorage.setItem('hq-country', countrySel.value || ''); } catch {}
     };
   }
-})();
 
+  try {
+    // use cache if fresh
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    const cachedAt = Number(localStorage.getItem(CACHE_KEY + ':at') || 0);
+    if (cached && Date.now() - cachedAt < CACHE_TTL_MS) {
+      fill(cached);
+      return;
+    }
+
+    // fetch + normalize + sort A→Z
+    const resp = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,region,flag');
+    const data = await resp.json();
+    const list = (Array.isArray(data) ? data : [])
+      .map(c => ({
+        name: c?.name?.common || '',
+        code: c?.cca2 || '',
+        region: c?.region || '',
+        flag: c?.flag || ''
+      }))
+      .filter(x => x.code && x.name)
+      .sort((a,b)=> a.name.localeCompare(b.name));
+
+    localStorage.setItem(CACHE_KEY, JSON.stringify(list));
+    localStorage.setItem(CACHE_KEY + ':at', String(Date.now()));
+    fill(list);
+  } catch (e) {
+    console.warn('Country load failed', e);
+    countrySel.innerHTML = `<option value="">Any country</option>`;
+  }
+})();
 
 // --- Name helpers for Play view ---
 function getSavedName(){ return localStorage.getItem('hq-name') || ''; }
