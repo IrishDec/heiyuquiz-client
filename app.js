@@ -426,86 +426,8 @@ async function renderResults(id){
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
 
-  // ---- gate: hide results + CTA until user acts THIS session ----
-  const ackKey   = `hq-ack-${id}`;        // session key
-  const shareKey = `hq-shared-${id}`;     // optional metric
-  const link     = `${location.origin}${location.pathname}#/play/${id}`;
-
-  document.querySelector('.home-cta')?.remove();
-
-  function setGate(ack){
-    if (!scoreList) return;
-    if (!ack){
-      scoreList.style.display = 'none';
-      let gate = document.getElementById('resultsGateMsg');
-      if (!gate){
-        gate = document.createElement('p');
-        gate.id = 'resultsGateMsg';
-        gate.className = 'muted';
-        gate.textContent = 'To see results, copy, share, or skip.';
-        resultsView?.appendChild(gate);
-      }
-    } else {
-      document.getElementById('resultsGateMsg')?.remove();
-      scoreList.style.display = '';
-      document.querySelector('.home-cta') || addHomeCta();
-    }
-  }
-  setGate(sessionStorage.getItem(ackKey) === '1');
-
-  // ---- actions (Copy / Share / Skip) ----
-  (function ensureActions(){
-    let p = document.getElementById('resultsActions');
-    if (!p){
-      p = document.createElement('div');
-      p.id = 'resultsActions';
-      p.style.cssText = 'margin:8px 0 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center';
-      p.innerHTML = `
-        <input id="resultsShareLink" readonly style="display:none">
-        <button id="resultsCopyBtn"
-                style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
-          Copy quiz link
-        </button>
-        <button id="resultsNativeShare"
-                style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">
-          Share quiz now
-        </button>
-        <button id="resultsSkipBtn"
-                style="padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#fff;font-weight:600;cursor:pointer">
-          Skip — see results
-        </button>
-      `;
-      resultsView?.insertBefore(p, resultsView.firstChild);
-    }
-    const inp      = document.getElementById('resultsShareLink');
-    const copyBtn  = document.getElementById('resultsCopyBtn');
-    const shareBtn = document.getElementById('resultsNativeShare');
-    const skipBtn  = document.getElementById('resultsSkipBtn');
-    if (inp) inp.value = link;
-
-    function unlock(){
-      try { sessionStorage.setItem(ackKey, '1'); } catch {}
-      try { localStorage.setItem(shareKey, '1'); } catch {}
-      setGate(true);
-      window.hqToast && hqToast('Ready!');
-    }
-
-    if (copyBtn) copyBtn.onclick = async ()=>{
-      try { await navigator.clipboard.writeText(link); } catch {}
-      unlock();
-    };
-    if (shareBtn) shareBtn.onclick = async ()=>{
-      try{
-        if (navigator.share){
-          await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
-        } else {
-          await navigator.clipboard.writeText(link);
-        }
-      }catch{}
-      unlock();
-    };
-    if (skipBtn) skipBtn.onclick = unlock;
-  })();
+  ok so on the phone this is shocking back for the result screen. 
+lets fix this once and for all. the button Skip-- see results will now become My answers link
 
   // ---- results fetch + render ----
   async function fetchResults(){
