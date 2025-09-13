@@ -92,10 +92,6 @@ const scoreList   = qs("#scoreList");
 const regionSel = qs("#region");
 const topicIn   = qs("#topic");
 
-// --- Name helpers for Play view ---
-function getSavedName(){ return localStorage.getItem('hq-name') || ''; }
-function saveName(n){ localStorage.setItem('hq-name', (n || '').slice(0, 24)); }
-
 // Ensure header logo exists at top of the page
 (function ensureHeader(){
   if (document.getElementById('appHeader')) return;
@@ -108,6 +104,10 @@ function saveName(n){ localStorage.setItem('hq-name', (n || '').slice(0, 24)); }
   document.body.insertBefore(header, firstView);
 })();
 
+
+// --- Name helpers for Play view ---
+function getSavedName(){ return localStorage.getItem('hq-name') || ''; }
+function saveName(n){ localStorage.setItem('hq-name', (n || '').slice(0, 24)); }
 
 
 /* ------------------ View switcher + home CTA ------------------ */
