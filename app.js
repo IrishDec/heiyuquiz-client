@@ -426,10 +426,87 @@ async function renderResults(id){
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
 
-  ok so on the phone this is shocking back for the result screen. 
-lets fix this once and for all. the button Skip-- see results will now become My answers link
+  const link    = `${location.origin}${location.pathname}#/play/${id}`;
+  const ackKey  = `hq-ack-${id}`; // “acted this session”
+  document.querySelector('.home-cta')?.remove(); // we’ll reinsert below the actions row
 
-  // ---- results fetch + render ----
+  // Put the CTA directly under the actions row
+  function placeHomeCta(){
+    addHomeCta();
+    const actions = document.getElementById('resultsActions');
+    const cta = document.querySelector('.home-cta');
+    if (actions && cta) actions.insertAdjacentElement('afterend', cta);
+  }
+  function unlockStart(){
+    try { sessionStorage.setItem(ackKey, '1'); } catch {}
+    if (!document.querySelector('.home-cta')) placeHomeCta();
+  }
+
+  // ---- Actions (Copy / Share / My answers) ----
+  (function ensureActions(){
+    let p = document.getElementById('resultsActions');
+    if (!p){
+      p = document.createElement('div');
+      p.id = 'resultsActions';
+      p.style.cssText = 'margin:8px 0 12px;display:flex;flex-direction:column;gap:10px';
+
+      // gradient style inline to match your CTA
+      const btn = (id, text)=>(
+        `<button id="${id}" style="
+            width:100%;padding:14px;border:0;border-radius:14px;
+            background:linear-gradient(90deg,#6e56cf,#d6467e,#ffb224);
+            color:#fff;font-weight:800;box-shadow:0 12px 28px rgba(214,70,126,.25);
+          ">${text}</button>`
+      );
+
+      p.innerHTML = [
+        btn('resultsCopyBtn','Copy quiz link'),
+        btn('resultsShareBtn','Share quiz now'),
+        btn('resultsMineBtn','My answers')
+      ].join('');
+      resultsView?.insertBefore(p, resultsView.firstChild);
+    }
+
+    // handlers
+    const copyBtn  = document.getElementById('resultsCopyBtn');
+    const shareBtn = document.getElementById('resultsShareBtn');
+    const mineBtn  = document.getElementById('resultsMineBtn');
+
+    if (copyBtn) copyBtn.onclick = async ()=>{
+      try { await navigator.clipboard.writeText(link); } catch {}
+      window.hqToast && hqToast('Link copied!');
+      unlockStart();
+    };
+
+    if (shareBtn) shareBtn.onclick = async ()=>{
+      try{
+        if (navigator.share){
+          await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
+        } else {
+          await navigator.clipboard.writeText(link);
+          window.hqToast && hqToast('Link copied!');
+        }
+      }catch{}
+      unlockStart();
+    };
+
+    if (mineBtn) mineBtn.onclick = async ()=>{
+      await showMyAnswers();   // defined below
+      unlockStart();
+    };
+  })();
+
+  // If user already acted this session, show CTA immediately
+  if (sessionStorage.getItem(ackKey) === '1') placeHomeCta();
+
+  // Make results list comfortably scrollable on phones (results are always visible)
+  if (scoreList){
+    scoreList.style.maxHeight = '52vh';
+    scoreList.style.overflowY = 'auto';
+    scoreList.style.webkitOverflowScrolling = 'touch';
+  }
+
+  // ---- Fetch + render results ----
   async function fetchResults(){
     const res = await fetch(`${window.SERVER_URL}/api/quiz/${id}/results`);
     const data = await res.json();
@@ -437,7 +514,7 @@ lets fix this once and for all. the button Skip-- see results will now become My
     return data;
   }
 
-   function draw(list, total){
+  function draw(list, total){
     if (!scoreList) return;
     scoreList.innerHTML = "";
 
@@ -450,39 +527,35 @@ lets fix this once and for all. the button Skip-- see results will now become My
 
     list.forEach((row, i)=>{
       const li = document.createElement("li");
-      const isMe = me && row.name && row.name.toLowerCase() === me;
-
-      // inline layout so the button sits on the right
       li.style.display = 'flex';
       li.style.alignItems = 'center';
       li.style.justifyContent = 'space-between';
       li.style.gap = '8px';
 
+      const isMe = me && row.name && row.name.toLowerCase() === me;
       const label = document.createElement('span');
       label.textContent = `${i+1}. ${row.name} — ${row.score}/${total}`;
       label.style.flex = '1';
       if (isMe) label.style.fontWeight = '700';
       li.appendChild(label);
 
+      // tiny inline “See answers” just for this device’s player
       if (isMe){
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'see-answers';
         btn.textContent = 'See answers';
-        btn.onclick = showMyAnswers;   // defined below (outside draw)
+        btn.style.cssText = 'padding:6px 10px;border:0;border-radius:10px;background:#f0f2ff;font-weight:600;cursor:pointer';
+        btn.onclick = showMyAnswers;
         li.appendChild(btn);
       }
 
       scoreList.appendChild(li);
     });
-  } // <-- close draw properly
+  }
 
-  // Build the "My answers" panel using the server's /answers route
+  // Client-only “My answers” panel (uses /api/quiz/:id/answers)
   async function showMyAnswers(){
-    const me = (getSavedName() || (nameIn?.value || '')).trim();
-    if (!me){ window.hqToast && hqToast('No name found'); return; }
-
-    // 1) Fetch sanitized questions with correctIndex
     let resp, payload;
     try{
       resp = await fetch(`${window.SERVER_URL}/api/quiz/${id}/answers`);
@@ -494,11 +567,9 @@ lets fix this once and for all. the button Skip-- see results will now become My
     }
     const questions = Array.isArray(payload.questions) ? payload.questions : [];
 
-    // 2) Load my picks saved at submit time
     let picks; try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
     if (!Array.isArray(picks)) picks = [];
 
-    // 3) Panel
     let panel = document.getElementById('answersPanel');
     if (!panel){
       panel = document.createElement('div');
@@ -514,8 +585,8 @@ lets fix this once and for all. the button Skip-- see results will now become My
 
     const list = document.createElement('div');
     questions.forEach((q, i)=>{
-      const opts = q.options || [];
-      const myIdx = picks[i];
+      const opts   = q.options || [];
+      const myIdx  = picks[i];
       const corIdx = (typeof q.correctIndex === 'number') ? q.correctIndex : null;
 
       const myText  = (myIdx != null && opts[myIdx]  != null) ? String(opts[myIdx])  : '(no answer)';
@@ -569,7 +640,7 @@ lets fix this once and for all. the button Skip-- see results will now become My
   window.addEventListener("hashchange", stop);
   window.addEventListener("beforeunload", stop);
 
-  // NOTE: no addHomeCta() at the very end — it appears via unlock()
+  // NOTE: no addHomeCta() here — CTA appears under the buttons after any action via unlockStart()
 }
 
 /* ------------------ Wire buttons ------------------ */
