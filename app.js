@@ -526,12 +526,18 @@ async function renderResults(id){
 
     const me = (getSavedName() || (nameIn?.value || '')).trim().toLowerCase();
 
-    list.forEach((row, i)=>{
-      const li = document.createElement("li");
-      li.style.display = 'flex';
-      li.style.alignItems = 'center';
-      li.style.justifyContent = 'space-between';
-      li.style.gap = '8px';
+   list.forEach((row, i) => {
+  const li = document.createElement('li');
+  const isMe = me && row.name && row.name.toLowerCase() === me.toLowerCase();
+
+  // keep the dash glued with non-breaking spaces
+  li.textContent = `${i + 1}. ${row.name}\u00A0—\u00A0${row.score}/${total}`;
+
+  if (isMe) { li.style.fontWeight = '700'; li.style.textDecoration = 'underline'; }
+
+  scoreList.appendChild(li);
+});
+
 
       const isMe = me && row.name && row.name.toLowerCase() === me;
       const label = document.createElement('span');
