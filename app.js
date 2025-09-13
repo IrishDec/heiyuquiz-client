@@ -264,7 +264,9 @@ async function createQuiz(){
   const timer = setTimeout(()=>ctrl.abort(), TIMEOUT_MS);
 
   try {
-    const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
+    const path = USE_AI ? "/api/createQuiz/ai" : "/api/createQuiz";
+    const res = await fetch(`${window.SERVER_URL}${path}`, {
+
       method:'POST',
       headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({
