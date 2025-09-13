@@ -581,6 +581,23 @@ button:disabled{
 
 #shareBtn { display: none !important; }
 
+/* Results list rows: keep label left, tiny action on right */
+#scoreList li { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+#scoreList li > span { flex:1; min-width:0; }
+
+/* Make "See answers" a link-like button (no gradient) */
+.see-answers{
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  text-decoration: underline;
+  font-weight: 700;
+  cursor: pointer;
+  color: #6e56cf;       /* match your brand purple */
+}
+.see-answers:active { opacity: .7; }
 
 
 
