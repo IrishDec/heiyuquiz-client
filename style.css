@@ -407,6 +407,71 @@ button:disabled{
   border-radius: 999px;
   background: var(--brand);
 }
+/* --- OVERRIDE: kill old green ticks and use a centered round dot --- */
+
+/* Base option card stays white */
+.opts button{
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px 12px 48px !important;
+  margin: 8px 0 !important;
+  background: #fff !important;
+  color: #111 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,.04) !important;
+}
+
+/* Small square (kept on both selected/unselected) */
+.opts button::before{
+  content: "";
+  position: absolute;
+  left: 16px;                /* anchor for the 18px square */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d4d4d8;
+  border-radius: 6px;
+  background: #fff;
+  z-index: 0;
+}
+
+/* Nuke ANY legacy ticks (backgrounds, masks, old pseudo content) */
+.opts button.selected{
+  background-image: none !important;
+}
+.opts button.selected::after{
+  background-image: none !important;
+  -webkit-mask: none !important;
+  mask: none !important;
+}
+
+/* Round dot that fully covers inside the square */
+:root{ --brand:#6e56cf; } /* ensure brand is defined */
+.opts button.selected::after{
+  content: "" !important;
+  position: absolute;
+  /* center the 14px dot inside the 18px square:
+     16px (square left) + (18-14)/2 = 16 + 2 = 18 → tweak to 19 for visual crispness */
+  left: 19px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;               /* larger so it hides any old ✓ completely */
+  height: 14px;
+  border-radius: 999px;
+  background: var(--brand) !important;
+  z-index: 1;                /* on top of the square */
+}
+
+/* If an old template injected icon elements, hide them too */
+.opts button .icon,
+.opts button .tick {
+  display: none !important;
+}
+
 
 
 
