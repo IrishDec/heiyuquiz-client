@@ -91,6 +91,53 @@ const scoreList   = qs("#scoreList");
 
 const regionSel = qs("#region");
 const topicIn   = qs("#topic");
+const countrySel  = qs("#country");   
+
+// Load countries (cached) into #country
+(async function loadCountries(){
+  if (!countrySel) return;
+  const CACHE_KEY = 'hq-countries-v1';
+  const CACHE_TTL_MS = 7 * 24 * 3600 * 1000;
+
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    const cachedAt = Number(localStorage.getItem(CACHE_KEY + ':at') || 0);
+    if (cached && Date.now() - cachedAt < CACHE_TTL_MS) {
+      fill(cached);
+    } else {
+      const resp = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,region,flag');
+      const data = await resp.json();
+      const list = (Array.isArray(data) ? data : []).map(c => ({
+        name: c?.name?.common || '',
+        code: c?.cca2 || '',
+        region: c?.region || '',
+        flag: c?.flag || ''
+      })).filter(x => x.code && x.name)
+        .sort((a,b)=> a.name.localeCompare(b.name));
+
+      localStorage.setItem(CACHE_KEY, JSON.stringify(list));
+      localStorage.setItem(CACHE_KEY + ':at', String(Date.now()));
+      fill(list);
+    }
+  } catch (e) {
+    console.warn('Country load failed', e);
+  }
+
+  function fill(list){
+    countrySel.innerHTML =
+      `<option value="">Any country</option>` +
+      list.map(c => `<option value="${c.code}">${c.flag ? c.flag + ' ' : ''}${c.name}</option>`).join('');
+    // restore previous choice
+    const saved = localStorage.getItem('hq-country') || '';
+    if (saved && countrySel.querySelector(`option[value="${saved}"]`)) {
+      countrySel.value = saved;
+    }
+    countrySel.onchange = () => {
+      try { localStorage.setItem('hq-country', countrySel.value || ''); } catch {}
+    };
+  }
+})();
+
 
 
 // --- Name helpers for Play view ---
