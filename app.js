@@ -123,20 +123,35 @@ const countrySel  = qs("#country");
     console.warn('Country load failed', e);
   }
 
-  function fill(list){
-    countrySel.innerHTML =
-      `<option value="">Any country</option>` +
-      list.map(c => `<option value="${c.code}">${c.flag ? c.flag + ' ' : ''}${c.name}</option>`).join('');
-    // restore previous choice
-    const saved = localStorage.getItem('hq-country') || '';
-    if (saved && countrySel.querySelector(`option[value="${saved}"]`)) {
-      countrySel.value = saved;
-    }
-    countrySel.onchange = () => {
-      try { localStorage.setItem('hq-country', countrySel.value || ''); } catch {}
-    };
+  // Put your preferred countries here, in the exact order you want:
+const PRIORITY = ['IE','GB','US','CA','AU','NZ']; // ← edit this list
+
+function fill(list){
+  // Split into top (priority) and rest
+  const priSet = new Set(PRIORITY);
+  const top  = PRIORITY.map(code => list.find(c => c.code === code)).filter(Boolean);
+  const rest = list.filter(c => !priSet.has(c.code)); // already alphabetized from fetch step
+
+  // Helper to render one option
+  const opt = c => `<option value="${c.code}">${c.flag ? c.flag + ' ' : ''}${c.name}</option>`;
+
+  // Build the options: Any → pinned (if any) → separator → rest
+  countrySel.innerHTML =
+    `<option value="">Any country</option>` +
+    (top.length ? top.map(opt).join('') + `<option value="" disabled>──────────</option>` : '') +
+    rest.map(opt).join('');
+
+  // Restore previous choice if still present
+  const saved = localStorage.getItem('hq-country') || '';
+  if (saved && countrySel.querySelector(`option[value="${saved}"]`)) {
+    countrySel.value = saved;
   }
-})();
+
+  countrySel.onchange = () => {
+    try { localStorage.setItem('hq-country', countrySel.value || ''); } catch {}
+  };
+}
+
 
 
 
