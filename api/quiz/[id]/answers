@@ -1,45 +1,66 @@
-// --- ADD THIS: returns sanitized questions with a reliable correctIndex ---
-app.get('/api/quiz/:id/answers', (req, res) => {
-  const { id } = req.params;
+// heiyuquiz-client/api/quiz/[id]/answers.js
+const { getStore, cleanup } = require('../../../_lib/store');
 
-  // ⬇️ Adjust this line to match your store:
-  // If you have Map: quizzes.get(id)
-  // If you have function: store.getQuiz(id)
-  const quiz = quizzes?.get ? quizzes.get(id) : (store.getQuiz ? store.getQuiz(id) : null);
+module.exports.config = { runtime: 'nodejs' };
 
-  if (!quiz) return res.status(404).json({ ok:false, error:'Quiz not found' });
+module.exports = (req, res) => {
+  try {
+    const { id } = req.query || {};
+    const s = getStore();
+    cleanup();
 
-  const questions = (quiz.questions || []).map(q => {
-    const options = q.options || q.choices || [];
-    return {
+    const quiz = s.quizzes.get(id);
+    if (!quiz) return res.status(404).json({ ok:false, error:'Quiz not found' });
+
+    const qs = Array.isArray(quiz.questions) ? quiz.questions : [];
+    const optionsFor = (q) =>
+      Array.isArray(q.options) ? q.options :
+      (Array.isArray(q.choices) ? q.choices : []);
+
+    // Always return sanitized questions
+    const questions = qs.map(q => ({
       q: q.q || q.question || '',
-      options,
-      correctIndex: resolveCorrectIndex(q, options)
-    };
-  });
+      options: optionsFor(q)
+    }));
 
-  res.json({ ok:true, id, questions });
-});
+    // Prefer top-level quiz.answers (array of indexes); otherwise derive per question
+    let correct;
+    if (Array.isArray(quiz.answers)) {
+      correct = quiz.answers.map(x => (typeof x === 'number' ? x : null));
+    } else {
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const norm = s => String(s).trim().toLowerCase().replace(/\s+/g,' ');
+      correct = qs.map(q => {
+        if (typeof q.correctIndex === 'number') return q.correctIndex;
+        if (typeof q.answerIndex  === 'number') return q.answerIndex;
+        if (typeof q.correct      === 'number') return q.correct;
 
-// --- helper to normalize various backends into a single correctIndex ---
-function resolveCorrectIndex(q, options){
-  if (typeof q.correctIndex === 'number') return q.correctIndex;
-  if (typeof q.answerIndex  === 'number') return q.answerIndex;
-  if (typeof q.correct      === 'number') return q.correct;
+        const opts = optionsFor(q);
 
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  if (q.answerLetter){
-    const idx = letters.indexOf(String(q.answerLetter).toUpperCase());
-    if (idx >= 0 && idx < options.length) return idx;
-  }
+        // A/B/C/D style
+        if (q.answerLetter) {
+          const idx = letters.indexOf(String(q.answerLetter).toUpperCase());
+          if (idx >= 0 && idx < opts.length) return idx;
+        }
 
-  const answerText = q.answerText || q.correctAnswer || q.answer;
-  if (answerText != null){
-    const norm = s => String(s).trim().toLowerCase().replace(/\s+/g,' ');
-    const target = norm(answerText);
-    for (let i = 0; i < options.length; i++){
-      if (norm(options[i]) === target) return i;
+        // Text style
+        const answerText = q.answer ?? q.correctAnswer ?? q.answerText ?? q.correct_option ?? q.correctText ?? null;
+        if (answerText != null) {
+          const target = norm(answerText);
+          for (let i = 0; i < opts.length; i++) {
+            if (norm(opts[i]) === target) return i;
+          }
+        }
+
+        // fallback (unknown)
+        return null;
+      });
     }
+
+    res.status(200).json({ ok:true, id, questions, correct });
+  } catch (e) {
+    console.error('answers error', e);
+    res.status(500).json({ ok:false, error:'Server error (answers)' });
   }
-  return null; // unknown
-}
+};
+
