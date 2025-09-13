@@ -328,6 +328,86 @@ html[data-theme*="science"]{ --theme:#06b6d4; --theme-soft:rgba(6,182,212,.12);}
   border-radius: 999px;
   background: var(--brand);
 }
+:root{
+  /* keep these aligned to your create/start button */
+  --brand: #6e56cf;
+  --brand2: #d6467e;    /* end of gradient */
+  --btn-radius: 14px;
+}
+
+/* Primary brand buttons everywhere */
+button,
+#resultsActions button,
+.home-cta button,
+#linkPanel button,
+#linkPanel a,
+#viewResultsBtn,
+#copyLinkBtn,
+#openLinkBtn {
+  background: linear-gradient(90deg, var(--brand), var(--brand2)) !important;
+  color: #fff !important;
+  border: 0 !important;
+  border-radius: var(--btn-radius) !important;
+  padding: 12px 14px !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+  box-shadow: 0 10px 22px rgba(110,86,207,.25) !important;
+  cursor: pointer !important;
+  text-decoration: none !important; /* for the <a> buttons */
+}
+
+/* Disabled look */
+button:disabled{
+  opacity: .6 !important;
+  cursor: not-allowed !important;
+}
+
+/* Keep the sticky submit behavior (can stay the same color/gradient) */
+.sticky-submit{
+  position: sticky;
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+}
+
+/* IMPORTANT: keep answer option cards white (override the global button style) */
+.opts button{
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px 12px 48px !important;
+  margin: 8px 0 !important;
+  background: #fff !important;
+  color: #111 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,.04) !important;
+}
+
+/* (from previous step) the small square + brand dot indicator */
+.opts button::before{
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d4d4d8;
+  border-radius: 6px;
+  background: #fff;
+}
+.opts button.selected::after{
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--brand);
+}
+
 
 
 
