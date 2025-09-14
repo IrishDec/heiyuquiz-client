@@ -15,8 +15,6 @@ Pairs with the [HeiyuQuiz Server](https://github.com/heiyuquiz/heiyuquiz-server)
 
 ---
 
-## 📂 Project Structure
-
 client/
 ├─ index.html # App shell
 ├─ app.js # Router + create/play/results flows
