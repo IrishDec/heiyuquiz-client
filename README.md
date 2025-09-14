@@ -23,12 +23,13 @@ Ad-ready layout — banner slots reserved (Google AdSense review pending).
 
 heiyuquiz/
 ├─ client/                     # Static frontend (plain HTML/CSS/JS)
-│  ├─ index.html
+│  ├─ index.html               # Entry point
 │  ├─ app.js                   # Router + create/play/results flows
-│  └─ img/logo.png
-└─ server/
-   ├─ server.js                # Express API (Render-ready)
-   └─ package.json
+│  └─ img/
+│     └─ logo.png
+└─ server/                     # Express backend (Render-ready)
+   ├─ server.js                # API routes
+   └─ package.json             # Dependencies (express, cors, openai, etc.)
 
 
 Frontend
