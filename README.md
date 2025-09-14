@@ -52,8 +52,6 @@ screenshots/round.png – Question + timer
 
 screenshots/scoreboard.png – Live scoreboard
 
-Add a short demo GIF/video if you can—huge boost for reviewers.
-
 Getting started (local)
 # 1) Clone & install
 git clone <your-repo-url>
