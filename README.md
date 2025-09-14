@@ -1,135 +1,105 @@
-# HeiyuQuiz — Client
+Heiyu Quiz
 
-Mobile-first web app for creating and playing quick pub-style quizzes.  
-Pairs with the [HeiyuQuiz Server](https://github.com/heiyuquiz/heiyuquiz-server).
+A real-time multiplayer quiz you can spin up in seconds. Create a room, share a link/code, and play from any device.
 
----
+Live: https://www.heiyuquiz.com
 
-## 🌟 What it does
+Features
 
-- **Create & share** a quiz in seconds (one link for everyone).
-- **Play on phones** with large touch targets and a sticky submit button.
-- **Live results** with a gated leaderboard (Copy/Share/My answers unlocks it).
-- **“My answers” panel** shows ✅/❌ against the correct answers for **this device only**.
-- **Country/topic inputs** to guide AI generation (server may use/fallback).
+Create room → share link/code → players join instantly
 
----
-## 📂 Project Structure
+Host controls: start rounds, reveal answers, next/prev
 
-client/
-├─ index.html # App shell
-├─ app.js # Router + create/play/results flows
-└─ img/
-└─ logo.png
+Real-time scoreboard & answer flow
+
+Mobile-first UI (no app install)
+
+(Optional) AI-generated questions with safety filters & caching
+
+No player sign-in required
+
+Tech (swap in your actual stack)
+
+Frontend: React / Next.js / Vue / Vanilla JS
+
+Realtime: Supabase Realtime / WebSockets / Firebase
+
+Data: Postgres / Supabase / Firestore
+
+AI (optional): OpenAI / Groq / etc.
+
+Hosting: Vercel / Netlify / Cloudflare / …
+
+Tip: update this section with your real choices so reviewers see your decision-making.
+
+Architecture (high level)
+
+Host creates a room → persisted in DB
+
+Players join via link/code → subscribe to realtime channel
+
+Host starts round → questions loaded (AI or question bank)
+
+Players submit answers → realtime broadcast → scoreboard updates
+
+Results stored for post-game review / analytics
+
+Screenshots / Demo
+
+screenshots/lobby.png – Lobby & join flow
+
+screenshots/round.png – Question + timer
+
+screenshots/scoreboard.png – Live scoreboard
+
+Add a short demo GIF/video if you can—huge boost for reviewers.
+
+Getting started (local)
+# 1) Clone & install
+git clone <your-repo-url>
+cd heiyu-quiz
+npm install
+
+# 2) Configure env
+cp .env.example .env.local
+# then open .env.local and set the values below:
+# DATABASE_URL=...
+# SUPABASE_URL=...
+# SUPABASE_ANON_KEY=...
+# AI_API_KEY=...    # optional if using AI questions
+
+# 3) Run dev server
+npm run dev
+# visit http://localhost:3000 (or your dev port)
 
 
-> The backend API lives separately: [HeiyuQuiz Server](https://github.com/heiyuquiz/heiyuquiz-server)
+Build & start (production):
 
----
+npm run build
+npm start
 
-## ⚙️ Configure
+Testing
+npm test
+# includes scoring logic, timers, and basic rendering checks
 
-Open `app.js` and check these at the top:
+Accessibility & Performance
 
-```js
-// Point the client to your server
-window.SERVER_URL = "https://heiyuquiz-server.onrender.com"; // or http://localhost:4001
+Keyboard-navigable controls and focus states
 
-// Feature flag: which create endpoint to use
-const USE_AI = false; // false = OpenTrivia (stable), true = GPT (beta)
-Country (<select id="country">) — prefilled via restcountries and cached.
-Topic (<input id="topic">) — short text to steer AI quizzes.
+Color contrast checked on primary flows
 
-▶️ Run Locally (static)
-# Option A: http-server
-npx http-server ./client -p 5173
+Performance budget on bundle size & realtime updates
 
-# Option B: vite preview (if you have Vite installed)
-npx vite preview --port 5173 --strictPort
-🧭 App Flow (client)
+Roadmap
 
-Routes
+Public rooms & moderation / report abuse
 
-#/play/:id → renders questions from GET /api/quiz/:id
+Non-AI question packs (schools/corporate)
 
-#/results/:id → shows leaderboard and “My answers”
+Host analytics (session length, retention)
 
-Create quiz (createQuiz())
+Admin panel for content & game presets
 
-Warmup: GET /api/health
 
-POST to /api/createQuiz or /api/createQuiz/ai (controlled by USE_AI)
-
-Navigate to #/play/:id
-
-Save host helpers: hq-host-${id}, hq-link-${id}
-
-Play & Submit
-
-Sticky submit button (.sticky-submit) and #submitSpacer (~84px)
-
-After submit: save hq-picks-${id} and hq-done-${id} = "1"
-
-Results (gated)
-
-Actions row: Copy link, Share now, My answers
-
-Any action sets sessionStorage["hq-ack-${id}"]="1" → unlocks leaderboard + “Start a new quiz” CTA
-
-My answers
-
-Fetches /api/quiz/:id/answers
-
-Compares with local hq-picks-${id}; shows ✅/❌ and “Your vs Correct”
-
-🔌 Talks to the Server
-
-The client expects the server to expose:
-
-POST /api/createQuiz (OpenTrivia, stable)
-
-POST /api/createQuiz/ai (GPT, beta; may fallback; returns provider)
-
-GET /api/quiz/:id
-
-POST /api/quiz/:id/submit
-
-GET /api/quiz/:id/results
-
-GET /api/quiz/:id/answers
-
-🎨 UI Notes (quick)
-
-Sticky header with logo (<header id="appHeader"><img ...></header>).
-
-One and only one .sticky-submit button + a #submitSpacer.
-
-“View Results” button appears only when closed:
-
-const isClosed = Number(data.closesAt) && Date.now() > Number(data.closesAt);
-
-Country picker prioritizes IE/GB/US/CA/AU/NZ and caches responses.
-
-🧪 Quick Checks
-
-Create → Play → Submit → Results all work with USE_AI = false.
-
-Flip USE_AI = true, create a quiz, confirm network call hits /api/createQuiz/ai.
-
-On Results page, try Copy, Share, My answers — gate lifts and CTA appears.
-
-🧭 Roadmap (client)
-
-Add Privacy Policy page and link in footer.
-
-Main landing page (screenshots + “Play now”).
-
-Updates page for change logs.
-
-Leagues page (seasonal leaderboards).
-
-Social metadata (OG tags, Twitter cards).
-
-Hook AdSense banners once approved.
-
+MIT (or your preferred license)
 
