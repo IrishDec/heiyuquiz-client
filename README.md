@@ -2,7 +2,7 @@ HeiyuQuiz
 
 Create and share fun quizzes instantly. Play alone or with friends — no downloads, no sign-ups.
 
-<p align="center"> <img src="./client/img/logo.png" alt="HeiyuQuiz logo" height="64"> </p>
+<p align="center"> <img src="./client/img/logo.png" alt="HeiyuQuiz logo" height="64"> </p> 
 🌟 Features
 
 Instant quizzes — generate from OpenTrivia or AI (beta).
