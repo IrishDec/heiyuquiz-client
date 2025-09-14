@@ -21,6 +21,16 @@ Ad-ready layout — banner slots reserved (Google AdSense review pending).
 
 🧩 Architecture
 
+heiyuquiz/
+├─ client/                     # Static frontend (plain HTML/CSS/JS)
+│  ├─ index.html
+│  ├─ app.js                   # Router + create/play/results flows
+│  └─ img/logo.png
+└─ server/
+   ├─ server.js                # Express API (Render-ready)
+   └─ package.json
+
+
 Frontend
 
 Static site: HTML, CSS, JavaScript
