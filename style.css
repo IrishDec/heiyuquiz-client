@@ -681,6 +681,26 @@ button:disabled{
 }
 /* Opposite button highlight (black) */
 .seg-btn.inverse{ background:#111; color:#fff; }
+/* Force styles for the AI segmented buttons (override global button !important) */
+.ai-seg .seg-btn{
+  background:#fff !important;
+  color:#444 !important;
+  box-shadow:none !important;
+  border:0 !important;
+}
+.ai-seg .seg-btn + .seg-btn{ border-left:1px solid #e6e6e6 !important; }
+
+.ai-seg .seg-btn.active{
+  background: linear-gradient(90deg, var(--brand,#6e56cf), var(--brand2,#d6467e)) !important;
+  color:#fff !important;
+  box-shadow:0 6px 18px rgba(214,70,126,.18) !important;
+}
+
+/* Black out the opposite (non-selected) button */
+.ai-seg .seg-btn.inverse{
+  background:#111 !important;
+  color:#fff !important;
+}
 
 
 
