@@ -718,19 +718,32 @@ async function renderResults(id){
 /* ------------------ Wire buttons ------------------ */
 createBtn?.addEventListener("click", createQuiz);
 
-// --- Custom (AI) toggle wiring ---
-// Enables/disables the #ai-topic input based on #ai-toggle
+// --- Custom (AI) segmented toggle wiring ---
 (function(){
   const onReady = () => {
-    const toggle = document.getElementById('ai-toggle');
-    const input  = document.getElementById('ai-topic');
-    if (!toggle || !input) return;
-    const sync = () => { input.disabled = !toggle.checked; };
-    toggle.addEventListener('change', sync);
-    sync();
+    const cb   = document.getElementById('ai-toggle'); // hidden real checkbox
+    const on   = document.getElementById('ai-on');
+    const off  = document.getElementById('ai-off');
+    const input= document.getElementById('ai-topic');
+
+    if (!cb || !on || !off || !input) return;
+
+    const sync = () => {
+      input.disabled = !cb.checked;
+      on.classList.toggle('active',  cb.checked);
+      off.classList.toggle('active', !cb.checked);
+    };
+
+    on.addEventListener('click',  () => { cb.checked = true;  sync(); input.focus(); });
+    off.addEventListener('click', () => { cb.checked = false; sync(); });
+
+    // allow external code to change #ai-toggle if needed
+    cb.addEventListener('change', sync);
+
+    sync(); // initial state
   };
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', onReady, { once: true });
+    document.addEventListener('DOMContentLoaded', onReady, { once:true });
   } else {
     onReady();
   }
