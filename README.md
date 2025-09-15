@@ -28,27 +28,31 @@ Real-time, mobile-first multiplayer quiz. Create a room, share a link/code, and 
 - **Realtime** answer flow and scoreboard.
 - **Host controls:** start round, reveal answers, next/prev.
 - **Question sources:**
-  - `random` — default fallback (always available)
-  - `ai` — pluggable provider (coming soon)
-  - `pack` — curated sets (optional)
+  - `random` — default (currently active in production)
+  - `ai (GPT)` — **scaffolded, not fully wired up** yet
 - **Mobile-first UI**, designed for quick, casual play.
 - **AdSense-ready** layout (disabled in dev).
 
 ---
 
-## Demo
-- **Live game:** https://www.heiyuquiz.com  
-- **Staging/preview:** https://heiyuquiz-client.vercel.app
+---
 
-> Best experienced with 2+ devices: one host screen + player phones.
+## Backend
+
+This client talks to the companion server:
+
+- **Server repo:** https://github.com/IrishDec/heiyuquiz-server
+- **Question provider:** currently **random-only** in production.
+- **GPT support:** the server is scaffolded to fetch AI-generated questions via a pluggable provider, but it’s **not fully wired up yet**. Once enabled, the client will be able to switch to `ai` questions via a simple source toggle.
+
 
 ---
 
 ## Tech Stack
 - **Frontend:** HTML, CSS, Vanilla JS (ES modules)
-- **Hosting:** GitHub Pages / Vercel (static)
+- **Backend:** heiyuquiz-server (Node.js) — random question provider active; GPT provider **scaffolded**
+- **Hosting:** GitHub Pages / Vercel (static client) + your Node host for the server
 - **Build/Tooling:** lightweight, no framework
-- **AI (planned):** provider-agnostic adapter for question generation
 
 ---
 
@@ -123,6 +127,9 @@ AdSense: placements are prepared but disabled in development.
 Follow provider guidelines and avoid intrusive formats that harm UX.
 
 Roadmap
+- [ ] Enable **GPT question provider** end-to-end (server + client toggle)
+- [ ] Configurable **question source** in host UI
+
  Ship AI question provider adapter + toggle in UI
 
  Curated question packs with categories/difficulty
@@ -133,12 +140,4 @@ Roadmap
 
  Lightweight analytics (privacy-first)
 
-Contributing
-Issues and PRs are welcome. Please:
-
-Keep PRs small and focused.
-
-Describe UX impact and test steps.
-
-Avoid adding heavy dependencies.
 
