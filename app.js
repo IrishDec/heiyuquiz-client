@@ -729,11 +729,17 @@ createBtn?.addEventListener("click", createQuiz);
     if (!cb || !on || !off || !input) return;
 
     const sync = () => {
-      input.disabled = !cb.checked;
-      on.classList.toggle('active',  cb.checked);
-      off.classList.toggle('active', !cb.checked);
-    };
+  input.disabled = !cb.checked;
 
+  // active gradient on the selected button
+  on.classList.toggle('active',  cb.checked);
+  off.classList.toggle('active', !cb.checked);
+
+  // black-out the opposite button
+  // ON -> make OFF black; OFF -> make ON black
+  off.classList.toggle('inverse',  cb.checked);
+  on.classList.toggle('inverse', !cb.checked);
+};
     on.addEventListener('click',  () => { cb.checked = true;  sync(); input.focus(); });
     off.addEventListener('click', () => { cb.checked = false; sync(); });
 
