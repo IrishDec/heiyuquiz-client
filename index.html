@@ -62,15 +62,22 @@
   <option value="">Any country</option>
 </select>
 
-<!-- Custom topic (AI) -->
+<<!-- Custom topic (AI) -->
 <div class="lbl" style="margin-bottom:6px;">Custom topic (AI)</div>
-<div class="ai-toggle-row">
-  <label class="ai-switch">
-    <input type="checkbox" id="ai-toggle" aria-label="Use custom AI topic">
-    <span class="ai-slider"></span>
-  </label>
+<div class="ai-row">
+  <!-- hidden real toggle so existing JS keeps working -->
+  <input type="checkbox" id="ai-toggle" class="visually-hidden" aria-hidden="true" />
+
+  <!-- segmented ON/OFF buttons -->
+  <div class="ai-seg">
+    <button type="button" id="ai-off" class="seg-btn active">Off</button>
+    <button type="button" id="ai-on"  class="seg-btn">On</button>
+  </div>
+
+  <!-- topic input -->
   <input id="ai-topic" class="ai-input" placeholder="e.g. European football, Star Wars…" disabled />
 </div>
+
 
   <div class="row">
     <button id="createBtn">Create & Share Link</button>
