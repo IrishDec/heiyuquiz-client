@@ -249,7 +249,19 @@ async function route(){
 async function createQuiz(){
   const category = categorySel?.value || "General";
   const region   = regionSel?.value || "global";
-  const topic    = (topicIn?.value || "").trim();
+  const country  = (countrySel?.value || "").trim();
+
+  // Custom (AI) toggle + topic
+  const aiOn     = !!document.getElementById('ai-toggle')?.checked;
+  const aiTopic  = (document.getElementById('ai-topic')?.value || '').trim();
+
+  // Default topic = existing #topic input (if you use it) else the category
+  let topic = (topicIn?.value || "").trim();
+  if (!topic) topic = category;
+
+  // If AI toggle is on and the user typed 3+ chars, prefer that as the topic
+  const useAI = aiOn && aiTopic.length >= 3 && USE_AI;
+  if (useAI) topic = aiTopic;
 
   const originalLabel = createBtn?.textContent || 'Create & Share Link';
   createBtn?.setAttribute('disabled','');
@@ -260,17 +272,21 @@ async function createQuiz(){
 
   // give slow cold starts time to respond
   const ctrl = new AbortController();
-  const TIMEOUT_MS = 25000; // was 10000
+  const TIMEOUT_MS = 25000;
   const timer = setTimeout(()=>ctrl.abort(), TIMEOUT_MS);
 
   try {
-    const path = USE_AI ? "/api/createQuiz/ai" : "/api/createQuiz";
-    const res = await fetch(`${window.SERVER_URL}${path}`, {
+    // route to AI endpoint only when explicitly requested
+    const path = useAI ? "/api/createQuiz/ai" : "/api/createQuiz";
 
+    const res = await fetch(`${window.SERVER_URL}${path}`, {
       method:'POST',
       headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({
-        category, region, topic,
+        category,
+        region,
+        country,       // <- pass your selected country to the server
+        topic,         // <- either category/topicIn or custom AI topic
         amount: 5,
         durationSec: (typeof DURATION_SEC!=="undefined" ? DURATION_SEC : 86400)
       }),
