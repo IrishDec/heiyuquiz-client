@@ -3,11 +3,10 @@
 Real-time, mobile-first multiplayer quiz. Create a room, share a link/code, and play from any device.
 
 - **Live:** https://www.heiyuquiz.com  
-- **Preview:** https://heiyuquiz-client.vercel.app
 
 ---
 
-## Table of Contents
+## Table of Contents 
 - [Features](#features)
 - [Demo](#demo)
 - [Tech Stack](#tech-stack)
