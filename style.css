@@ -662,6 +662,23 @@ button:disabled{
 #playNameBar, #playView .q:first-child, #resultsView h2, #startCard h2 {
   scroll-margin-top: calc(var(--header-h) + 8px);
 }
+/* Inline AI segmented toggle */
+.ai-row{ display:flex; gap:8px; align-items:center; margin-top:6px; }
+.ai-seg{ display:flex; border:1px solid #e6e6e6; border-radius:10px; overflow:hidden; background:#fff; }
+.seg-btn{
+  padding:8px 12px; font-weight:700; border:0; background:#fff; color:#444; cursor:pointer;
+}
+.seg-btn + .seg-btn{ border-left:1px solid #e6e6e6; }
+.seg-btn.active{
+  background: linear-gradient(90deg, var(--brand,#6e56cf), var(--brand2,#d6467e));
+  color:#fff; box-shadow:0 6px 18px rgba(214,70,126,.18);
+}
+.ai-input{ flex:1; min-width:160px; }
+
+/* hide the real checkbox but keep it accessible if needed */
+.visually-hidden{
+  position:absolute !important; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0);
+}
 
 
 
