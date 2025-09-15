@@ -20,7 +20,7 @@ Real-time, mobile-first multiplayer quiz. Create a room, share a link/code, and 
 - [Monetization](#monetization)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
-- [License](#license)
+
 
 ---
 
@@ -143,14 +143,3 @@ Describe UX impact and test steps.
 
 Avoid adding heavy dependencies.
 
-License
-MIT — see LICENSE.
-
-sql
-Copy code
-
-# Step 2 — Commit
-```bash
-git add README.md
-git commit -m "docs: professional README with features, setup, and roadmap"
-git push origin maining. 
