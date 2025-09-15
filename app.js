@@ -702,4 +702,24 @@ async function renderResults(id){
 /* ------------------ Wire buttons ------------------ */
 createBtn?.addEventListener("click", createQuiz);
 
+// --- Custom (AI) toggle wiring ---
+// Enables/disables the #ai-topic input based on #ai-toggle
+(function(){
+  const onReady = () => {
+    const toggle = document.getElementById('ai-toggle');
+    const input  = document.getElementById('ai-topic');
+    if (!toggle || !input) return;
+    const sync = () => { input.disabled = !toggle.checked; };
+    toggle.addEventListener('change', sync);
+    sync();
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady, { once: true });
+  } else {
+    onReady();
+  }
+})();
+
+
+
 
