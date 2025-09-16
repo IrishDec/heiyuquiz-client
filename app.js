@@ -198,10 +198,19 @@ route();
 
 async function route(){
   const [ , view, id ] = (location.hash.slice(1) || "").split("/");
-  if (view === "play" && id)      renderPlay(id);
-  else if (view === "results" && id) renderResults(id);  
-  else                             show(startCard);
-}
+
+  if (view === "play" && id){
+    // If this device already submitted this quiz, go straight to Results
+    if (localStorage.getItem(`hq-done-${id}`) === '1') {
+      location.hash = `/results/${id}`;
+      try { window.hqToast && hqToast("You've already played — showing results"); } catch {}
+      return;
+    }
+    return renderPlay(id);
+  } else if (view === "results" && id){
+    return renderResults(id);
+  } else
+
 
 /* ===== Beauty Pack: toast + confetti ===== */
 (function(){
