@@ -320,6 +320,13 @@ async function createQuiz(){
 
     // go straight to play
     location.hash = `/play/${quizId}`;
+    try {
+  show(playView);
+  if (quizMeta) quizMeta.textContent = "Loading quiz…";
+  if (quizBody) quizBody.innerHTML =
+    '<div class="q"><div class="progress">Please wait</div><h3>Fetching questions…</h3></div>';
+} catch {}
+
     console.log('[createQuiz] navigating to play', quizId);
     setTimeout(() => { try { route(); } catch(e){ console.warn('route() failed', e); } }, 0);
 
