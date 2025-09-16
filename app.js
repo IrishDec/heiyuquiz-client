@@ -318,17 +318,13 @@ async function createQuiz(){
       }
     } catch {}
 
-    // go straight to play
-    location.hash = `/play/${quizId}`;
-    try {
-  show(playView);
-  if (quizMeta) quizMeta.textContent = "Loading quiz…";
-  if (quizBody) quizBody.innerHTML =
-    '<div class="q"><div class="progress">Please wait</div><h3>Fetching questions…</h3></div>';
-} catch {}
+    // debug the response
+    console.log('[createQuiz] status=', res.status, 'provider=', data?.provider, 'quizId=', quizId);
 
-    console.log('[createQuiz] navigating to play', quizId);
-    setTimeout(() => { try { route(); } catch(e){ console.warn('route() failed', e); } }, 0);
+   // force full navigation (bypasses any router hiccups)
+   const target = `${location.origin}${location.pathname}#/play/${quizId}`;
+   location.href = target; // hard nav so Play view always loads
+
 
 
     // store host flag + link; sharing unlocks after submit
