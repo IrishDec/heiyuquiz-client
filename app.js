@@ -281,21 +281,22 @@ async function createQuiz(){
   const timer = setTimeout(()=>ctrl.abort(), TIMEOUT_MS);
 
   try {
-    // unified endpoint: server decides AI vs OpenTDB based on useAI
-    const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify({
-        category,
-        region,
-        country,
-        topic,
-        useAI,                   // <- tell server explicitly
-        amount: 5,
-        durationSec: (typeof DURATION_SEC!=="undefined" ? DURATION_SEC : 86400)
-      }),
-      signal: ctrl.signal
-    });
+   // pick endpoint based on whether we're using AI
+const path = useAI ? "/api/createQuiz/ai" : "/api/createQuiz";
+
+const res = await fetch(`${window.SERVER_URL}${path}`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    category,
+    region,
+    country,
+    topic,
+    amount: 5,
+    durationSec: (typeof DURATION_SEC !== "undefined" ? DURATION_SEC : 86400)
+  }),
+  signal: ctrl.signal
+});
 
     const raw = await res.text();
     let data; try { data = JSON.parse(raw); } catch { data = null; }
