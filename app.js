@@ -196,6 +196,7 @@ window.addEventListener("hashchange", route);
 document.addEventListener("DOMContentLoaded", route);
 route();
 
+// ------------------ Router (complete) ------------------
 async function route(){
   const [ , view, id ] = (location.hash.slice(1) || "").split("/");
 
@@ -207,10 +208,14 @@ async function route(){
       return;
     }
     return renderPlay(id);
+
   } else if (view === "results" && id){
     return renderResults(id);
-  } else
 
+  } else {
+    return show(startCard);
+  }
+}
 
 /* ===== Beauty Pack: toast + confetti ===== */
 (function(){
