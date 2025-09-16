@@ -281,25 +281,31 @@ async function createQuiz(){
   const timer = setTimeout(()=>ctrl.abort(), TIMEOUT_MS);
 
   try {
-   // pick endpoint based on whether we're using AI
-const path = useAI ? "/api/createQuiz/ai" : "/api/createQuiz";
+   // ---- Build AI payload: NO country when custom topic is ON ----
+const aiOn    = !!document.getElementById('ai-toggle')?.checked;
+const aiTopic = (document.getElementById('ai-topic')?.value || '').trim();
+const isCustom = aiOn && aiTopic.length >= 3;
 
-const res = await fetch(`${window.SERVER_URL}${path}`, {
+const payload = {
+  category,
+  topic: isCustom ? aiTopic : category,            // custom subject when ON, else category
+  amount: 5,
+  durationSec: (typeof DURATION_SEC !== "undefined" ? DURATION_SEC : 86400)
+};
+// Only bias by country for Quick Start (toggle OFF)
+if (!isCustom) payload.country = country;
+
+// Always hit the AI endpoint; server will fall back internally if needed
+const res = await fetch(`${window.SERVER_URL}/api/createQuiz/ai`, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    category,
-    region,
-    country,
-    topic,
-    amount: 5,
-    durationSec: (typeof DURATION_SEC !== "undefined" ? DURATION_SEC : 86400)
-  }),
+  body: JSON.stringify(payload),
   signal: ctrl.signal
 });
 
-    const raw = await res.text();
-    let data; try { data = JSON.parse(raw); } catch { data = null; }
+const raw = await res.text();
+let data; try { data = JSON.parse(raw); } catch { data = null; }
+
 
     if (!res.ok || !data?.ok){
       alert(`Create failed:\n${(data && (data.error || data.message)) || raw || `HTTP ${res.status}`}`);
