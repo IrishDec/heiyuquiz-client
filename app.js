@@ -1,3 +1,7 @@
+// Ensure absolute API host (prevents relative /api/... on www.heiyuquiz.com)
+if (!window.SERVER_URL) {
+  window.SERVER_URL = "https://heiyuquiz-server.onrender.com";
+}
 // HeiyuQuiz — app.js
 
 /* --------- If someone opens /?quiz=ABC123, convert it to #/play/ABC123 --------- */
