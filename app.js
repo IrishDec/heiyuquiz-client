@@ -253,17 +253,21 @@ async function createQuiz(){
   const region   = regionSel?.value || "global";
   const country  = (countrySel?.value || "").trim();
 
-  // Custom (AI) toggle + topic
-  const aiOn     = !!document.getElementById('ai-toggle')?.checked;
-  const aiTopic  = (document.getElementById('ai-topic')?.value || '').trim();
+const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
+  method:'POST',
+  headers:{ 'Content-Type':'application/json' },
+  body: JSON.stringify({
+    category,
+    region,
+    country,
+    topic,            // category or custom topic
+    useAI,            // <-- tells server to use GPT for presets too
+    amount: 5,
+    durationSec: (typeof DURATION_SEC!=="undefined" ? DURATION_SEC : 86400)
+  }),
+  signal: ctrl.signal
+});
 
-  // Default topic = existing #topic input (if you use it) else the category
-  let topic = (topicIn?.value || "").trim();
-  if (!topic) topic = category;
-
-  // If AI toggle is on and the user typed 3+ chars, prefer that as the topic
-  const useAI = aiOn && aiTopic.length >= 3 && USE_AI;
-  if (useAI) topic = aiTopic;
 
   const originalLabel = createBtn?.textContent || 'Create & Share Link';
   createBtn?.setAttribute('disabled','');
