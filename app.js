@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 const USE_AI = true;
+const AI_PRESETS = true; // use GPT even when toggle is OFF (category+country only)
+
 
 /* --------- Helpers --------- */
 // Decode &ouml;, &quot;, etc. from server text
