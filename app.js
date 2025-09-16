@@ -249,50 +249,48 @@ async function route(){
 })();
 /* ------------------ Create quiz & share (play-first) ------------------ */
 async function createQuiz(){
-  const category = categorySel?.value || "General";
-  const region   = regionSel?.value || "global";
-  const country  = (countrySel?.value || "").trim();
+  // DOM reads (safe if some are missing)
+  const category = (categorySel?.value || "General").trim();
+  const region   = (regionSel?.value   || "global").trim();
+  const country  = (countrySel?.value  || "").trim();
 
-const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
-  method:'POST',
-  headers:{ 'Content-Type':'application/json' },
-  body: JSON.stringify({
-    category,
-    region,
-    country,
-    topic,            // category or custom topic
-    useAI,            // <-- tells server to use GPT for presets too
-    amount: 5,
-    durationSec: (typeof DURATION_SEC!=="undefined" ? DURATION_SEC : 86400)
-  }),
-  signal: ctrl.signal
-});
+  // AI toggle state + custom topic
+  const aiOn     = !!document.getElementById('ai-toggle')?.checked;
+  const aiTopic  = (document.getElementById('ai-topic')?.value || '').trim();
 
+  // NOTE: topicIn may not exist anymore; fall back to category
+  let topic      = (typeof topicIn !== 'undefined' && topicIn?.value) ? String(topicIn.value).trim() : "";
+  if (!topic) topic = category;
+  if (aiOn && aiTopic.length >= 3) topic = aiTopic;
 
+  // Use GPT when (a) custom topic ON, or (b) presets enabled
+  // Put this near the top of the file once:  const AI_PRESETS = true;
+  const useAI    = (aiOn && aiTopic.length >= 3) || (typeof AI_PRESETS !== 'undefined' && !!AI_PRESETS);
+
+  // Button UX
   const originalLabel = createBtn?.textContent || 'Create & Share Link';
   createBtn?.setAttribute('disabled','');
   if (createBtn) createBtn.textContent = 'Creating…';
 
-  // tiny warm-up to wake the backend (ignore errors)
+  // tiny warm-up (ignore errors)
   try { await fetch(`${window.SERVER_URL}/api/health`, { cache:'no-store' }); } catch {}
 
-  // give slow cold starts time to respond
+  // timeout guard
   const ctrl = new AbortController();
   const TIMEOUT_MS = 25000;
   const timer = setTimeout(()=>ctrl.abort(), TIMEOUT_MS);
 
   try {
-    // route to AI endpoint only when explicitly requested
-    const path = useAI ? "/api/createQuiz/ai" : "/api/createQuiz";
-
-    const res = await fetch(`${window.SERVER_URL}${path}`, {
+    // unified endpoint: server decides AI vs OpenTDB based on useAI
+    const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
       method:'POST',
       headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({
         category,
         region,
-        country,       // <- pass your selected country to the server
-        topic,         // <- either category/topicIn or custom AI topic
+        country,
+        topic,
+        useAI,                   // <- tell server explicitly
         amount: 5,
         durationSec: (typeof DURATION_SEC!=="undefined" ? DURATION_SEC : 86400)
       }),
@@ -309,6 +307,16 @@ const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
 
     const quizId = data.quizId || data.id;
     if (!quizId){ alert('Create succeeded but no quiz ID returned.'); return; }
+
+    // Provider toast (optional)
+    try {
+      const provider = data.provider || (useAI ? 'ai?' : 'opentdb');
+      if (window.hqToast) {
+        if (provider === 'ai')           hqToast('AI questions ready 🤖');
+        else if (provider === 'opentdb-fallback') hqToast('AI busy — using standard questions');
+        else                             hqToast('Standard questions ready');
+      }
+    } catch {}
 
     // go straight to play
     location.hash = `/play/${quizId}`;
@@ -334,6 +342,7 @@ const res = await fetch(`${window.SERVER_URL}/api/createQuiz`, {
     if (createBtn) createBtn.textContent = originalLabel;
   }
 }
+
 
 /* ------------------ Play view ------------------ */
 async function renderPlay(id){
