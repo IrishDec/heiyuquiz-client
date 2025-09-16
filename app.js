@@ -320,6 +320,9 @@ async function createQuiz(){
 
     // go straight to play
     location.hash = `/play/${quizId}`;
+    console.log('[createQuiz] navigating to play', quizId);
+    setTimeout(() => { try { route(); } catch(e){ console.warn('route() failed', e); } }, 0);
+
 
     // store host flag + link; sharing unlocks after submit
     const link = `${location.origin}${location.pathname}#/play/${quizId}`;
