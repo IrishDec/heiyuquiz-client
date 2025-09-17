@@ -786,6 +786,61 @@ createBtn?.addEventListener("click", createQuiz);
     onReady();
   }
 })();
+
+// --- Hamburger menu wiring (open/close, ESC, overlay) ---
+(function () {
+  const btn       = document.getElementById('menuToggle');
+  const wrapper   = document.getElementById('sideMenu');
+  if (!btn || !wrapper) return;
+
+  const overlay   = wrapper.querySelector('#menuOverlay');
+  const closeBtn  = wrapper.querySelector('#menuClose');
+  let lastFocusEl = null;
+
+  function openMenu() {
+    lastFocusEl = document.activeElement;
+    wrapper.classList.add('open');
+    btn.classList.add('is-open');
+    wrapper.setAttribute('aria-hidden', 'false');
+
+    // focus first focusable in panel
+    setTimeout(() => {
+      const first = wrapper.querySelector('a,button,[tabindex]:not([tabindex="-1"])');
+      first && first.focus();
+    }, 0);
+
+    document.addEventListener('keydown', onKey);
+  }
+
+  function closeMenu() {
+    wrapper.classList.remove('open');
+    btn.classList.remove('is-open');
+    wrapper.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', onKey);
+    if (lastFocusEl && typeof lastFocusEl.focus === 'function') lastFocusEl.focus();
+  }
+
+  function onKey(e) {
+    if (e.key === 'Escape') closeMenu();
+  }
+
+  // toggles
+  btn.addEventListener('click', () => {
+    if (wrapper.classList.contains('open')) closeMenu();
+    else openMenu();
+  });
+
+  overlay && overlay.addEventListener('click', closeMenu);
+  closeBtn && closeBtn.addEventListener('click', closeMenu);
+
+  // close when a link is clicked
+  wrapper.addEventListener('click', (e) => {
+    const a = e.target.closest('a');
+    if (a) closeMenu();
+  });
+})();
+
+
 // --- Segmented controls: question count + difficulty ---
 (function(){
   function wireSeg(containerSelector, attr, storageKey){
