@@ -276,59 +276,27 @@ async function route(){
 })();
 /* ------------------ Create quiz & share (play-first) ------------------ */
 async function createQuiz(){
-  // DOM reads (safe if some are missing)
-  const category = (categorySel?.value || "General").trim();
-  const region   = (regionSel?.value   || "global").trim();
-  const country  = (countrySel?.value  || "").trim();
-
-  // AI toggle state + custom topic
-  const aiOn     = !!document.getElementById('ai-toggle')?.checked;
-  const aiTopic  = (document.getElementById('ai-topic')?.value || '').trim();
-
-  // NOTE: topicIn may not exist anymore; fall back to category
-  let topic      = (typeof topicIn !== 'undefined' && topicIn?.value) ? String(topicIn.value).trim() : "";
-  if (!topic) topic = category;
-  if (aiOn && aiTopic.length >= 3) topic = aiTopic;
-
-  // Use GPT when (a) custom topic ON, or (b) presets enabled
-  // Put this near the top of the file once:  const AI_PRESETS = true;
-  const useAI    = (aiOn && aiTopic.length >= 3) || (typeof AI_PRESETS !== 'undefined' && !!AI_PRESETS);
-
-  // Button UX
-  const originalLabel = createBtn?.textContent || 'Create & Share Link';
-  createBtn?.setAttribute('disabled','');
-  if (createBtn) createBtn.textContent = 'Creating…';
-
-  // tiny warm-up (ignore errors)
-  try { await fetch(`${window.SERVER_URL}/api/health`, { cache:'no-store' }); } catch {}
-
-  // timeout guard
-  const ctrl = new AbortController();
-  const TIMEOUT_MS = 25000;
-  const timer = setTimeout(()=>ctrl.abort(), TIMEOUT_MS);
-
-  try {
-   // ---- Build AI payload: NO country when custom topic is ON ----
-const aiOn    = !!document.getElementById('ai-toggle')?.checked;
-const aiTopic = (document.getElementById('ai-topic')?.value || '').trim();
+ // ---- Build AI payload: include amount + difficulty from segmented controls ----
 const isCustom = aiOn && aiTopic.length >= 3;
 
 // read segmented selections
 const countBtn = document.querySelector('#qcount .seg-btn.active');
 const diffBtn  = document.querySelector('#qdifficulty .seg-btn.active');
 
-const amount = Number(countBtn?.getAttribute('data-count') || 5);
+const amount = Math.max(3, Math.min(10, Number(countBtn?.getAttribute('data-count') || 5)));
 const difficulty = (diffBtn?.getAttribute('data-diff') || 'medium'); // 'easy'|'medium'|'hard'
 
 const payload = {
   category,
   topic: isCustom ? aiTopic : category,
-  amount,                              // 5 or 10 based on toggle
+  amount,
   durationSec: (typeof DURATION_SEC !== "undefined" ? DURATION_SEC : 86400),
-  difficulty                           // passed through safely
+  difficulty
 };
 // Only bias by country for Quick Start (toggle OFF)
 if (!isCustom) payload.country = country;
+
+// (leave your existing fetch(...) call immediately after this)
 
 // Always hit the AI endpoint; server will fall back internally if needed
 const res = await fetch(`${window.SERVER_URL}/api/createQuiz/ai`, {
