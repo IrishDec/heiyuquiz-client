@@ -36,13 +36,15 @@
 <!--logo-->
 <header id="appHeader">
   <img src="./assets/logo.png?v=1" alt="HeiyuQuiz">
-  <!-- New hamburger button -->
-  <button id="menuToggle"
-          class="menu-btn"
-          aria-label="Open menu"
-          aria-controls="sideMenu"
-          aria-expanded="false">☰</button>
+
+  <!-- Hamburger button (right side) -->
+  <button id="menuToggle" aria-label="Open menu" aria-controls="sideMenu" aria-expanded="false">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+  </button>
 </header>
+
 <!-- Slide-in side menu -->
 <nav id="sideMenu" aria-hidden="true">
   <div class="menu-overlay" data-close></div>
