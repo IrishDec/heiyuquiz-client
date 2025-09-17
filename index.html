@@ -48,6 +48,22 @@
 <label class="lbl">Name or nickname</label>
   <input id="name" placeholder="Name or nickname" maxlength="24" />
 
+<!-- Questions toggle -->
+<label class="lbl">Number of questions</label>
+<div class="seg seg-questions" id="qcount">
+  <button type="button" data-count="5"  class="seg-btn active">5</button>
+  <button type="button" data-count="10" class="seg-btn">10</button>
+</div>
+
+<!-- Difficulty toggle -->
+<label class="lbl">Difficulty</label>
+<div class="seg seg-difficulty" id="qdifficulty">
+  <button type="button" data-diff="easy"   class="seg-btn">Easy</button>
+  <button type="button" data-diff="medium" class="seg-btn active">Medium</button>
+  <button type="button" data-diff="hard"   class="seg-btn">Hard</button>
+</div>
+
+
   <label class="lbl">Category</label>
   <select id="category">
     <option>General</option>
