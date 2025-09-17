@@ -873,57 +873,50 @@ createBtn?.addEventListener("click", createQuiz);
   // data-diff="easy|medium|hard"
   wireSeg('#qdifficulty', 'data-diff', 'hq-qdiff');
 })();
-// ---- Hamburger menu wiring (mobile-safe) ----
-(function initMenu(){
-  const toggle  = document.getElementById('menuToggle');
-  const menu    = document.getElementById('sideMenu');
-  const overlay = menu?.querySelector('.menu-overlay');
-  const panel   = menu?.querySelector('.menu-panel');
-  const closers = menu ? menu.querySelectorAll('[data-close]') : [];
+// --- Menu (robust, mobile-safe) ---
+(function(){
+  function initMenu(){
+    const btn = document.getElementById('menuToggle');
+    const nav = document.getElementById('sideMenu');
+    if (!btn || !nav) return;
 
-  if (!toggle || !menu || !overlay || !panel) {
-    console.warn('[menu] elements missing');
-    return;
+    const overlay  = nav.querySelector('.menu-overlay');
+    const closeBtn = nav.querySelector('#menuClose');
+
+    const open = () => {
+      nav.classList.add('open');
+      nav.setAttribute('aria-hidden', 'false');
+      btn.classList.add('is-open');
+      document.body.style.overflow = 'hidden'; // prevent body scroll behind
+    };
+
+    const close = () => {
+      nav.classList.remove('open');
+      nav.setAttribute('aria-hidden', 'true');
+      btn.classList.remove('is-open');
+      document.body.style.overflow = '';
+    };
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();     // avoid click bubbling on mobile
+      if (nav.classList.contains('open')) close();
+      else open();
+    }, { passive: false });
+
+    overlay?.addEventListener('click', close);
+    closeBtn?.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    window.addEventListener('hashchange', close);
   }
 
-  panel.setAttribute('tabindex', '-1');
-
-  const openMenu = () => {
-    void panel.offsetHeight;                 // ensure Safari animates
-    menu.classList.add('open');
-    toggle.classList.add('is-open');         // turn into "X"
-    toggle.setAttribute('aria-expanded', 'true');
-    document.body.style.overflow = 'hidden'; // lock scroll
-    panel.focus();
-  };
-
-  const closeMenu = () => {
-    menu.classList.remove('open');
-    toggle.classList.remove('is-open');
-    toggle.setAttribute('aria-expanded', 'false');
-    document.body.style.overflow = '';
-    toggle.focus();
-  };
-
-  const handleToggle = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (menu.classList.contains('open')) closeMenu();
-    else openMenu();
-  };
-
-  // Click + touch (iOS sometimes drops click)
-  toggle.addEventListener('click', handleToggle, { passive:false });
-  toggle.addEventListener('touchend', handleToggle, { passive:false });
-
-  overlay.addEventListener('click', closeMenu);
-  closers.forEach(el => el.addEventListener('click', closeMenu));
-
-  // ESC closes
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
-  });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMenu, { once:true });
+  } else {
+    initMenu();
+  }
 })();
+
 
 
 
