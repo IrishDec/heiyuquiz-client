@@ -807,26 +807,39 @@ button:disabled{
 #menuToggle{ display:flex; flex-direction:column; gap:4px; cursor:pointer; }
 #menuToggle .bar{ width:22px; height:2px; background:#111; border-radius:2px; }
 
-/* panel + overlay */
-#sideMenu{ position:fixed; inset:0; z-index:2147483600; pointer-events:none; }
-#menuOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.35); opacity:0; transition:.2s; }
-#menuPanel{
-  position:fixed; top:0; right:0; bottom:0; width:min(82vw,320px);
-  background:#fff; box-shadow:-12px 0 30px rgba(0,0,0,.18);
-  transform:translateX(120%); transition:transform .22s ease; padding:16px;
-}
-#sideMenu.open{ pointer-events:auto; }
-#sideMenu.open #menuOverlay{ opacity:1; }
-#sideMenu.open #menuPanel{ transform:translateX(0); }
-
-/* simple list */
-#menuPanel .menuList{ list-style:none; margin:12px 0 0; padding:0; }
-#menuPanel .menuList li{ margin:0; }
-#menuPanel .menuList a{ display:block; padding:12px 8px; font-weight:700; color:#111; text-decoration:none; }
-#menuPanel .menuList a:hover{ text-decoration:underline; }
 
 /* close button */
 #menuClose{ position:absolute; top:10px; right:10px; font-size:20px; line-height:1; }
+/* === Final header + menu button overrides === */
+#appHeader{
+  justify-content: space-between !important;  /* logo left, menu button right */
+  padding: 8px 12px !important;
+}
+
+/* Make #menuToggle immune to global gradient button styles */
+#menuToggle{
+  background:#fff !important;
+  color:#111 !important;
+  border:1px solid #e6e6e6 !important;
+  border-radius:10px !important;
+  width:36px !important;
+  height:36px !important;
+  padding:0 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-shadow:none !important;
+  line-height:1 !important;
+  cursor:pointer !important;
+}
+#menuToggle:active{ transform:none !important; }  /* stop the “wiggle” on tap */
+
+#menuToggle{ display:flex; flex-direction:column; gap:4px; }
+#menuToggle .bar{ width:22px; height:2px; background:#111; border-radius:2px; }
+#menuToggle.is-open .bar:nth-child(1){ transform: translateY(6px) rotate(45deg); }
+#menuToggle.is-open .bar:nth-child(2){ opacity:0; }
+#menuToggle.is-open .bar:nth-child(3){ transform: translateY(-6px) rotate(-45deg); }
+
 
 
 
