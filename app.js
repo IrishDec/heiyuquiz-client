@@ -276,39 +276,63 @@ async function route(){
 })();
 /* ------------------ Create quiz & share (play-first) ------------------ */
 async function createQuiz(){
- // ---- Build AI payload: include amount + difficulty from segmented controls ----
-const isCustom = aiOn && aiTopic.length >= 3;
+  // DOM reads
+  const category = (categorySel?.value || "General").trim();
+  const country  = (countrySel?.value  || "").trim();
 
-// read segmented selections
-const countBtn = document.querySelector('#qcount .seg-btn.active');
-const diffBtn  = document.querySelector('#qdifficulty .seg-btn.active');
+  // AI toggle state + custom topic
+  const aiOn     = !!document.getElementById('ai-toggle')?.checked;
+  const aiTopic  = (document.getElementById('ai-topic')?.value || '').trim();
 
-const amount = Math.max(3, Math.min(10, Number(countBtn?.getAttribute('data-count') || 5)));
-const difficulty = (diffBtn?.getAttribute('data-diff') || 'medium'); // 'easy'|'medium'|'hard'
+  // Effective topic
+  let topic = category;
+  if (aiOn && aiTopic.length >= 3) topic = aiTopic;
 
-const payload = {
-  category,
-  topic: isCustom ? aiTopic : category,
-  amount,
-  durationSec: (typeof DURATION_SEC !== "undefined" ? DURATION_SEC : 86400),
-  difficulty
-};
-// Only bias by country for Quick Start (toggle OFF)
-if (!isCustom) payload.country = country;
+  // Read segmented selections (defaults if not present)
+  const countBtn   = document.querySelector('#qcount .seg-btn.active');
+  const diffBtn    = document.querySelector('#qdifficulty .seg-btn.active');
+  const amount     = Math.max(3, Math.min(10, Number(countBtn?.getAttribute('data-count') || 5)));
+  const difficulty = (diffBtn?.getAttribute('data-diff') || 'medium'); // 'easy'|'medium'|'hard'
 
-// (leave your existing fetch(...) call immediately after this)
+  // Button UX
+  const originalLabel = createBtn?.textContent || 'Create & Share Link';
+  createBtn?.setAttribute('disabled','');
+  if (createBtn) createBtn.textContent = 'Creating…';
 
-// Always hit the AI endpoint; server will fall back internally if needed
-const res = await fetch(`${window.SERVER_URL}/api/createQuiz/ai`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(payload),
-  signal: ctrl.signal
-});
+  try {
+    // tiny warm-up (ignore errors)
+    try { await fetch(`${window.SERVER_URL}/api/health`, { cache:'no-store' }); } catch {}
 
-const raw = await res.text();
-let data; try { data = JSON.parse(raw); } catch { data = null; }
+    // timeout guard
+    const ctrl = new AbortController();
+    const TIMEOUT_MS = 25000;
+    const timer = setTimeout(()=>ctrl.abort(), TIMEOUT_MS);
 
+    const isCustom = aiOn && aiTopic.length >= 3;
+
+    // Build payload
+    const payload = {
+      category,
+      topic,
+      amount,
+      durationSec: (typeof DURATION_SEC !== "undefined" ? DURATION_SEC : 86400),
+      difficulty
+    };
+    // Only bias by country for Quick Start (toggle OFF)
+    if (!isCustom) payload.country = country;
+
+    // Create quiz
+    const res = await fetch(`${window.SERVER_URL}/api/createQuiz/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal
+    });
+
+    clearTimeout(timer);
+
+    const raw = await res.text();
+    let data; try { data = JSON.parse(raw); } catch { data = null; }
 
     if (!res.ok || !data?.ok){
       alert(`Create failed:\n${(data && (data.error || data.message)) || raw || `HTTP ${res.status}`}`);
@@ -318,9 +342,9 @@ let data; try { data = JSON.parse(raw); } catch { data = null; }
     const quizId = data.quizId || data.id;
     if (!quizId){ alert('Create succeeded but no quiz ID returned.'); return; }
 
-    // Provider toast (optional)
+    // Optional toast
     try {
-      const provider = data.provider || (useAI ? 'ai?' : 'opentdb');
+      const provider = data.provider || 'ai';
       if (window.hqToast) {
         if (provider === 'ai')           hqToast('AI questions ready 🤖');
         else if (provider === 'opentdb-fallback') hqToast('AI busy — using standard questions');
@@ -328,16 +352,11 @@ let data; try { data = JSON.parse(raw); } catch { data = null; }
       }
     } catch {}
 
-    // debug the response
-    console.log('[createQuiz] status=', res.status, 'provider=', data?.provider, 'quizId=', quizId);
+    // Navigate to Play
+    const target = `${location.origin}${location.pathname}#/play/${quizId}`;
+    location.href = target;
 
-   // force full navigation (bypasses any router hiccups)
-   const target = `${location.origin}${location.pathname}#/play/${quizId}`;
-   location.href = target; // hard nav so Play view always loads
-
-
-
-    // store host flag + link; sharing unlocks after submit
+    // Store host flag + link
     const link = `${location.origin}${location.pathname}#/play/${quizId}`;
     try {
       localStorage.setItem(`hq-host-${quizId}`, '1');
@@ -353,7 +372,6 @@ let data; try { data = JSON.parse(raw); } catch { data = null; }
     }
     console.error('createQuiz exception:', err);
   } finally {
-    clearTimeout(timer);
     createBtn?.removeAttribute('disabled');
     if (createBtn) createBtn.textContent = originalLabel;
   }
