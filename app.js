@@ -873,48 +873,55 @@ createBtn?.addEventListener("click", createQuiz);
   // data-diff="easy|medium|hard"
   wireSeg('#qdifficulty', 'data-diff', 'hq-qdiff');
 })();
-// --- Menu (robust, mobile-safe) ---
+// === Hamburger menu wiring: focus-safe + aria-hidden fix ===
 (function(){
-  function initMenu(){
-    const btn = document.getElementById('menuToggle');
-    const nav = document.getElementById('sideMenu');
-    if (!btn || !nav) return;
+  const toggle   = document.getElementById('menuToggle');
+  const nav      = document.getElementById('sideMenu');
+  const closeBtn = document.getElementById('menuClose');
+  // supports either .menu-overlay [data-close] or any element with data-close
+  const overlay  = nav ? (nav.querySelector('[data-close]') || nav.querySelector('.menu-overlay')) : null;
+  const main     = document.querySelector('main') || document.querySelector('.wrap') || document.body;
 
-    const overlay  = nav.querySelector('.menu-overlay');
-    const closeBtn = nav.querySelector('#menuClose');
-
-    const open = () => {
-      nav.classList.add('open');
-      nav.setAttribute('aria-hidden', 'false');
-      btn.classList.add('is-open');
-      document.body.style.overflow = 'hidden'; // prevent body scroll behind
-    };
-
-    const close = () => {
-      nav.classList.remove('open');
-      nav.setAttribute('aria-hidden', 'true');
-      btn.classList.remove('is-open');
-      document.body.style.overflow = '';
-    };
-
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();     // avoid click bubbling on mobile
-      if (nav.classList.contains('open')) close();
-      else open();
-    }, { passive: false });
-
-    overlay?.addEventListener('click', close);
-    closeBtn?.addEventListener('click', close);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-    window.addEventListener('hashchange', close);
+  if (!toggle || !nav || !closeBtn || !overlay) {
+    console.warn('[menu] elements missing');
+    return;
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMenu, { once:true });
-  } else {
-    initMenu();
+  function openMenu(){
+    nav.classList.add('open');
+    nav.setAttribute('aria-hidden','false');
+    // prevent background scroll & focus
+    document.body.style.overflow = 'hidden';
+    try { main && main.setAttribute('inert', ''); } catch {}
+    toggle.classList.add('is-open');
+    // move focus into the panel after paint
+    requestAnimationFrame(()=> closeBtn.focus());
   }
+
+  function closeMenu(){
+    // 1) move focus back to the toggle FIRST
+    toggle.focus();
+    toggle.classList.remove('is-open');
+    // 2) allow background again
+    document.body.style.overflow = '';
+    try { main && main.removeAttribute('inert'); } catch {}
+    // 3) close the panel
+    nav.classList.remove('open');
+    // 4) only THEN hide it from the accessibility tree
+    setTimeout(()=> nav.setAttribute('aria-hidden','true'), 0);
+  }
+
+  toggle.addEventListener('click', ()=>{
+    if (nav.classList.contains('open')) closeMenu();
+    else openMenu();
+  });
+
+  closeBtn.addEventListener('click', closeMenu);
+  overlay.addEventListener('click', closeMenu);
+
+  document.addEventListener('keydown', (e)=>{
+    if (e.key === 'Escape' && nav.classList.contains('open')) closeMenu();
+  });
 })();
 
 
