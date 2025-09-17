@@ -701,6 +701,33 @@ button:disabled{
   background:#111 !important;
   color:#fff !important;
 }
+/* Segmented control: same line, equal widths */
+.seg{
+  display:flex;
+  flex-wrap:nowrap;          /* keep on one line */
+  border:1px solid #e6e6e6;
+  border-radius:10px;
+  overflow:hidden;
+  background:#fff;
+}
+.seg--equal .seg-btn{ flex:1 1 0; }   /* equal widths for 2 or 3 buttons */
+.seg .seg-btn + .seg-btn{ border-left:1px solid #e6e6e6; }
+
+/* Neutral look (override global gradient button style) */
+.seg .seg-btn{
+  padding:10px 12px !important;
+  font-weight:700 !important;
+  border:0 !important;
+  background:#fff !important;
+  color:#444 !important;
+  box-shadow:none !important;
+  cursor:pointer !important;
+}
+.seg .seg-btn.active{
+  background: linear-gradient(90deg, var(--brand,#6e56cf), var(--brand2,#d6467e)) !important;
+  color:#fff !important;
+  box-shadow:0 6px 18px rgba(214,70,126,.18) !important;
+}
 
 
 
