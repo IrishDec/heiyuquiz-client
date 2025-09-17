@@ -831,6 +831,40 @@ button:disabled{
 
 /* keep the logo centered even with absolute hamburger */
 #appHeader{ position: fixed; left:0; right:0; }
+/* ==== Hamburger menu overrides (put at very end) ==== */
+#menuToggle, #menuClose{
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  box-shadow: none !important;
+}
+#menuToggle:active, #menuClose:active{ transform: none !important; }
+
+/* tiny icon bars */
+#menuToggle{ display:flex; flex-direction:column; gap:4px; cursor:pointer; }
+#menuToggle .bar{ width:22px; height:2px; background:#111; border-radius:2px; }
+
+/* panel + overlay */
+#sideMenu{ position:fixed; inset:0; z-index:2147483600; pointer-events:none; }
+#menuOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.35); opacity:0; transition:.2s; }
+#menuPanel{
+  position:fixed; top:0; right:0; bottom:0; width:min(82vw,320px);
+  background:#fff; box-shadow:-12px 0 30px rgba(0,0,0,.18);
+  transform:translateX(120%); transition:transform .22s ease; padding:16px;
+}
+#sideMenu.open{ pointer-events:auto; }
+#sideMenu.open #menuOverlay{ opacity:1; }
+#sideMenu.open #menuPanel{ transform:translateX(0); }
+
+/* simple list */
+#menuPanel .menuList{ list-style:none; margin:12px 0 0; padding:0; }
+#menuPanel .menuList li{ margin:0; }
+#menuPanel .menuList a{ display:block; padding:12px 8px; font-weight:700; color:#111; text-decoration:none; }
+#menuPanel .menuList a:hover{ text-decoration:underline; }
+
+/* close button */
+#menuClose{ position:absolute; top:10px; right:10px; font-size:20px; line-height:1; }
 
 
 
