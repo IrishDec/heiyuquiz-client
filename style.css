@@ -828,6 +828,12 @@ button:disabled{
   -webkit-overflow-scrolling: touch;
 }
 
+#sideMenu .menu-panel{
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  will-change: transform;         /* smoother slide on iOS */
+}
+#sideMenu.open .menu-panel{ transform: translate3d(0,0,0); }
 
 
 
