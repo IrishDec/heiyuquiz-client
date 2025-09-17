@@ -809,6 +809,38 @@ createBtn?.addEventListener("click", createQuiz);
     onReady();
   }
 })();
+// --- Segmented controls: question count + difficulty ---
+(function(){
+  function wireSeg(containerSelector, attr, storageKey){
+    const box = document.querySelector(containerSelector);
+    if (!box) return;
+
+    const btns = Array.from(box.querySelectorAll('.seg-btn'));
+    const setActive = (btn) => {
+      btns.forEach(b => b.classList.toggle('active', b === btn));
+      if (storageKey) {
+        const v = btn.getAttribute(attr);
+        try { localStorage.setItem(storageKey, v); } catch {}
+      }
+    };
+
+    // restore saved choice
+    if (storageKey){
+      const saved = localStorage.getItem(storageKey);
+      const found = saved && btns.find(b => b.getAttribute(attr) === saved);
+      if (found) setActive(found);
+    }
+
+    btns.forEach(b => b.addEventListener('click', () => setActive(b)));
+  }
+
+  // data-count="5|10"
+  wireSeg('#qcount', 'data-count', 'hq-qcount');
+
+  // data-diff="easy|medium|hard"
+  wireSeg('#qdifficulty', 'data-diff', 'hq-qdiff');
+})();
+
 
 
 
