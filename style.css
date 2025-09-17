@@ -793,24 +793,7 @@ button:disabled{
 
 /* keep the logo centered even with absolute hamburger */
 #appHeader{ position: fixed; left:0; right:0; }
-/* ==== Hamburger menu overrides (put at very end) ==== */
-#menuToggle, #menuClose{
-  background: transparent !important;
-  border: 0 !important;
-  padding: 0 !important;
-  width: auto !important;
-  box-shadow: none !important;
-}
-#menuToggle:active, #menuClose:active{ transform: none !important; }
 
-/* tiny icon bars */
-#menuToggle{ display:flex; flex-direction:column; gap:4px; cursor:pointer; }
-#menuToggle .bar{ width:22px; height:2px; background:#111; border-radius:2px; }
-
-
-/* close button */
-#menuClose{ position:absolute; top:10px; right:10px; font-size:20px; line-height:1; }
-/* === Final header + menu button overrides === */
 #appHeader{
   justify-content: space-between !important;  /* logo left, menu button right */
   padding: 8px 12px !important;
@@ -839,6 +822,11 @@ button:disabled{
 #menuToggle.is-open .bar:nth-child(1){ transform: translateY(6px) rotate(45deg); }
 #menuToggle.is-open .bar:nth-child(2){ opacity:0; }
 #menuToggle.is-open .bar:nth-child(3){ transform: translateY(-6px) rotate(-45deg); }
+
+#sideMenu .menu-panel{
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
 
 
