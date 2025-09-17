@@ -274,24 +274,22 @@ async function route(){
     };
   }
 })();
+
 /* ------------------ Create quiz & share (play-first) ------------------ */
 async function createQuiz(){
-  // DOM reads
+  // ----- Read current form values -----
   const category = (categorySel?.value || "General").trim();
   const country  = (countrySel?.value  || "").trim();
 
-  // AI toggle state + custom topic
-  const aiOn     = !!document.getElementById('ai-toggle')?.checked;
-  const aiTopic  = (document.getElementById('ai-topic')?.value || '').trim();
+  // AI toggle + topic
+  const aiOn    = !!document.getElementById('ai-toggle')?.checked;
+  const aiTopic = (document.getElementById('ai-topic')?.value || '').trim();
+  const isCustom = aiOn && aiTopic.length >= 3;
 
-  // Effective topic
-  let topic = category;
-  if (aiOn && aiTopic.length >= 3) topic = aiTopic;
-
-  // Read segmented selections (defaults if not present)
-  const countBtn   = document.querySelector('#qcount .seg-btn.active');
-  const diffBtn    = document.querySelector('#qdifficulty .seg-btn.active');
-  const amount     = Math.max(3, Math.min(10, Number(countBtn?.getAttribute('data-count') || 5)));
+  // Segmented controls: amount + difficulty
+  const countBtn = document.querySelector('#qcount .seg-btn.active');
+  const diffBtn  = document.querySelector('#qdifficulty .seg-btn.active');
+  const amount = Math.max(3, Math.min(10, Number(countBtn?.getAttribute('data-count') || 5)));
   const difficulty = (diffBtn?.getAttribute('data-diff') || 'medium'); // 'easy'|'medium'|'hard'
 
   // Button UX
@@ -299,26 +297,24 @@ async function createQuiz(){
   createBtn?.setAttribute('disabled','');
   if (createBtn) createBtn.textContent = 'Creating…';
 
+  // tiny warm-up (ignore errors)
+  try { await fetch(`${window.SERVER_URL}/api/health`, { cache:'no-store' }); } catch {}
+
+  // timeout guard
+  const ctrl = new AbortController();
+  const TIMEOUT_MS = 25000;
+  const timer = setTimeout(()=>ctrl.abort(), TIMEOUT_MS);
+
   try {
-    // tiny warm-up (ignore errors)
-    try { await fetch(`${window.SERVER_URL}/api/health`, { cache:'no-store' }); } catch {}
-
-    // timeout guard
-    const ctrl = new AbortController();
-    const TIMEOUT_MS = 25000;
-    const timer = setTimeout(()=>ctrl.abort(), TIMEOUT_MS);
-
-    const isCustom = aiOn && aiTopic.length >= 3;
-
     // Build payload
     const payload = {
       category,
-      topic,
-      amount,
+      topic: isCustom ? aiTopic : category,
+      amount,                                  // 5 or 10 from the toggle
       durationSec: (typeof DURATION_SEC !== "undefined" ? DURATION_SEC : 86400),
-      difficulty
+      difficulty                               // easy|medium|hard
     };
-    // Only bias by country for Quick Start (toggle OFF)
+    // Only bias by country when not using custom topic
     if (!isCustom) payload.country = country;
 
     // Create quiz
@@ -329,10 +325,8 @@ async function createQuiz(){
       signal: ctrl.signal
     });
 
-    clearTimeout(timer);
-
     const raw = await res.text();
-    let data; try { data = JSON.parse(raw); } catch { data = null; }
+    let data; try { data = JSON.parse(raw); } catch {}
 
     if (!res.ok || !data?.ok){
       alert(`Create failed:\n${(data && (data.error || data.message)) || raw || `HTTP ${res.status}`}`);
@@ -342,27 +336,15 @@ async function createQuiz(){
     const quizId = data.quizId || data.id;
     if (!quizId){ alert('Create succeeded but no quiz ID returned.'); return; }
 
-    // Optional toast
-    try {
-      const provider = data.provider || 'ai';
-      if (window.hqToast) {
-        if (provider === 'ai')           hqToast('AI questions ready 🤖');
-        else if (provider === 'opentdb-fallback') hqToast('AI busy — using standard questions');
-        else                             hqToast('Standard questions ready');
-      }
-    } catch {}
-
-    // Navigate to Play
-    const target = `${location.origin}${location.pathname}#/play/${quizId}`;
-    location.href = target;
-
-    // Store host flag + link
+    // store host flag + link (for share button)
     const link = `${location.origin}${location.pathname}#/play/${quizId}`;
     try {
       localStorage.setItem(`hq-host-${quizId}`, '1');
       localStorage.setItem(`hq-link-${quizId}`, link);
     } catch {}
-    window.hqToast && hqToast('Play first — sharing unlocks after you submit ✅');
+
+    // hard navigation so Play view always loads
+    location.href = link;
 
   } catch (err) {
     if (err.name === 'AbortError') {
@@ -372,6 +354,7 @@ async function createQuiz(){
     }
     console.error('createQuiz exception:', err);
   } finally {
+    clearTimeout(timer);
     createBtn?.removeAttribute('disabled');
     if (createBtn) createBtn.textContent = originalLabel;
   }
