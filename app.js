@@ -196,26 +196,28 @@ window.addEventListener("hashchange", route);
 document.addEventListener("DOMContentLoaded", route);
 route();
 
-// ------------------ Router (complete) ------------------
 async function route(){
   const [ , view, id ] = (location.hash.slice(1) || "").split("/");
 
-  if (view === "play" && id){
-    // If this device already submitted this quiz, go straight to Results
-    if (localStorage.getItem(`hq-done-${id}`) === '1') {
-      location.hash = `/results/${id}`;
-      try { window.hqToast && hqToast("You've already played — showing results"); } catch {}
-      return;
-    }
-    return renderPlay(id);
-
-  } else if (view === "results" && id){
-    return renderResults(id);
-
-  } else {
-    return show(startCard);
+  // If someone opens a results link but the quiz is still open AND they haven't submitted,
+  // redirect them to play.
+  if (view === "results" && id) {
+    try {
+      const r  = await fetch(`${window.SERVER_URL}/api/quiz/${id}`, { credentials:"omit" });
+      const dj = await r.json();
+      const iSubmitted = (localStorage.getItem(`hq-done-${id}`) === '1');
+      if (r.ok && dj?.ok && dj.open && !iSubmitted) {
+        location.hash = `/play/${id}`;
+        return; // stop routing further; we'll re-enter as /play
+      }
+    } catch {}
   }
+
+  if (view === "play" && id)         renderPlay(id);
+  else if (view === "results" && id) renderResults(id);
+  else                               show(startCard);
 }
+
 
 /* ===== Beauty Pack: toast + confetti ===== */
 (function(){
