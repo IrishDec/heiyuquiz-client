@@ -787,42 +787,58 @@ createBtn?.addEventListener("click", createQuiz);
   }
 })();
 
-// --- Hamburger menu wiring (matches .menu-panel / .menu-overlay markup) ---
-(function () {
-  function init() {
-    const shell = document.getElementById('sideMenu');       // <nav id="sideMenu">
-    const btn   = document.getElementById('menuToggle');     // header button
-    if (!shell || !btn) { console.warn('[menu] elements missing'); return; }
+// ---- Hamburger menu wiring ----
+(function initMenu(){
+  const toggle  = document.getElementById('menuToggle');
+  const menu    = document.getElementById('sideMenu');
+  const overlay = menu?.querySelector('.menu-overlay');
+  const panel   = menu?.querySelector('.menu-panel');
+  const closers = menu ? menu.querySelectorAll('[data-close]') : [];
 
-    const overlay  = shell.querySelector('.menu-overlay');   // <div class="menu-overlay" data-close>
-    const closers  = shell.querySelectorAll('[data-close]'); // overlay + ✕ button
-
-    const open  = () => { 
-      shell.classList.add('open'); 
-      shell.setAttribute('aria-hidden','false'); 
-      btn.classList.add('is-open'); 
-    };
-    const close = () => { 
-      shell.classList.remove('open'); 
-      shell.setAttribute('aria-hidden','true'); 
-      btn.classList.remove('is-open'); 
-    };
-
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      shell.classList.contains('open') ? close() : open();
-    });
-
-    overlay && overlay.addEventListener('click', close);
-    closers.forEach(el => el.addEventListener('click', close));
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  if (!toggle || !menu || !overlay || !panel) {
+    console.warn('[menu] elements missing');
+    return;
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true });
-  } else {
-    init();
-  }
+  panel.setAttribute('tabindex', '-1');
+
+  const openMenu = () => {
+    // force a reflow before opening so mobile animates reliably
+    // (prevents some Safari glitches)
+    void panel.offsetHeight;
+    menu.classList.add('open');
+    toggle.classList.add('is-open');               // turn into X
+    toggle.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    panel.focus();
+  };
+
+  const closeMenu = () => {
+    menu.classList.remove('open');
+    toggle.classList.remove('is-open');            // back to ☰
+    toggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    toggle.focus();
+  };
+
+  const handleToggle = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (menu.classList.contains('open')) closeMenu();
+    else openMenu();
+  };
+
+  // click + touch (iOS sometimes ignores click after touch)
+  toggle.addEventListener('click', handleToggle, { passive:false });
+  toggle.addEventListener('touchend', handleToggle, { passive:false });
+
+  overlay.addEventListener('click', closeMenu);
+  closers.forEach(el => el.addEventListener('click', closeMenu));
+
+  // ESC to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+  });
 })();
 
 
