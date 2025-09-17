@@ -873,7 +873,7 @@ createBtn?.addEventListener("click", createQuiz);
   // data-diff="easy|medium|hard"
   wireSeg('#qdifficulty', 'data-diff', 'hq-qdiff');
 })();
-// ---- Hamburger menu wiring ----
+// ---- Hamburger menu wiring (mobile-safe) ----
 (function initMenu(){
   const toggle  = document.getElementById('menuToggle');
   const menu    = document.getElementById('sideMenu');
@@ -886,36 +886,45 @@ createBtn?.addEventListener("click", createQuiz);
     return;
   }
 
-  // let the panel receive focus for accessibility
   panel.setAttribute('tabindex', '-1');
 
   const openMenu = () => {
+    void panel.offsetHeight;                 // ensure Safari animates
     menu.classList.add('open');
+    toggle.classList.add('is-open');         // turn into "X"
     toggle.setAttribute('aria-expanded', 'true');
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden'; // lock scroll
     panel.focus();
   };
+
   const closeMenu = () => {
     menu.classList.remove('open');
+    toggle.classList.remove('is-open');
     toggle.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
     toggle.focus();
   };
 
-  toggle.addEventListener('click', (e) => {
+  const handleToggle = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     if (menu.classList.contains('open')) closeMenu();
     else openMenu();
-  });
+  };
+
+  // Click + touch (iOS sometimes drops click)
+  toggle.addEventListener('click', handleToggle, { passive:false });
+  toggle.addEventListener('touchend', handleToggle, { passive:false });
 
   overlay.addEventListener('click', closeMenu);
   closers.forEach(el => el.addEventListener('click', closeMenu));
 
-  // ESC to close
+  // ESC closes
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
   });
 })();
+
 
 
 
