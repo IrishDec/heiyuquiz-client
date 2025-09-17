@@ -834,6 +834,11 @@ button:disabled{
   will-change: transform;         /* smoother slide on iOS */
 }
 #sideMenu.open .menu-panel{ transform: translate3d(0,0,0); }
+/* Safety: also open the menu when aria-hidden="false" (covers any class mismatch) */
+#sideMenu[aria-hidden="false"]{ pointer-events:auto; }
+#sideMenu[aria-hidden="false"] .menu-overlay{ opacity:1; }
+#sideMenu[aria-hidden="false"] .menu-panel{ transform: translate3d(0,0,0); }
+
 
 
 
