@@ -728,44 +728,6 @@ button:disabled{
   color:#fff !important;
   box-shadow:0 6px 18px rgba(214,70,126,.18) !important;
 }
-/* === Hamburger button (right side of sticky header) === */
-#appHeader { position: sticky; } /* you already have this; safe to repeat */
-
-.hamburger{
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.06);
-  cursor: pointer;
-}
-.hamburger span,
-.hamburger span::before,
-.hamburger span::after{
-  content:"";
-  display:block;
-  width: 20px;
-  height: 2px;
-  background:#111;
-  border-radius:2px;
-  position:relative;
-  transition: transform .2s ease, opacity .2s ease, background .2s ease;
-}
-.hamburger span::before{ position:absolute; top:-6px; left:0; }
-.hamburger span::after { position:absolute; top: 6px; left:0; }
-
-/* turn into an “X” when open */
-.hamburger.is-open span{ background:transparent; }
-.hamburger.is-open span::before{ transform: translateY(6px) rotate(45deg); }
-.hamburger.is-open span::after { transform: translateY(-6px) rotate(-45deg); }
 
 /* === Slide-in side menu === */
 #sideMenu{
