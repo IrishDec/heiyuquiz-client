@@ -313,11 +313,19 @@ const aiOn    = !!document.getElementById('ai-toggle')?.checked;
 const aiTopic = (document.getElementById('ai-topic')?.value || '').trim();
 const isCustom = aiOn && aiTopic.length >= 3;
 
+// read segmented selections
+const countBtn = document.querySelector('#qcount .seg-btn.active');
+const diffBtn  = document.querySelector('#qdifficulty .seg-btn.active');
+
+const amount = Number(countBtn?.getAttribute('data-count') || 5);
+const difficulty = (diffBtn?.getAttribute('data-diff') || 'medium'); // 'easy'|'medium'|'hard'
+
 const payload = {
   category,
-  topic: isCustom ? aiTopic : category,            // custom subject when ON, else category
-  amount: 5,
-  durationSec: (typeof DURATION_SEC !== "undefined" ? DURATION_SEC : 86400)
+  topic: isCustom ? aiTopic : category,
+  amount,                              // 5 or 10 based on toggle
+  durationSec: (typeof DURATION_SEC !== "undefined" ? DURATION_SEC : 86400),
+  difficulty                           // passed through safely
 };
 // Only bias by country for Quick Start (toggle OFF)
 if (!isCustom) payload.country = country;
