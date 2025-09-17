@@ -857,6 +857,49 @@ createBtn?.addEventListener("click", createQuiz);
   // data-diff="easy|medium|hard"
   wireSeg('#qdifficulty', 'data-diff', 'hq-qdiff');
 })();
+// ---- Hamburger menu wiring ----
+(function initMenu(){
+  const toggle  = document.getElementById('menuToggle');
+  const menu    = document.getElementById('sideMenu');
+  const overlay = menu?.querySelector('.menu-overlay');
+  const panel   = menu?.querySelector('.menu-panel');
+  const closers = menu ? menu.querySelectorAll('[data-close]') : [];
+
+  if (!toggle || !menu || !overlay || !panel) {
+    console.warn('[menu] elements missing');
+    return;
+  }
+
+  // let the panel receive focus for accessibility
+  panel.setAttribute('tabindex', '-1');
+
+  const openMenu = () => {
+    menu.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    panel.focus();
+  };
+  const closeMenu = () => {
+    menu.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    toggle.focus();
+  };
+
+  toggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (menu.classList.contains('open')) closeMenu();
+    else openMenu();
+  });
+
+  overlay.addEventListener('click', closeMenu);
+  closers.forEach(el => el.addEventListener('click', closeMenu));
+
+  // ESC to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+  });
+})();
 
 
 
