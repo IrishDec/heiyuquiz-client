@@ -787,25 +787,34 @@ createBtn?.addEventListener("click", createQuiz);
   }
 })();
 
-// --- Hamburger menu wiring (safe DOM-ready) ---
+// --- Hamburger menu wiring (matches .menu-panel / .menu-overlay markup) ---
 (function () {
   function init() {
-    const btn = document.getElementById('menuToggle');
-    const shell = document.getElementById('sideMenu');
-    if (!btn || !shell) { console.warn('[menu] elements missing'); return; }
+    const shell = document.getElementById('sideMenu');       // <nav id="sideMenu">
+    const btn   = document.getElementById('menuToggle');     // header button
+    if (!shell || !btn) { console.warn('[menu] elements missing'); return; }
 
-    const overlay = document.getElementById('menuOverlay');
-    const closeBtn = document.getElementById('menuClose');
+    const overlay  = shell.querySelector('.menu-overlay');   // <div class="menu-overlay" data-close>
+    const closers  = shell.querySelectorAll('[data-close]'); // overlay + ✕ button
 
-    const open = () => { shell.classList.add('open'); btn.classList.add('is-open'); };
-    const close = () => { shell.classList.remove('open'); btn.classList.remove('is-open'); };
+    const open  = () => { 
+      shell.classList.add('open'); 
+      shell.setAttribute('aria-hidden','false'); 
+      btn.classList.add('is-open'); 
+    };
+    const close = () => { 
+      shell.classList.remove('open'); 
+      shell.setAttribute('aria-hidden','true'); 
+      btn.classList.remove('is-open'); 
+    };
 
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       shell.classList.contains('open') ? close() : open();
     });
+
     overlay && overlay.addEventListener('click', close);
-    closeBtn && closeBtn.addEventListener('click', close);
+    closers.forEach(el => el.addEventListener('click', close));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
   }
 
@@ -815,6 +824,7 @@ createBtn?.addEventListener("click", createQuiz);
     init();
   }
 })();
+
 
 // --- Segmented controls: question count + difficulty ---
 (function(){
