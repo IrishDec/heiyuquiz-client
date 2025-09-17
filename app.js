@@ -200,19 +200,8 @@ route();
 async function route(){
   const [ , view, id ] = (location.hash.slice(1) || "").split("/");
 
-  // If someone opens a results link but the quiz is still open AND they haven't submitted,
-  // redirect them to Play.
-  if (view === "results" && id) {
-    try {
-      const r  = await fetch(`${window.SERVER_URL}/api/quiz/${id}`, { credentials: "omit" });
-      const dj = await r.json();
-      const iSubmitted = (localStorage.getItem(`hq-done-${id}`) === '1');
-      if (r.ok && dj?.ok && dj.open && !iSubmitted) {
-        location.hash = `/play/${id}`;
-        return; // stop here; route() will run again as /play
-      }
-    } catch {}
-  }
+if (view === "results" && id) return renderResults(id);
+
 
   // If opening a play link but this device already submitted, send to results.
   if (view === "play" && id) {
