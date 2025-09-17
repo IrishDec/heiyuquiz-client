@@ -36,7 +36,36 @@
 <!--logo-->
 <header id="appHeader">
   <img src="./assets/logo.png?v=1" alt="HeiyuQuiz">
+<!-- Hamburger button (right side) -->
+<button id="menuBtn"
+        class="hamburger"
+        aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="sideMenu">
+  <span aria-hidden="true"></span>
+</button>
+
 </header>
+<!-- Slide-in side menu -->
+<nav id="sideMenu" aria-hidden="true">
+  <div class="menu-overlay" data-close></div>
+  <aside class="menu-panel" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+    <div class="menu-header">
+      <h3 id="menuTitle">Menu</h3>
+      <button id="menuClose" class="menu-close" aria-label="Close menu" data-close>&times;</button>
+    </div>
+
+    <ul class="menu-list">
+      <li><a href="/privacy.html">Privacy Policy</a></li>
+      <li><a href="/terms.html">T&amp;Cs</a></li>
+      <li><a href="/quiz-policy.html">Quiz Policy</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+
+    <!-- You can add more links later -->
+  </aside>
+</nav>
+
 <main class="wrap">
 <!-- Start Card -->
 <section id="startCard" class="card">
