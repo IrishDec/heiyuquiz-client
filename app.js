@@ -539,6 +539,7 @@ async function renderResults(id){
     if (sid) localStorage.setItem(`hq-sid-${id}`, String(sid));
   } catch {}
 
+  // stop any previous poller
   if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
 
   show(resultsView);
@@ -633,129 +634,161 @@ async function renderResults(id){
   }
 
   function draw(list, total){
-  if (!scoreList) return;
-  scoreList.innerHTML = "";
+    if (!scoreList) return;
+    scoreList.innerHTML = "";
 
-  if (!list || !list.length){
-    scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
-    return;
-  }
-
-  const meName = (getSavedName() || (nameIn?.value || "")).trim().toLowerCase();
-
-  list.forEach((row, i) => {
-    const li = document.createElement("li");
-    const isMe = meName && row.name && row.name.toLowerCase() === meName;
-
-    // keep dash on one line
-    li.textContent = `${i + 1}. ${row.name}\u00A0—\u00A0${row.score}/${total}`;
-
-    if (isMe) {
-      li.style.fontWeight = "700";
-      li.style.textDecoration = "underline";
+    if (!list || !list.length){
+      scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
+      return;
     }
-    scoreList.appendChild(li);
-  });
-}
 
-// Client-only “My answers” panel (LS → sid → name recovery)
-async function showMyAnswers(){
-  // 1) load questions (for correct answers)
-  let resp, payload;
-  try{
-    resp = await fetch(`${window.SERVER_URL}/api/quiz/${id}/answers`);
-    payload = await resp.json();
-  }catch{ payload = null; }
-  if (!resp?.ok || !payload?.ok){
-    window.hqToast && hqToast('Could not load answers.');
-    return;
+    const meName = (getSavedName() || (nameIn?.value || "")).trim().toLowerCase();
+
+    list.forEach((row, i) => {
+      const li = document.createElement("li");
+      const isMe = meName && row.name && row.name.toLowerCase() === meName;
+
+      // keep dash on one line
+      li.textContent = `${i + 1}. ${row.name}\u00A0—\u00A0${row.score}/${total}`;
+
+      if (isMe) {
+        li.style.fontWeight = "700";
+        li.style.textDecoration = "underline";
+      }
+      scoreList.appendChild(li);
+    });
   }
-  const questions = Array.isArray(payload.questions) ? payload.questions : [];
 
-  // 2) try local picks from THIS device
-  let picks; try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
-  let ok = Array.isArray(picks) && picks.length === questions.length;
+  // Client-only “My answers” panel (LS → sid → name recovery)
+  async function showMyAnswers(){
+    // 1) load questions (for correct answers)
+    let resp, payload;
+    try{
+      resp = await fetch(`${window.SERVER_URL}/api/quiz/${id}/answers`);
+      payload = await resp.json();
+    }catch{ payload = null; }
+    if (!resp?.ok || !payload?.ok){
+      window.hqToast && hqToast('Could not load answers.');
+      return;
+    }
+    const questions = Array.isArray(payload.questions) ? payload.questions : [];
 
-  // 3) if missing, try recovery by SID (best)
-  if (!ok){
-    const sid = (localStorage.getItem(`hq-sid-${id}`) || "").trim();
-    if (sid){
+    // 2) try local picks from THIS device
+    let picks; try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
+    let ok = Array.isArray(picks) && picks.length === questions.length;
+
+    // 3) if missing, try recovery by SID (best)
+    if (!ok){
+      const sid = (localStorage.getItem(`hq-sid-${id}`) || "").trim();
+      if (sid){
+        try{
+          const r = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submission?sid=${encodeURIComponent(sid)}`);
+          const d = await r.json();
+          if (r.ok && d?.ok && Array.isArray(d.picks)){
+            picks = d.picks;
+            try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
+            ok = true;
+          }
+        }catch{}
+      }
+    }
+
+    // 4) if still missing, fall back to recovery by NAME
+    if (!ok){
+      const suggested = (getSavedName() || (nameIn?.value || '')).trim();
+      const who = prompt("Type the name you used when you submitted:", suggested);
+      if (!who || !who.trim()){
+        window.hqToast && hqToast('Name required to recover.');
+        return;
+      }
       try{
-        const r = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submission?sid=${encodeURIComponent(sid)}`);
-        const d = await r.json();
-        if (r.ok && d?.ok && Array.isArray(d.picks)){
-          picks = d.picks;
+        const r2 = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submission?name=${encodeURIComponent(who.trim())}`);
+        const d2 = await r2.json();
+        if (r2.ok && d2?.ok && Array.isArray(d2.picks)){
+          picks = d2.picks;
+          if (d2.sid) { try { localStorage.setItem(`hq-sid-${id}`, String(d2.sid)); } catch {} }
           try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
           ok = true;
         }
       }catch{}
-    }
-  }
-
-  // 4) if still missing, fall back to recovery by NAME
-  if (!ok){
-    const suggested = (getSavedName() || (nameIn?.value || '')).trim();
-    const who = prompt("Type the name you used when you submitted:", suggested);
-    if (!who || !who.trim()){
-      window.hqToast && hqToast('Name required to recover.');
-      return;
-    }
-    try{
-      const r2 = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submission?name=${encodeURIComponent(who.trim())}`);
-      const d2 = await r2.json();
-      if (r2.ok && d2?.ok && Array.isArray(d2.picks)){
-        picks = d2.picks;
-        if (d2.sid) { try { localStorage.setItem(`hq-sid-${id}`, String(d2.sid)); } catch {} }
-        try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
-        ok = true;
+      if (!ok){
+        window.hqToast && hqToast('No saved answers found.');
+        return;
       }
-    }catch{}
-    if (!ok){
-      window.hqToast && hqToast('No saved answers found.');
-      return;
     }
+
+    // 5) render panel
+    let panel = document.getElementById('answersPanel');
+    if (!panel){
+      panel = document.createElement('div');
+      panel.id = 'answersPanel';
+      panel.style.marginTop = '12px';
+      panel.style.padding = '12px';
+      panel.style.border = '1px solid #eee';
+      panel.style.borderRadius = '12px';
+      panel.style.background = '#fff';
+      resultsView?.appendChild(panel);
+    }
+    panel.innerHTML = `<h3 style="margin:0 0 8px">Your answers</h3>`;
+
+    const list = document.createElement('div');
+    questions.forEach((q, i)=>{
+      const opts   = q.options || [];
+      const myIdx  = picks[i];
+      const corIdx = (typeof q.correctIndex === 'number') ? q.correctIndex : null;
+
+      const myText  = (myIdx != null && opts[myIdx]  != null) ? String(opts[myIdx])  : '(no answer)';
+      const corText = (corIdx != null && opts[corIdx] != null) ? String(opts[corIdx]) : '(unknown)';
+      const isCorrect = (corIdx != null && myIdx === corIdx);
+
+      const row = document.createElement('div');
+      row.style.padding = '10px 0';
+      row.style.borderTop = '1px solid #f1f1f1';
+      row.innerHTML = `
+        <div style="font-weight:700;margin:4px 0">${decodeHTML(q.q || q.question || `Question ${i+1}`)}</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <span>${isCorrect ? '✅' : '❌'} <strong>Your answer:</strong> ${decodeHTML(myText)}</span>
+          <span class="muted">·</span>
+          <span><strong>Correct:</strong> ${decodeHTML(corText)}</span>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+
+    panel.appendChild(list);
+    panel.scrollIntoView({ behavior:'smooth', block:'start' });
   }
 
-  // 5) render panel
-  let panel = document.getElementById('answersPanel');
-  if (!panel){
-    panel = document.createElement('div');
-    panel.id = 'answersPanel';
-    panel.style.marginTop = '12px';
-    panel.style.padding = '12px';
-    panel.style.border = '1px solid #eee';
-    panel.style.borderRadius = '12px';
-    panel.style.background = '#fff';
-    resultsView?.appendChild(panel);
+  // initial load
+  try{
+    const data = await fetchResults();
+    const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
+    draw(data.results || [], total);
+  }catch{
+    if (scoreList) scoreList.innerHTML = `<li class="muted">No results yet — check back soon.</li>`;
   }
-  panel.innerHTML = `<h3 style="margin:0 0 8px">Your answers</h3>`;
 
-  const list = document.createElement('div');
-  questions.forEach((q, i)=>{
-    const opts   = q.options || [];
-    const myIdx  = picks[i];
-    const corIdx = (typeof q.correctIndex === 'number') ? q.correctIndex : null;
+  // short-lived poller (every 4s for ~2 minutes)
+  const startedAt = Date.now();
+  function stop(){
+    if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
+    window.removeEventListener("hashchange", stop);
+    window.removeEventListener("beforeunload", stop);
+  }
+  window._hqPoll = {
+    id: setInterval(async ()=>{
+      if (Date.now() - startedAt > 120000) return stop(); // 2 min
+      try{
+        const data = await fetchResults();
+        const total = data.totalQuestions ?? (data.results?.[0]?.total ?? 0);
+        draw(data.results || [], total);
+      }catch{/* keep last */}
+    }, 4000)
+  };
+  window.addEventListener("hashchange", stop);
+  window.addEventListener("beforeunload", stop);
 
-    const myText  = (myIdx != null && opts[myIdx]  != null) ? String(opts[myIdx])  : '(no answer)';
-    const corText = (corIdx != null && opts[corIdx] != null) ? String(opts[corIdx]) : '(unknown)';
-    const isCorrect = (corIdx != null && myIdx === corIdx);
-
-    const row = document.createElement('div');
-    row.style.padding = '10px 0';
-    row.style.borderTop = '1px solid #f1f1f1';
-    row.innerHTML = `
-      <div style="font-weight:700;margin:4px 0">${decodeHTML(q.q || q.question || `Question ${i+1}`)}</div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <span>${isCorrect ? '✅' : '❌'} <strong>Your answer:</strong> ${decodeHTML(myText)}</span>
-        <span class="muted">·</span>
-        <span><strong>Correct:</strong> ${decodeHTML(corText)}</span>
-      </div>
-    `;
-    list.appendChild(row);
-  });
-
-  panel.appendChild(list);
-  panel.scrollIntoView({ behavior:'smooth', block:'start' });
+  // NOTE: no addHomeCta() here — CTA appears under the buttons after any action via unlockStart()
 }
 
 
