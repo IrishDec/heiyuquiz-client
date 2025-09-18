@@ -475,20 +475,21 @@ async function renderPlay(id){
     saveName(name);
 
     try{
-      const sRes  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ name, picks })
-      });
-      const sData = await sRes.json();
+     const sRes  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, { ... });
+const sData = await sRes.json();
 
-      if (!sRes.ok || !sData?.ok){
-        window.hqToast && hqToast(sData?.error || "Submit failed");
-        return;
-      }
-      try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
-      try { localStorage.setItem(`hq-done-${id}`, '1'); } catch {}
-      location.hash = `/results/${id}`;
+if (!sRes.ok || !sData?.ok){
+  window.hqToast && hqToast(sData?.error || "Submit failed");
+  return;
+}
+
+// ✅ Save the server-issued submission id for cross-device recovery
+if (sData.sid) { try { localStorage.setItem(`hq-sid-${id}`, String(sData.sid)); } catch {} }
+
+try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
+try { localStorage.setItem(`hq-done-${id}`, '1'); } catch {}
+location.hash = `/results/${id}`;
+      
     }catch{
       window.hqToast && hqToast("Network error submitting.");
     }
