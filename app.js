@@ -545,11 +545,9 @@ async function renderResults(id){
   show(resultsView);
   if (scoreList) scoreList.innerHTML = "<li class='muted'>Loading results…</li>";
 
-  const link    = `${location.origin}${location.pathname}#/play/${id}`;
-  const ackKey  = `hq-ack-${id}`; // “acted this session”
-  document.querySelector('.home-cta')?.remove(); // we’ll reinsert below the actions row
+  const link   = `${location.origin}${location.pathname}#/play/${id}`;
+  const ackKey = `hq-ack-${id}`;
 
-  // Put the CTA directly under the actions row
   function placeHomeCta(){
     addHomeCta();
     const actions = document.getElementById('resultsActions');
@@ -561,15 +559,13 @@ async function renderResults(id){
     if (!document.querySelector('.home-cta')) placeHomeCta();
   }
 
-  // ---- Actions (Copy / Share / My answers) ----
+  // Actions (Copy / Share / My answers)
   (function ensureActions(){
     let p = document.getElementById('resultsActions');
     if (!p){
       p = document.createElement('div');
       p.id = 'resultsActions';
       p.style.cssText = 'margin:8px 0 12px;display:flex;flex-direction:column;gap:10px';
-
-      // gradient style inline to match your CTA
       const btn = (id, text)=>(
         `<button id="${id}" style="
             width:100%;padding:14px;border:0;border-radius:14px;
@@ -577,7 +573,6 @@ async function renderResults(id){
             color:#fff;font-weight:800;box-shadow:0 12px 28px rgba(214,70,126,.25);
           ">${text}</button>`
       );
-
       p.innerHTML = [
         btn('resultsCopyBtn','Copy quiz link'),
         btn('resultsShareBtn','Share quiz now'),
@@ -586,7 +581,6 @@ async function renderResults(id){
       resultsView?.insertBefore(p, resultsView.firstChild);
     }
 
-    // handlers
     const copyBtn  = document.getElementById('resultsCopyBtn');
     const shareBtn = document.getElementById('resultsShareBtn');
     const mineBtn  = document.getElementById('resultsMineBtn');
@@ -610,22 +604,20 @@ async function renderResults(id){
     };
 
     if (mineBtn) mineBtn.onclick = async ()=>{
-      await showMyAnswers();   // defined below
+      try { await showMyAnswers(); } catch {}
       unlockStart();
     };
   })();
 
-  // If user already acted this session, show CTA immediately
   if (sessionStorage.getItem(ackKey) === '1') placeHomeCta();
 
-  // Make results list comfortably scrollable on phones (results are always visible)
   if (scoreList){
     scoreList.style.maxHeight = '52vh';
     scoreList.style.overflowY = 'auto';
     scoreList.style.webkitOverflowScrolling = 'touch';
   }
 
-  // ---- Fetch + render results ----
+  // Fetch + render results
   async function fetchResults(){
     const res = await fetch(`${window.SERVER_URL}/api/quiz/${id}/results`);
     const data = await res.json();
@@ -647,116 +639,10 @@ async function renderResults(id){
     list.forEach((row, i) => {
       const li = document.createElement("li");
       const isMe = meName && row.name && row.name.toLowerCase() === meName;
-
-      // keep dash on one line
       li.textContent = `${i + 1}. ${row.name}\u00A0—\u00A0${row.score}/${total}`;
-
-      if (isMe) {
-        li.style.fontWeight = "700";
-        li.style.textDecoration = "underline";
-      }
+      if (isMe) { li.style.fontWeight = "700"; li.style.textDecoration = "underline"; }
       scoreList.appendChild(li);
     });
-  }
-
-  // Client-only “My answers” panel (LS → sid → name recovery)
-  async function showMyAnswers(){
-    // 1) load questions (for correct answers)
-    let resp, payload;
-    try{
-      resp = await fetch(`${window.SERVER_URL}/api/quiz/${id}/answers`);
-      payload = await resp.json();
-    }catch{ payload = null; }
-    if (!resp?.ok || !payload?.ok){
-      window.hqToast && hqToast('Could not load answers.');
-      return;
-    }
-    const questions = Array.isArray(payload.questions) ? payload.questions : [];
-
-    // 2) try local picks from THIS device
-    let picks; try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
-    let ok = Array.isArray(picks) && picks.length === questions.length;
-
-    // 3) if missing, try recovery by SID (best)
-    if (!ok){
-      const sid = (localStorage.getItem(`hq-sid-${id}`) || "").trim();
-      if (sid){
-        try{
-          const r = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submission?sid=${encodeURIComponent(sid)}`);
-          const d = await r.json();
-          if (r.ok && d?.ok && Array.isArray(d.picks)){
-            picks = d.picks;
-            try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
-            ok = true;
-          }
-        }catch{}
-      }
-    }
-
-    // 4) if still missing, fall back to recovery by NAME
-    if (!ok){
-      const suggested = (getSavedName() || (nameIn?.value || '')).trim();
-      const who = prompt("Type the name you used when you submitted:", suggested);
-      if (!who || !who.trim()){
-        window.hqToast && hqToast('Name required to recover.');
-        return;
-      }
-      try{
-        const r2 = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submission?name=${encodeURIComponent(who.trim())}`);
-        const d2 = await r2.json();
-        if (r2.ok && d2?.ok && Array.isArray(d2.picks)){
-          picks = d2.picks;
-          if (d2.sid) { try { localStorage.setItem(`hq-sid-${id}`, String(d2.sid)); } catch {} }
-          try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
-          ok = true;
-        }
-      }catch{}
-      if (!ok){
-        window.hqToast && hqToast('No saved answers found.');
-        return;
-      }
-    }
-
-    // 5) render panel
-    let panel = document.getElementById('answersPanel');
-    if (!panel){
-      panel = document.createElement('div');
-      panel.id = 'answersPanel';
-      panel.style.marginTop = '12px';
-      panel.style.padding = '12px';
-      panel.style.border = '1px solid #eee';
-      panel.style.borderRadius = '12px';
-      panel.style.background = '#fff';
-      resultsView?.appendChild(panel);
-    }
-    panel.innerHTML = `<h3 style="margin:0 0 8px">Your answers</h3>`;
-
-    const list = document.createElement('div');
-    questions.forEach((q, i)=>{
-      const opts   = q.options || [];
-      const myIdx  = picks[i];
-      const corIdx = (typeof q.correctIndex === 'number') ? q.correctIndex : null;
-
-      const myText  = (myIdx != null && opts[myIdx]  != null) ? String(opts[myIdx])  : '(no answer)';
-      const corText = (corIdx != null && opts[corIdx] != null) ? String(opts[corIdx]) : '(unknown)';
-      const isCorrect = (corIdx != null && myIdx === corIdx);
-
-      const row = document.createElement('div');
-      row.style.padding = '10px 0';
-      row.style.borderTop = '1px solid #f1f1f1';
-      row.innerHTML = `
-        <div style="font-weight:700;margin:4px 0">${decodeHTML(q.q || q.question || `Question ${i+1}`)}</div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <span>${isCorrect ? '✅' : '❌'} <strong>Your answer:</strong> ${decodeHTML(myText)}</span>
-          <span class="muted">·</span>
-          <span><strong>Correct:</strong> ${decodeHTML(corText)}</span>
-        </div>
-      `;
-      list.appendChild(row);
-    });
-
-    panel.appendChild(list);
-    panel.scrollIntoView({ behavior:'smooth', block:'start' });
   }
 
   // initial load
@@ -768,7 +654,7 @@ async function renderResults(id){
     if (scoreList) scoreList.innerHTML = `<li class="muted">No results yet — check back soon.</li>`;
   }
 
-  // short-lived poller (every 4s for ~2 minutes)
+  // short poller (every 4s for ~2 minutes)
   const startedAt = Date.now();
   function stop(){
     if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
@@ -787,10 +673,7 @@ async function renderResults(id){
   };
   window.addEventListener("hashchange", stop);
   window.addEventListener("beforeunload", stop);
-
-  // NOTE: no addHomeCta() here — CTA appears under the buttons after any action via unlockStart()
 }
-
 
 /* ------------------ Wire buttons ------------------ */
 createBtn?.addEventListener("click", createQuiz);
