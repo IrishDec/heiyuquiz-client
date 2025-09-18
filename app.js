@@ -488,8 +488,12 @@ if (sData.sid) { try { localStorage.setItem(`hq-sid-${id}`, String(sData.sid)); 
 
 try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
 try { localStorage.setItem(`hq-done-${id}`, '1'); } catch {}
-location.hash = `/results/${id}`;
-      
+// redirect with sid in the query so any device can recover your answers
+const url = new URL(location.href);
+url.searchParams.set('sid', String(sData.sid || ''));
+url.hash = `/results/${id}`;
+location.href = url.toString();
+
     }catch{
       window.hqToast && hqToast("Network error submitting.");
     }
