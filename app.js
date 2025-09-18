@@ -532,7 +532,13 @@ return true;
 }
 /* ------------------ Results view (live auto-refresh) ------------------ */
 async function renderResults(id){
-  // stop any previous poller
+  // capture sid from URL for cross-device recovery
+  try {
+    const u = new URL(location.href);
+    const sid = u.searchParams.get('sid');
+    if (sid) localStorage.setItem(`hq-sid-${id}`, String(sid));
+  } catch {}
+
   if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
 
   show(resultsView);
