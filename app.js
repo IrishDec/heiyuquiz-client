@@ -465,40 +465,45 @@ async function renderPlay(id){
     quizBody?.appendChild(wrap);
   });
 
-  // Submit (sticky)
-  const submit = document.createElement("button");
-  submit.className = "sticky-submit";
-  submit.textContent = "Submit Answers";
-  submit.onclick = async ()=>{
-    const name = (document.getElementById('playName')?.value || nameIn?.value || 'Player').trim();
-    if (!name) { window.hqToast && hqToast('Enter your name'); return; }
-    saveName(name);
+// Submit (sticky)
+const submit = document.createElement("button");
+submit.className = "sticky-submit";
+submit.textContent = "Submit Answers";
+submit.onclick = async ()=>{
+  const name = (document.getElementById('playName')?.value || nameIn?.value || 'Player').trim();
+  if (!name) { window.hqToast && hqToast('Enter your name'); return; }
+  saveName(name);
 
-    try{
-     const sRes  = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, { ... });
-const sData = await sRes.json();
+  try{
+    const sRes = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, picks })
+    });
+    const sData = await sRes.json();
 
-if (!sRes.ok || !sData?.ok){
-  window.hqToast && hqToast(sData?.error || "Submit failed");
-  return;
-}
-
-// ✅ Save the server-issued submission id for cross-device recovery
-if (sData.sid) { try { localStorage.setItem(`hq-sid-${id}`, String(sData.sid)); } catch {} }
-
-try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
-try { localStorage.setItem(`hq-done-${id}`, '1'); } catch {}
-// redirect with sid in the query so any device can recover your answers
-const url = new URL(location.href);
-url.searchParams.set('sid', String(sData.sid || ''));
-url.hash = `/results/${id}`;
-location.href = url.toString();
-
-    }catch{
-      window.hqToast && hqToast("Network error submitting.");
+    if (!sRes.ok || !sData?.ok){
+      window.hqToast && hqToast(sData?.error || "Submit failed");
+      return;
     }
-  };
-  quizBody?.appendChild(submit);
+
+    // keep for cross-device recovery
+    if (sData.sid) { try { localStorage.setItem(`hq-sid-${id}`, String(sData.sid)); } catch {} }
+    try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
+    try { localStorage.setItem(`hq-done-${id}`, '1'); } catch {}
+
+    // carry sid in the URL
+    const url = new URL(location.href);
+    if (sData.sid) url.searchParams.set('sid', String(sData.sid));
+    url.hash = `/results/${id}`;
+    location.href = url.toString();
+
+  }catch{
+    window.hqToast && hqToast("Network error submitting.");
+  }
+};
+quizBody?.appendChild(submit);
+
 
   // Keep content visible above sticky button
   let spacer = document.getElementById('submitSpacer');
