@@ -650,6 +650,107 @@ async function renderResults(id){
     });
   }
 
+  // Client-only “My answers” panel: try LocalStorage → SID → Name
+async function showMyAnswers(){
+  // 1) load questions (for correct answers)
+  let resp, payload;
+  try{
+    resp = await fetch(`${window.SERVER_URL}/api/quiz/${id}/answers`);
+    payload = await resp.json();
+  }catch{ payload = null; }
+  if (!resp?.ok || !payload?.ok){
+    window.hqToast && hqToast('Could not load answers.');
+    return;
+  }
+  const questions = Array.isArray(payload.questions) ? payload.questions : [];
+
+  // 2) try local picks from THIS device
+  let picks; try { picks = JSON.parse(localStorage.getItem(`hq-picks-${id}`) || "null"); } catch {}
+  let ok = Array.isArray(picks) && picks.length === questions.length;
+
+  // 3) if missing, try recovery by SID (best)
+  if (!ok){
+    const sid = (localStorage.getItem(`hq-sid-${id}`) || "").trim();
+    if (sid){
+      try{
+        const r = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submission?sid=${encodeURIComponent(sid)}`);
+        const d = await r.json();
+        if (r.ok && d?.ok && Array.isArray(d.picks)){
+          picks = d.picks;
+          try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
+          ok = true;
+        }
+      }catch{}
+    }
+  }
+
+  // 4) if still missing, fall back to recovery by NAME
+  if (!ok){
+    const suggested = (getSavedName() || (nameIn?.value || '')).trim();
+    const who = prompt("Type the name you used when you submitted:", suggested);
+    if (!who || !who.trim()){
+      window.hqToast && hqToast('Name required to recover.');
+      return;
+    }
+    try{
+      const r2 = await fetch(`${window.SERVER_URL}/api/quiz/${id}/submission?name=${encodeURIComponent(who.trim())}`);
+      const d2 = await r2.json();
+      if (r2.ok && d2?.ok && Array.isArray(d2.picks)){
+        picks = d2.picks;
+        if (d2.sid) { try { localStorage.setItem(`hq-sid-${id}`, String(d2.sid)); } catch {} }
+        try { localStorage.setItem(`hq-picks-${id}`, JSON.stringify(picks)); } catch {}
+        ok = true;
+      }
+    }catch{}
+    if (!ok){
+      window.hqToast && hqToast('No saved answers found.');
+      return;
+    }
+  }
+
+  // 5) render panel
+  let panel = document.getElementById('answersPanel');
+  if (!panel){
+    panel = document.createElement('div');
+    panel.id = 'answersPanel';
+    panel.style.marginTop = '12px';
+    panel.style.padding = '12px';
+    panel.style.border = '1px solid #eee';
+    panel.style.borderRadius = '12px';
+    panel.style.background = '#fff';
+    resultsView?.appendChild(panel);
+  }
+  panel.innerHTML = `<h3 style="margin:0 0 8px">Your answers</h3>`;
+
+  const list = document.createElement('div');
+  questions.forEach((q, i)=>{
+    const opts   = q.options || [];
+    const myIdx  = picks[i];
+    const corIdx = (typeof q.correctIndex === 'number') ? q.correctIndex : null;
+
+    const myText  = (myIdx != null && opts[myIdx]  != null) ? String(opts[myIdx])  : '(no answer)';
+    const corText = (corIdx != null && opts[corIdx] != null) ? String(opts[corIdx]) : '(unknown)';
+    const isCorrect = (corIdx != null && myIdx === corIdx);
+
+    const row = document.createElement('div');
+    row.style.padding = '10px 0';
+    row.style.borderTop = '1px solid #f1f1f1';
+    row.innerHTML = `
+      <div style="font-weight:700;margin:4px 0">${decodeHTML(q.q || q.question || `Question ${i+1}`)}</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span>${isCorrect ? '✅' : '❌'} <strong>Your answer:</strong> ${decodeHTML(myText)}</span>
+        <span class="muted">·</span>
+        <span><strong>Correct:</strong> ${decodeHTML(corText)}</span>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  panel.appendChild(list);
+  panel.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+
   // initial load
   try{
     const data = await fetchResults();
