@@ -536,11 +536,18 @@ return true;
 /* ------------------ Results view (live auto-refresh) ------------------ */
 async function renderResults(id){
   // capture sid from URL for cross-device recovery
-  try {
-    const u = new URL(location.href);
-    const sid = u.searchParams.get('sid');
-    if (sid) localStorage.setItem(`hq-sid-${id}`, String(sid));
-  } catch {}
+// Capture sid from URL, store it, then clean the URL so ?sid isn't shared
+try {
+  const u = new URL(location.href);
+  const sid = u.searchParams.get('sid');
+  if (sid) {
+    try { localStorage.setItem(`hq-sid-${id}`, String(sid)); } catch {}
+    u.searchParams.delete('sid');
+    history.replaceState(null, '', u.toString()); // no reload, same page/hash
+  }
+} catch {}
+
+
 
   // stop any previous poller
   if (window._hqPoll) { try { clearInterval(window._hqPoll.id); } catch {} ; window._hqPoll = null; }
