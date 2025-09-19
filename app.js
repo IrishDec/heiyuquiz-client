@@ -213,8 +213,6 @@ if (view === "results" && id) return renderResults(id);
     return renderPlay(id);
   }
 
-  if (view === "results" && id) return renderResults(id);
-
   return show(startCard);
 }
 
