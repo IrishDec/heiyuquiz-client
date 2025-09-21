@@ -21,12 +21,17 @@ const AI_PRESETS = true; // use GPT even when toggle is OFF (category+country on
 // Decode &ouml;, &quot;, etc. from server text
 function decodeHTML(s){ const e=document.createElement('textarea'); e.innerHTML=String(s??""); return e.value; }
 
-/* --------- First-play gate (overlay kept below ad, mobile-safe) --------- */
+/* --------- First-play gate (DISABLED for AdSense compliance) --------- */
 function hasPlayedBefore(){ return localStorage.getItem("hq-played")==="true"; }
 function markPlayed(){ localStorage.setItem("hq-played","true"); }
 
 function checkPlayGate(){
-  if (!hasPlayedBefore()){ markPlayed(); return; }
+  // Disabled during AdSense review: never show a pre-content pop-up.
+  // Leave footer/banner ads as-is; this only removes the replay gate overlay.
+  return;
+}
+checkPlayGate();
+
 
   const gate = document.createElement("div");
   Object.assign(gate.style, {
