@@ -33,52 +33,7 @@ function checkPlayGate(){
 checkPlayGate();
 
 
-  const gate = document.createElement("div");
-  Object.assign(gate.style, {
-    position:"fixed", top:0, left:0, right:0, bottom:0,
-    background:"rgba(0,0,0,0.85)",
-    display:"flex", justifyContent:"center", alignItems:"center",
-    zIndex:2147482000  // below .ad-banner
-  });
-  gate.className = "overlay-safe";
-  gate.innerHTML = `
-    <div style="background:#fff;padding:20px;max-width:320px;text-align:center;border-radius:12px">
-      <h2 style="margin:0 0 8px;">Watch an Ad to Continue</h2>
-      <p style="margin:0 0 12px;">Your first game was free 🎉. Watch a quick ad to play again!</p>
-      <button id="continueBtn" style="padding:10px 14px;border:1px solid #ddd;border-radius:10px;background:#f9f9f9;font-weight:600;cursor:pointer">Continue</button>
-    </div>
-  `;
-  document.body.appendChild(gate);
-  window._hqGate = gate;
-
-  const banner = document.querySelector('.ad-banner');
-  let ro;
-  function setBottomForBanner(){
-    let h = 0;
-    if (banner) h = Math.max(0, Math.ceil(banner.getBoundingClientRect().height));
-    if (h === 0 && matchMedia("(max-width:540px)").matches) h = 56;
-    gate.style.bottom = (h ? h + "px" : "0");
-  }
-  setBottomForBanner();
-  setTimeout(setBottomForBanner, 400);
-  setTimeout(setBottomForBanner, 1200);
-  setTimeout(setBottomForBanner, 2500);
-  if ("ResizeObserver" in window && banner){
-    ro = new ResizeObserver(setBottomForBanner);
-    ro.observe(banner);
-    const ins = banner.querySelector('ins'); if (ins) ro.observe(ins);
-  }
-  window.addEventListener('resize', setBottomForBanner);
-
-  document.getElementById("continueBtn")?.addEventListener("click", ()=>{
-    alert("Here you would watch an ad. Unlocking for now.");
-    if (ro) try { ro.disconnect(); } catch {}
-    window.removeEventListener('resize', setBottomForBanner);
-    gate.remove();
-    window._hqGate = null;
-  });
-}
-checkPlayGate();
+ 
 
 const QUIZ_TTL_HOURS = 24;               // set to 3 if you prefer 3-hour links
 const DURATION_SEC    = QUIZ_TTL_HOURS * 3600;
