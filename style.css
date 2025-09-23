@@ -742,70 +742,7 @@ button:disabled{
   background:#f7f7fb;
 }
 
-/* keep the logo centered even with absolute hamburger */
-#appHeader{ position: fixed; left:0; right:0; }
 
-#appHeader{
-  justify-content: space-between !important;  /* logo left, menu button right */
-  padding: 8px 12px !important;
-}
-
-/* Make #menuToggle immune to global gradient button styles */
-#menuToggle{
-  background:#fff !important;
-  color:#111 !important;
-  border:1px solid #e6e6e6 !important;
-  border-radius:10px !important;
-  width:36px !important;
-  height:36px !important;
-  padding:0 !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  box-shadow:none !important;
-  line-height:1 !important;
-  cursor:pointer !important;
-}
-#menuToggle:active{ transform:none !important; }  /* stop the “wiggle” on tap */
-
-#menuToggle{ display:flex; flex-direction:column; gap:4px; }
-#menuToggle .bar{ width:22px; height:2px; background:#111; border-radius:2px; }
-#menuToggle.is-open .bar:nth-child(1){ transform: translateY(6px) rotate(45deg); }
-#menuToggle.is-open .bar:nth-child(2){ opacity:0; }
-#menuToggle.is-open .bar:nth-child(3){ transform: translateY(-6px) rotate(-45deg); }
-
-#sideMenu .menu-panel{
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-#sideMenu .menu-panel{
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  will-change: transform;         /* smoother slide on iOS */
-}
-#sideMenu.open .menu-panel{ transform: translate3d(0,0,0); }
-/* Safety: also open the menu when aria-hidden="false" (covers any class mismatch) */
-#sideMenu[aria-hidden="false"]{ pointer-events:auto; }
-#sideMenu[aria-hidden="false"] .menu-overlay{ opacity:1; }
-#sideMenu[aria-hidden="false"] .menu-panel{ transform: translate3d(0,0,0); }
-
-/* Center logo, keep menu on the right */
-#appHeader{
-  display: grid !important;
-  grid-template-columns: 1fr auto 1fr; /* left spacer | logo | right btn */
-  align-items: center;
-  justify-items: center;
-}
-#appHeader img{
-  grid-column: 2;               /* center column */
-  justify-self: center;
-}
-#menuToggle{
-  grid-column: 3;               /* right column */
-  justify-self: end;
-  position: static !important;  /* override any older absolute rules */
-}
 /* ===== CLEAN HEADER (single source of truth) ===== */
 :root { --hq-header-h: 0px; } /* JS will set this based on actual header height */
 
