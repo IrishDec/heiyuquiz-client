@@ -580,7 +580,6 @@ try {
     try { sessionStorage.setItem(ackKey, '1'); } catch {}
     if (!document.querySelector('.home-cta')) placeHomeCta();
   }
-
 // Actions (Copy / Share / My answers) — CLEAN VERSION
 (function ensureActions(){
   // container
@@ -592,11 +591,28 @@ try {
     resultsView?.insertBefore(p, resultsView.firstChild);
   }
 
+  // helper: build share text using current user + score if we have it
+  function composeShareText(){
+    const me = (getSavedName() || (document.getElementById('name')?.value || '')).trim();
+    const s  = window._hqShareState || { list: [], total: 0 };
+    const meRow = s.list.find(r => me && r.name && r.name.toLowerCase() === me.toLowerCase());
+    const score = meRow ? meRow.score : null;
+
+    if (score != null && s.total){
+      return `I scored ${score}/${s.total} on HeiyuQuiz — can you beat me?${me ? ` — ${me}` : ''}`;
+    }
+    return `Play this quick HeiyuQuiz with me — can you beat my score?${me ? ` — ${me}` : ''}`;
+  }
+
   const baseLink = `${location.origin}${location.pathname}#/play/${id}`;
-  const msg = `Play this quick quiz with me 👉 ${baseLink}`;
   const withUtm = (url, src) => {
-    try{ const u=new URL(url); u.searchParams.set('utm_source',src); u.searchParams.set('utm_medium','share'); u.searchParams.set('utm_campaign','results'); return u.toString(); }
-    catch{ return url; }
+    try{
+      const u = new URL(url);
+      u.searchParams.set('utm_source', src);
+      u.searchParams.set('utm_medium', 'share');
+      u.searchParams.set('utm_campaign', 'results');
+      return u.toString();
+    } catch { return url; }
   };
 
   // crisp, single-tone SVGs (button provides the circle)
@@ -627,17 +643,20 @@ try {
   const shareNow = document.getElementById('resultsShareNow');
   if (navigator.share){
     shareNow.onclick = async ()=>{
-      try{ await navigator.share({ title:'HeiyuQuiz', text:'Can you beat me?', url: baseLink }); }catch{}
+      try{
+        await navigator.share({ title:'HeiyuQuiz', text: composeShareText(), url: baseLink });
+      }catch{}
       unlockStart();
     };
   } else {
     shareNow.onclick = ()=> document.getElementById('shareWA').click();
   }
 
-  // Network URLs + UTM
-  document.getElementById('shareWA').href = withUtm(`https://wa.me/?text=${encodeURIComponent(msg)}`,'whatsapp');
-  document.getElementById('shareTG').href = withUtm(`https://t.me/share/url?url=${encodeURIComponent(baseLink)}&text=${encodeURIComponent('Quick quiz!')}`,'telegram');
-  document.getElementById('shareX').href  = withUtm(`https://twitter.com/intent/tweet?text=${encodeURIComponent('Quick quiz!')}&url=${encodeURIComponent(baseLink)}`,'x');
+  // Network URLs + UTM (include the composed message)
+  const msg = composeShareText();
+  document.getElementById('shareWA').href = withUtm(`https://wa.me/?text=${encodeURIComponent(msg + ' ' + baseLink)}`,'whatsapp');
+  document.getElementById('shareTG').href = withUtm(`https://t.me/share/url?url=${encodeURIComponent(baseLink)}&text=${encodeURIComponent(msg)}`,'telegram');
+  document.getElementById('shareX').href  = withUtm(`https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}&url=${encodeURIComponent(baseLink)}`,'x');
   document.getElementById('shareFB').href = withUtm(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(baseLink)}`,'facebook');
 
   // Copy / My answers
@@ -651,7 +670,6 @@ try {
     unlockStart();
   };
 })();
-
 
 
   if (sessionStorage.getItem(ackKey) === '1') placeHomeCta();
