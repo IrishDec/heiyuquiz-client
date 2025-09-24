@@ -799,6 +799,64 @@ button:disabled{
 #menuToggle.is-open .bar:nth-child(2){ opacity:0; }
 #menuToggle.is-open .bar:nth-child(3){ transform: translateY(-6px) rotate(-45deg); }
 
+/* === Results: Share block === */
+.share-block{
+  margin: 10px 0 14px;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  background: #fff;
+}
+
+/* Big “Share now” – will pick up your global gradient button */
+.share-now{
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  border-radius: 14px;
+  font-weight: 800;
+  box-shadow: 0 12px 28px rgba(214,70,126,.25);
+  margin-bottom: 10px;
+}
+
+/* Icon row */
+.share-grid{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 6px 0 8px;
+}
+.share-ic{
+  width: 44px; height: 44px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  color: #fff; text-decoration: none;
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
+}
+.share-ic svg{ display:block; }
+
+/* Brand colors */
+.share-ic.wa{ background:#25D366; }   /* WhatsApp */
+.share-ic.tg{ background:#229ED9; }   /* Telegram */
+.share-ic.x { background:#111;   }    /* X */
+.share-ic.fb{ background:#1877F2; }   /* Facebook */
+
+/* Pills: Copy / My answers */
+.share-aux{
+  display:flex; gap:8px; flex-wrap:wrap;
+}
+.share-aux .pill{
+  flex:1 1 0;
+  min-width: 140px;
+  background:#fff !important;
+  color:#111 !important;
+  border:1px solid #e6e6e6 !important;
+  border-radius: 999px !important;
+  padding: 10px 12px !important;
+  font-weight:700 !important;
+  box-shadow:none !important;
+}
 
 
 
