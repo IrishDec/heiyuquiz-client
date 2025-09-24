@@ -868,6 +868,84 @@ button:disabled{
   .results-share .share-primary{ transition:none; }
 }
 
+/* === Results share UI polish === */
+.results-share{
+  margin: 8px 0 14px;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  background:#fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,.05);
+}
+
+/* Primary “Share now” */
+.results-share .share-primary{
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  border-radius: 14px;
+  font-weight: 800;
+  line-height: 1.1;
+  cursor: pointer;
+  background: linear-gradient(90deg, var(--brand,#6e56cf), var(--brand2,#d6467e));
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(214,70,126,.20);
+}
+
+/* Icon row: uniform circular buttons */
+.results-share .row-icons{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 10px 0 8px;
+}
+.results-share .icon-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 4px 12px rgba(0,0,0,.06);
+  transition: transform .08s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.results-share .icon-btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0,0,0,.08);
+  border-color: #ddd;
+}
+.results-share .icon-btn svg{
+  width: 26px; height: 26px; display:block;
+}
+
+/* Bottom CTA buttons (Copy / My answers) */
+.results-share .cta{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+.results-share .cta .btn{
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  color: #111;
+  font-weight: 700;
+  line-height: 1.1;
+  box-shadow: 0 2px 6px rgba(0,0,0,.04);
+}
+
+/* Mobile stack */
+@media (max-width: 420px){
+  .results-share .row-icons{ gap: 8px; }
+  .results-share .icon-btn{ width: 52px; height: 52px; }
+  .results-share .cta{ grid-template-columns: 1fr; }
+}
 
 
 
