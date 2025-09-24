@@ -761,13 +761,13 @@ button:disabled{
   padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px; /* no fixed height */
 }
 
-/* Bigger, readable logo that still scales nicely */
+/* Bigger, readable logo */
 #appHeader img{
   grid-column: 2;
   justify-self: center;
-  width: clamp(180px, 40vw, 320px); /* min 180px, scales up to 320px */
+  width: clamp(240px, 45vw, 420px); /* larger min & max */
+  max-height: 96px;                 /* keep header reasonable */
   height: auto;
-  max-height: 72px;               /* keeps header from getting too tall */
   object-fit: contain;
   display: block;
 }
