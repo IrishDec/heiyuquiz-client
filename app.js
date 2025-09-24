@@ -551,6 +551,25 @@ try {
   const link   = `${location.origin}${location.pathname}#/play/${id}`;
   const ackKey = `hq-ack-${id}`;
 
+  function composeShareText(){
+  const name = (getSavedName() || (nameIn?.value || "")).trim();
+  const st   = window._hqShareState || {};
+  const list = st.list || [];
+  const total= Number(st.total) || 0;
+
+  let line = 'Play this quick quiz!';
+
+  if (name && list.length && total > 0){
+    const me = list.find(r => r.name && r.name.toLowerCase() === name.toLowerCase());
+    if (me && Number.isFinite(me.score)){
+      line = `I scored ${me.score}/${total} — can you beat me?`;
+    }
+  }
+  if (name) line += ` — ${name}`;
+  return line;
+}
+
+
   function placeHomeCta(){
     addHomeCta();
     const actions = document.getElementById('resultsActions');
