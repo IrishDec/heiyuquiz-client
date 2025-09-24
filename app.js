@@ -562,83 +562,85 @@ try {
     if (!document.querySelector('.home-cta')) placeHomeCta();
   }
 
-// Actions (Share Now + icons + Copy/My answers)
+// Actions (Copy / Share / My answers) — polished & mobile-friendly
 (function ensureActions(){
+  // build container once
   let p = document.getElementById('resultsActions');
   if (!p){
     p = document.createElement('div');
     p.id = 'resultsActions';
+    p.className = 'results-share';
     resultsView?.insertBefore(p, resultsView.firstChild);
   }
 
-  // markup
-  p.innerHTML = `
-    <section class="share-block">
-      <button id="resultsShareBtn" class="share-now">⚡ Share now</button>
+  const baseLink = `${location.origin}${location.pathname}#/play/${id}`;
 
-      <div class="share-grid" aria-label="Share to social">
-        <a id="shareWA" class="share-ic wa" href="#" target="_blank" rel="noopener" aria-label="Share on WhatsApp" title="WhatsApp">
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M.5 23.5l1.7-6A10.7 10.7 0 1119 19a10.7 10.7 0 01-8.8 2.1L.5 23.5zm7.8-4.5A8.6 8.6 0 0020.6 12 8.6 8.6 0 006.1 4.8a8.5 8.5 0 00-1 8.4l.2.4-1 3.5 3.6-1a8.4 8.4 0 003.4.9zM7.8 7.7c.2-.4.5-.4.8-.4h.7c.2 0 .5 0 .7.5.2.6.6 1.9.6 1.9 0 .1.1.3 0 .5 0 .2-.1.3-.3.5l-.4.4c-.2.2-.3.3-.1.7.3.5.8 1.3 1.6 2 .9.8 1.8 1.1 2.3 1.3.4.2.6.2.8 0l.6-.7c.2-.2.4-.2.6-.1l1.9.9c.2.1.5.2.5.4l-.1.9c-.1.4-.4.6-.7.7-.3.1-.7.1-1.2 0a8.5 8.5 0 01-3.6-1.5 9.9 9.9 0 01-2.3-2.1 9.1 9.1 0 01-1.3-2.2c-.2-.4-.2-.8 0-1.1.2-.3.5-.6.7-.8l.3-.3z"/></svg>
-        </a>
-
-        <a id="shareTG" class="share-ic tg" href="#" target="_blank" rel="noopener" aria-label="Share on Telegram" title="Telegram">
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.6 15.6l-.4 5.6c.6 0 .9-.3 1.2-.6l2.9-2.8 6 4.3c1.1.6 1.9.3 2.3-1l4-18.7h0c.4-1.6-.6-2.3-1.7-1.9L1 9.8C-.6 10.4-.6 11.4.7 11.8l5.6 1.7 13-8.2c.6-.4 1.2-.2.7.3L9.6 15.6z"/></svg>
-        </a>
-
-        <a id="shareX" class="share-ic x" href="#" target="_blank" rel="noopener" aria-label="Share on X" title="X">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M18.9 2H22l-7.1 8.1L23 22h-6.5l-5.1-6.6L5.7 22H2.6l7.6-8.7L1 2h6.7l4.6 6 6.6-6zM17.8 20h1.8L7.3 4H5.4l12.4 16z"/></svg>
-        </a>
-
-        <a id="shareFB" class="share-ic fb" href="#" target="_blank" rel="noopener" aria-label="Share on Facebook" title="Facebook">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M22 12a10 10 0 10-11.6 9.9v-7h-2.3V12h2.3V9.7c0-2.3 1.4-3.6 3.5-3.6 1 0 2 .1 2 .1v2.3h-1.1c-1 0-1.4.6-1.4 1.3V12h2.5l-.4 2.9h-2.1v7A10 10 0 0022 12z"/></svg>
-        </a>
-      </div>
-
-      <div class="share-aux">
-        <button id="resultsCopyBtn" class="pill">Copy link</button>
-        <button id="resultsMineBtn" class="pill">My answers</button>
-      </div>
-    </section>
-  `;
-
-  // dynamic URLs
-  const shareBtn = document.getElementById('resultsShareBtn');
-  const copyBtn  = document.getElementById('resultsCopyBtn');
-  const mineBtn  = document.getElementById('resultsMineBtn');
-
-  const wa = document.getElementById('shareWA');
-  const tg = document.getElementById('shareTG');
-  const tw = document.getElementById('shareX');
-  const fb = document.getElementById('shareFB');
-
-  const text = 'Join our quiz on HeiyuQuiz!';
-  const url  = link;
-  const enc  = encodeURIComponent;
-
-  if (wa) wa.href = `https://wa.me/?text=${enc(text + ' ' + url)}`;
-  if (tg) tg.href = `https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`;
-  if (tw) tw.href = `https://twitter.com/intent/tweet?url=${enc(url)}&text=${enc(text)}`;
-  if (fb) fb.href = `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`;
-
-  if (shareBtn) shareBtn.onclick = async ()=>{
-    try{
-      if (navigator.share){
-        await navigator.share({ title:'HeiyuQuiz', text, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        window.hqToast && hqToast('Link copied!');
-      }
-    }catch{}
-    unlockStart();
+  // helper to add a utm param for each network (optional but useful)
+  const withUtm = (url, src) => {
+    try {
+      const u = new URL(url);
+      u.searchParams.set('utm_source', src);
+      u.searchParams.set('utm_medium', 'share');
+      u.searchParams.set('utm_campaign', 'results');
+      return u.toString();
+    } catch { return url; }
   };
 
-  if (copyBtn) copyBtn.onclick = async ()=>{
-    try { await navigator.clipboard.writeText(url); } catch {}
+  const shareMsg = `Play this quick quiz with me 👉 ${baseLink}`;
+
+  // inline SVGs (no external assets)
+  const icons = {
+    wa: `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path fill="#25D366" d="M16 2.667A13.333 13.333 0 0 0 3.26 22.312L2 30l7.854-1.228A13.333 13.333 0 1 0 16 2.667Z"/><path fill="#fff" d="M23.6 19.12c-.3.84-1.48 1.54-2.04 1.64-.55.1-1.27.14-2.05-.13-.47-.16-1.07-.35-1.85-.69-3.25-1.42-5.36-4.87-5.53-5.1-.17-.23-1.32-1.76-1.32-3.36 0-1.6.8-2.38 1.08-2.7.28-.32.62-.4.82-.4.2 0 .4 0 .58.01.19.01.44-.07.69.52.25.6.84 2.06.92 2.2.08.14.13.31.02.5-.11.19-.17.31-.34.49-.17.18-.36.4-.51.54-.17.17-.35.36-.15.7.2.34.89 1.47 1.9 2.39 1.31 1.17 2.42 1.54 2.76 1.7.34.16.54.13.73-.08.19-.21.84-.98 1.07-1.32.23-.34.45-.29.75-.17.3.12 1.9.9 2.22 1.06.32.16.53.25.61.39.08.14.08.82-.22 1.66Z"/></svg>`,
+    tg: `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#2AABEE"/><path fill="#fff" d="M24.3 9.3c.3.16.43.5.35.83l-2.25 9.93c-.1.43-.53.7-.96.6a.84.84 0 0 1-.25-.1l-4.3-2.66-2.2 2.12c-.25.24-.64.28-.94.1l-.01-.01c-.33-.2-.48-.6-.37-.96l1.3-4.17 7.32-5.42c.38-.29.93.16.67.58l-5.94 5.03 4.9 3 .86-6.9-7.87 3.35-3.2-1.02c-.42-.13-.44-.73-.03-.9l13.33-5.45c.22-.09.47-.08.67.03Z"/></svg>`,
+    x:  `<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><rect width="26" height="26" x="3" y="3" rx="13" fill="#111"/><path fill="#fff" d="M20.9 10.7h-1.9l-2.6 3.2-2.6-3.2H12l3.5 4.2-3.8 4.7h1.9l2.9-3.6 2.9 3.6h1.8l-3.8-4.7 3.5-4.2Z"/></svg>`,
+    fb: `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#1877F2"/><path fill="#fff" d="M18.3 10.3h2.2V8h-2.5c-2.7 0-4.1 1.5-4.1 4v1.7h-2V17h2v6h2.6v-6h2.2l.4-3.3h-2.6v-1.1c0-.7.3-1.3 1.8-1.3Z"/></svg>`
+  };
+
+  p.innerHTML = `
+    <button id="resultsShareNow" class="share-primary" type="button">⚡ Share now</button>
+
+    <div class="share-row" role="group" aria-label="Share to…">
+      <a class="share-icon" id="shareWA" aria-label="Share on WhatsApp" target="_blank" rel="noopener">${icons.wa}</a>
+      <a class="share-icon" id="shareTG" aria-label="Share on Telegram" target="_blank" rel="noopener">${icons.tg}</a>
+      <a class="share-icon" id="shareX"  aria-label="Share on X"        target="_blank" rel="noopener">${icons.x}</a>
+      <a class="share-icon" id="shareFB" aria-label="Share on Facebook" target="_blank" rel="noopener">${icons.fb}</a>
+    </div>
+
+    <div class="cta">
+      <button id="resultsCopyBtn" class="btn" type="button">Copy link</button>
+      <button id="resultsMineBtn" class="btn" type="button">My answers</button>
+    </div>
+  `;
+
+  // Native share (best UX)
+  const shareNow = document.getElementById('resultsShareNow');
+  if (navigator.share){
+    shareNow.onclick = async ()=>{
+      try { await navigator.share({ title:'HeiyuQuiz', text:'Can you beat me?', url: baseLink }); } catch(e){}
+      unlockStart();
+    };
+  } else {
+    shareNow.onclick = ()=> document.getElementById('shareWA').click();
+  }
+
+  // Icon deep links (with UTM)
+  const linkWA = `https://wa.me/?text=${encodeURIComponent(shareMsg)}`;
+  const linkTG = `https://t.me/share/url?url=${encodeURIComponent(baseLink)}&text=${encodeURIComponent('Quick quiz!')}`;
+  const linkX  = `https://twitter.com/intent/tweet?text=${encodeURIComponent('Quick quiz!')}&url=${encodeURIComponent(baseLink)}`;
+  const linkFB = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(baseLink)}`;
+
+  document.getElementById('shareWA').href = withUtm(linkWA, 'whatsapp');
+  document.getElementById('shareTG').href = withUtm(linkTG, 'telegram');
+  document.getElementById('shareX').href  = withUtm(linkX,  'x');
+  document.getElementById('shareFB').href = withUtm(linkFB, 'facebook');
+
+  // Existing actions
+  document.getElementById('resultsCopyBtn').onclick = async ()=>{
+    try { await navigator.clipboard.writeText(baseLink); } catch {}
     window.hqToast && hqToast('Link copied!');
     unlockStart();
   };
-
-  if (mineBtn) mineBtn.onclick = async ()=>{
+  document.getElementById('resultsMineBtn').onclick = async ()=>{
     try { await showMyAnswers(); } catch {}
     unlockStart();
   };
