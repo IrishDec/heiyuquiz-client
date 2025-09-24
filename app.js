@@ -57,6 +57,39 @@ const regionSel = qs("#region");
 const topicIn   = qs("#topic");
 const countrySel  = qs("#country");   
 
+// === Header height -> CSS var (keeps content below the fixed header) ===
+(function initHeaderOffset(){
+  if (window.__hqHeaderOffsetInit) return; // idempotent guard
+  window.__hqHeaderOffsetInit = true;
+
+  function setHeaderOffset(){
+    const header = document.getElementById('appHeader');
+    if (!header) return;
+    const h = Math.ceil(header.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--hq-header-h', h + 'px');
+  }
+
+  // run as soon as DOM is ready (defer ensures DOM is parsed)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setHeaderOffset, { once:true });
+  } else {
+    setHeaderOffset();
+  }
+
+  // update when layout/size changes
+  window.addEventListener('load', setHeaderOffset);
+  window.addEventListener('resize', setHeaderOffset);
+  window.addEventListener('orientationchange', setHeaderOffset);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(setHeaderOffset);
+
+  // react to header size changes (logo swap, etc.)
+  if ('ResizeObserver' in window) {
+    const header = document.getElementById('appHeader');
+    if (header) new ResizeObserver(setHeaderOffset).observe(header);
+  }
+})();
+
+
 // Load countries (cached) into #country and pin priority countries at the top
 (async function loadCountries(){
   // If the element isn't in the DOM yet, wait for it
