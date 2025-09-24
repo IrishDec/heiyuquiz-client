@@ -651,25 +651,29 @@ try {
     return data;
   }
 
-  function draw(list, total){
-    if (!scoreList) return;
-    scoreList.innerHTML = "";
+function draw(list, total){
+  // save for share composer
+  window._hqShareState = { list: Array.isArray(list) ? list : [], total: Number(total) || 0 };
 
-    if (!list || !list.length){
-      scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
-      return;
-    }
+  if (!scoreList) return;
+  scoreList.innerHTML = "";
 
-    const meName = (getSavedName() || (nameIn?.value || "")).trim().toLowerCase();
-
-    list.forEach((row, i) => {
-      const li = document.createElement("li");
-      const isMe = meName && row.name && row.name.toLowerCase() === meName;
-      li.textContent = `${i + 1}. ${row.name}\u00A0—\u00A0${row.score}/${total}`;
-      if (isMe) { li.style.fontWeight = "700"; li.style.textDecoration = "underline"; }
-      scoreList.appendChild(li);
-    });
+  if (!list || !list.length){
+    scoreList.innerHTML = `<li class="muted">No results yet — waiting for players…</li>`;
+    return;
   }
+
+  const meName = (getSavedName() || (nameIn?.value || "")).trim().toLowerCase();
+
+  list.forEach((row, i) => {
+    const li = document.createElement("li");
+    const isMe = meName && row.name && row.name.toLowerCase() === meName;
+    li.textContent = `${i + 1}. ${row.name}\u00A0—\u00A0${row.score}/${total}`;
+    if (isMe) { li.style.fontWeight = "700"; li.style.textDecoration = "underline"; }
+    scoreList.appendChild(li);
+  });
+}
+
 
   // Client-only “My answers” panel: try LocalStorage → SID → Name
 async function showMyAnswers(){
