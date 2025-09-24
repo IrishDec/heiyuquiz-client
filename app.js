@@ -562,9 +562,9 @@ try {
     if (!document.querySelector('.home-cta')) placeHomeCta();
   }
 
-// Actions (Copy / Share / My answers) — polished & mobile-friendly
+// Actions (Copy / Share / My answers) — CLEAN VERSION
 (function ensureActions(){
-  // build container once
+  // container
   let p = document.getElementById('resultsActions');
   if (!p){
     p = document.createElement('div');
@@ -574,36 +574,28 @@ try {
   }
 
   const baseLink = `${location.origin}${location.pathname}#/play/${id}`;
-
-  // helper to add a utm param for each network (optional but useful)
+  const msg = `Play this quick quiz with me 👉 ${baseLink}`;
   const withUtm = (url, src) => {
-    try {
-      const u = new URL(url);
-      u.searchParams.set('utm_source', src);
-      u.searchParams.set('utm_medium', 'share');
-      u.searchParams.set('utm_campaign', 'results');
-      return u.toString();
-    } catch { return url; }
+    try{ const u=new URL(url); u.searchParams.set('utm_source',src); u.searchParams.set('utm_medium','share'); u.searchParams.set('utm_campaign','results'); return u.toString(); }
+    catch{ return url; }
   };
 
-  const shareMsg = `Play this quick quiz with me 👉 ${baseLink}`;
-
-  // inline SVGs (no external assets)
-  const icons = {
-    wa: `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path fill="#25D366" d="M16 2.667A13.333 13.333 0 0 0 3.26 22.312L2 30l7.854-1.228A13.333 13.333 0 1 0 16 2.667Z"/><path fill="#fff" d="M23.6 19.12c-.3.84-1.48 1.54-2.04 1.64-.55.1-1.27.14-2.05-.13-.47-.16-1.07-.35-1.85-.69-3.25-1.42-5.36-4.87-5.53-5.1-.17-.23-1.32-1.76-1.32-3.36 0-1.6.8-2.38 1.08-2.7.28-.32.62-.4.82-.4.2 0 .4 0 .58.01.19.01.44-.07.69.52.25.6.84 2.06.92 2.2.08.14.13.31.02.5-.11.19-.17.31-.34.49-.17.18-.36.4-.51.54-.17.17-.35.36-.15.7.2.34.89 1.47 1.9 2.39 1.31 1.17 2.42 1.54 2.76 1.7.34.16.54.13.73-.08.19-.21.84-.98 1.07-1.32.23-.34.45-.29.75-.17.3.12 1.9.9 2.22 1.06.32.16.53.25.61.39.08.14.08.82-.22 1.66Z"/></svg>`,
-    tg: `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#2AABEE"/><path fill="#fff" d="M24.3 9.3c.3.16.43.5.35.83l-2.25 9.93c-.1.43-.53.7-.96.6a.84.84 0 0 1-.25-.1l-4.3-2.66-2.2 2.12c-.25.24-.64.28-.94.1l-.01-.01c-.33-.2-.48-.6-.37-.96l1.3-4.17 7.32-5.42c.38-.29.93.16.67.58l-5.94 5.03 4.9 3 .86-6.9-7.87 3.35-3.2-1.02c-.42-.13-.44-.73-.03-.9l13.33-5.45c.22-.09.47-.08.67.03Z"/></svg>`,
-    x:  `<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><rect width="26" height="26" x="3" y="3" rx="13" fill="#111"/><path fill="#fff" d="M20.9 10.7h-1.9l-2.6 3.2-2.6-3.2H12l3.5 4.2-3.8 4.7h1.9l2.9-3.6 2.9 3.6h1.8l-3.8-4.7 3.5-4.2Z"/></svg>`,
-    fb: `<svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#1877F2"/><path fill="#fff" d="M18.3 10.3h2.2V8h-2.5c-2.7 0-4.1 1.5-4.1 4v1.7h-2V17h2v6h2.6v-6h2.2l.4-3.3h-2.6v-1.1c0-.7.3-1.3 1.8-1.3Z"/></svg>`
+  // crisp, single-tone SVGs (button provides the circle)
+  const IC = {
+    wa: `<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#25D366" d="M16 3a13 13 0 1 0 0 26 13 13 0 0 0 0-26Zm6.1 16.2c-.3.9-1.5 1.6-2 1.7-.5.1-1.3.1-2.1-.2-.5-.2-1.1-.4-1.9-.8-3.3-1.4-5.4-4.9-5.6-5.2-.2-.3-1.3-1.8-1.3-3.4 0-1.6.8-2.4 1.1-2.7.3-.3.6-.4.9-.4s.6 0 .8 0c.2 0 .5-.1.7.5.2.6.8 2.1.9 2.2.1.2.1.3 0 .5-.1.2-.2.3-.3.5-.2.2-.4.4-.5.6-.2.2-.4.4-.2.8.2.3.9 1.5 1.9 2.4 1.3 1.2 2.4 1.6 2.8 1.7.4.1.6.1.8-.1.2-.2.8-1 1.1-1.4.2-.3.5-.3.8-.2.3.1 1.9.9 2.3 1.1.3.2.5.3.6.5.1.2.1.9-.2 1.8Z"/></svg>`,
+    tg: `<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#2AABEE" d="M16 3a13 13 0 1 0 0 26 13 13 0 0 0 0-26Z"/><path fill="#fff" d="M22.7 10.2c.3.1.4.5.3.8l-2 8.7c-.1.4-.5.7-.9.6l-3.8-2.3-2 1.9c-.3.2-.6.3-.9.1-.3-.2-.5-.6-.4-.9l1.2-3.7 6.4-4.7c.4-.3.9.1.7.5l-5.2 4.4 4.3 2.6.8-6.1-7 3-2.8-.9c-.4-.1-.4-.6-.1-.8l11.8-4.8c.2-.1.4-.1.6 0Z"/></svg>`,
+    x:  `<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#111" d="M16 3a13 13 0 1 0 0 26 13 13 0 0 0 0-26Z"/><path fill="#fff" d="M20.6 10.5h-1.7l-2.4 3-2.4-3H12l3.2 3.9-3.5 4.3H13l2.6-3.3 2.6 3.3h1.6l-3.5-4.3 3.2-3.9Z"/></svg>`,
+    fb: `<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#1877F2" d="M16 3a13 13 0 1 0 0 26 13 13 0 0 0 0-26Z"/><path fill="#fff" d="M18 10h2v-2h-2.3c-2.5 0-3.8 1.4-3.8 3.7v1.6h-1.8v2.6h1.8v5.6h2.4v-5.6h2l.4-2.6h-2.4v-1c0-.7.3-1.3 1.7-1.3Z"/></svg>`
   };
 
   p.innerHTML = `
     <button id="resultsShareNow" class="share-primary" type="button">⚡ Share now</button>
 
-    <div class="share-row" role="group" aria-label="Share to…">
-      <a class="share-icon" id="shareWA" aria-label="Share on WhatsApp" target="_blank" rel="noopener">${icons.wa}</a>
-      <a class="share-icon" id="shareTG" aria-label="Share on Telegram" target="_blank" rel="noopener">${icons.tg}</a>
-      <a class="share-icon" id="shareX"  aria-label="Share on X"        target="_blank" rel="noopener">${icons.x}</a>
-      <a class="share-icon" id="shareFB" aria-label="Share on Facebook" target="_blank" rel="noopener">${icons.fb}</a>
+    <div class="row-icons" role="group" aria-label="Share to…">
+      <a id="shareWA" class="icon-btn" aria-label="WhatsApp"  target="_blank" rel="noopener">${IC.wa}</a>
+      <a id="shareTG" class="icon-btn" aria-label="Telegram"  target="_blank" rel="noopener">${IC.tg}</a>
+      <a id="shareX"  class="icon-btn" aria-label="X"        target="_blank" rel="noopener">${IC.x}</a>
+      <a id="shareFB" class="icon-btn" aria-label="Facebook" target="_blank" rel="noopener">${IC.fb}</a>
     </div>
 
     <div class="cta">
@@ -612,39 +604,35 @@ try {
     </div>
   `;
 
-  // Native share (best UX)
+  // Native share first
   const shareNow = document.getElementById('resultsShareNow');
   if (navigator.share){
     shareNow.onclick = async ()=>{
-      try { await navigator.share({ title:'HeiyuQuiz', text:'Can you beat me?', url: baseLink }); } catch(e){}
+      try{ await navigator.share({ title:'HeiyuQuiz', text:'Can you beat me?', url: baseLink }); }catch{}
       unlockStart();
     };
   } else {
     shareNow.onclick = ()=> document.getElementById('shareWA').click();
   }
 
-  // Icon deep links (with UTM)
-  const linkWA = `https://wa.me/?text=${encodeURIComponent(shareMsg)}`;
-  const linkTG = `https://t.me/share/url?url=${encodeURIComponent(baseLink)}&text=${encodeURIComponent('Quick quiz!')}`;
-  const linkX  = `https://twitter.com/intent/tweet?text=${encodeURIComponent('Quick quiz!')}&url=${encodeURIComponent(baseLink)}`;
-  const linkFB = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(baseLink)}`;
+  // Network URLs + UTM
+  document.getElementById('shareWA').href = withUtm(`https://wa.me/?text=${encodeURIComponent(msg)}`,'whatsapp');
+  document.getElementById('shareTG').href = withUtm(`https://t.me/share/url?url=${encodeURIComponent(baseLink)}&text=${encodeURIComponent('Quick quiz!')}`,'telegram');
+  document.getElementById('shareX').href  = withUtm(`https://twitter.com/intent/tweet?text=${encodeURIComponent('Quick quiz!')}&url=${encodeURIComponent(baseLink)}`,'x');
+  document.getElementById('shareFB').href = withUtm(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(baseLink)}`,'facebook');
 
-  document.getElementById('shareWA').href = withUtm(linkWA, 'whatsapp');
-  document.getElementById('shareTG').href = withUtm(linkTG, 'telegram');
-  document.getElementById('shareX').href  = withUtm(linkX,  'x');
-  document.getElementById('shareFB').href = withUtm(linkFB, 'facebook');
-
-  // Existing actions
+  // Copy / My answers
   document.getElementById('resultsCopyBtn').onclick = async ()=>{
-    try { await navigator.clipboard.writeText(baseLink); } catch {}
+    try{ await navigator.clipboard.writeText(baseLink); }catch{}
     window.hqToast && hqToast('Link copied!');
     unlockStart();
   };
   document.getElementById('resultsMineBtn').onclick = async ()=>{
-    try { await showMyAnswers(); } catch {}
+    try{ await showMyAnswers(); }catch{}
     unlockStart();
   };
 })();
+
 
 
   if (sessionStorage.getItem(ackKey) === '1') placeHomeCta();
