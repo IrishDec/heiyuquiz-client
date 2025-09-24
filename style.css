@@ -761,13 +761,25 @@ button:disabled{
   padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px; /* no fixed height */
 }
 
+/* Bigger, readable logo that still scales nicely */
 #appHeader img{
   grid-column: 2;
   justify-self: center;
-  height: clamp(28px, 6.5vw, 40px);
-  width: auto;
+  width: clamp(180px, 40vw, 320px); /* min 180px, scales up to 320px */
+  height: auto;
+  max-height: 72px;               /* keeps header from getting too tall */
+  object-fit: contain;
   display: block;
 }
+
+/* Give it a little more room on larger screens */
+@media (min-width: 768px){
+  #appHeader img{
+    width: clamp(220px, 28vw, 380px);
+    max-height: 80px;
+  }
+}
+
 
 /* push page content below the fixed header */
 .wrap{ padding-top: calc(var(--hq-header-h, 0px) + 8px); }
