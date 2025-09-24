@@ -562,55 +562,88 @@ try {
     if (!document.querySelector('.home-cta')) placeHomeCta();
   }
 
-  // Actions (Copy / Share / My answers)
-  (function ensureActions(){
-    let p = document.getElementById('resultsActions');
-    if (!p){
-      p = document.createElement('div');
-      p.id = 'resultsActions';
-      p.style.cssText = 'margin:8px 0 12px;display:flex;flex-direction:column;gap:10px';
-      const btn = (id, text)=>(
-        `<button id="${id}" style="
-            width:100%;padding:14px;border:0;border-radius:14px;
-            background:linear-gradient(90deg,#6e56cf,#d6467e,#ffb224);
-            color:#fff;font-weight:800;box-shadow:0 12px 28px rgba(214,70,126,.25);
-          ">${text}</button>`
-      );
-      p.innerHTML = [
-        btn('resultsCopyBtn','Copy quiz link'),
-        btn('resultsShareBtn','Share quiz now'),
-        btn('resultsMineBtn','My answers')
-      ].join('');
-      resultsView?.insertBefore(p, resultsView.firstChild);
-    }
+// Actions (Share Now + icons + Copy/My answers)
+(function ensureActions(){
+  let p = document.getElementById('resultsActions');
+  if (!p){
+    p = document.createElement('div');
+    p.id = 'resultsActions';
+    resultsView?.insertBefore(p, resultsView.firstChild);
+  }
 
-    const copyBtn  = document.getElementById('resultsCopyBtn');
-    const shareBtn = document.getElementById('resultsShareBtn');
-    const mineBtn  = document.getElementById('resultsMineBtn');
+  // markup
+  p.innerHTML = `
+    <section class="share-block">
+      <button id="resultsShareBtn" class="share-now">⚡ Share now</button>
 
-    if (copyBtn) copyBtn.onclick = async ()=>{
-      try { await navigator.clipboard.writeText(link); } catch {}
-      window.hqToast && hqToast('Link copied!');
-      unlockStart();
-    };
+      <div class="share-grid" aria-label="Share to social">
+        <a id="shareWA" class="share-ic wa" href="#" target="_blank" rel="noopener" aria-label="Share on WhatsApp" title="WhatsApp">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M.5 23.5l1.7-6A10.7 10.7 0 1119 19a10.7 10.7 0 01-8.8 2.1L.5 23.5zm7.8-4.5A8.6 8.6 0 0020.6 12 8.6 8.6 0 006.1 4.8a8.5 8.5 0 00-1 8.4l.2.4-1 3.5 3.6-1a8.4 8.4 0 003.4.9zM7.8 7.7c.2-.4.5-.4.8-.4h.7c.2 0 .5 0 .7.5.2.6.6 1.9.6 1.9 0 .1.1.3 0 .5 0 .2-.1.3-.3.5l-.4.4c-.2.2-.3.3-.1.7.3.5.8 1.3 1.6 2 .9.8 1.8 1.1 2.3 1.3.4.2.6.2.8 0l.6-.7c.2-.2.4-.2.6-.1l1.9.9c.2.1.5.2.5.4l-.1.9c-.1.4-.4.6-.7.7-.3.1-.7.1-1.2 0a8.5 8.5 0 01-3.6-1.5 9.9 9.9 0 01-2.3-2.1 9.1 9.1 0 01-1.3-2.2c-.2-.4-.2-.8 0-1.1.2-.3.5-.6.7-.8l.3-.3z"/></svg>
+        </a>
 
-    if (shareBtn) shareBtn.onclick = async ()=>{
-      try{
-        if (navigator.share){
-          await navigator.share({ title:'HeiyuQuiz', text:'Join our quiz', url: link });
-        } else {
-          await navigator.clipboard.writeText(link);
-          window.hqToast && hqToast('Link copied!');
-        }
-      }catch{}
-      unlockStart();
-    };
+        <a id="shareTG" class="share-ic tg" href="#" target="_blank" rel="noopener" aria-label="Share on Telegram" title="Telegram">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9.6 15.6l-.4 5.6c.6 0 .9-.3 1.2-.6l2.9-2.8 6 4.3c1.1.6 1.9.3 2.3-1l4-18.7h0c.4-1.6-.6-2.3-1.7-1.9L1 9.8C-.6 10.4-.6 11.4.7 11.8l5.6 1.7 13-8.2c.6-.4 1.2-.2.7.3L9.6 15.6z"/></svg>
+        </a>
 
-    if (mineBtn) mineBtn.onclick = async ()=>{
-      try { await showMyAnswers(); } catch {}
-      unlockStart();
-    };
-  })();
+        <a id="shareX" class="share-ic x" href="#" target="_blank" rel="noopener" aria-label="Share on X" title="X">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M18.9 2H22l-7.1 8.1L23 22h-6.5l-5.1-6.6L5.7 22H2.6l7.6-8.7L1 2h6.7l4.6 6 6.6-6zM17.8 20h1.8L7.3 4H5.4l12.4 16z"/></svg>
+        </a>
+
+        <a id="shareFB" class="share-ic fb" href="#" target="_blank" rel="noopener" aria-label="Share on Facebook" title="Facebook">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M22 12a10 10 0 10-11.6 9.9v-7h-2.3V12h2.3V9.7c0-2.3 1.4-3.6 3.5-3.6 1 0 2 .1 2 .1v2.3h-1.1c-1 0-1.4.6-1.4 1.3V12h2.5l-.4 2.9h-2.1v7A10 10 0 0022 12z"/></svg>
+        </a>
+      </div>
+
+      <div class="share-aux">
+        <button id="resultsCopyBtn" class="pill">Copy link</button>
+        <button id="resultsMineBtn" class="pill">My answers</button>
+      </div>
+    </section>
+  `;
+
+  // dynamic URLs
+  const shareBtn = document.getElementById('resultsShareBtn');
+  const copyBtn  = document.getElementById('resultsCopyBtn');
+  const mineBtn  = document.getElementById('resultsMineBtn');
+
+  const wa = document.getElementById('shareWA');
+  const tg = document.getElementById('shareTG');
+  const tw = document.getElementById('shareX');
+  const fb = document.getElementById('shareFB');
+
+  const text = 'Join our quiz on HeiyuQuiz!';
+  const url  = link;
+  const enc  = encodeURIComponent;
+
+  if (wa) wa.href = `https://wa.me/?text=${enc(text + ' ' + url)}`;
+  if (tg) tg.href = `https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`;
+  if (tw) tw.href = `https://twitter.com/intent/tweet?url=${enc(url)}&text=${enc(text)}`;
+  if (fb) fb.href = `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`;
+
+  if (shareBtn) shareBtn.onclick = async ()=>{
+    try{
+      if (navigator.share){
+        await navigator.share({ title:'HeiyuQuiz', text, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        window.hqToast && hqToast('Link copied!');
+      }
+    }catch{}
+    unlockStart();
+  };
+
+  if (copyBtn) copyBtn.onclick = async ()=>{
+    try { await navigator.clipboard.writeText(url); } catch {}
+    window.hqToast && hqToast('Link copied!');
+    unlockStart();
+  };
+
+  if (mineBtn) mineBtn.onclick = async ()=>{
+    try { await showMyAnswers(); } catch {}
+    unlockStart();
+  };
+})();
+
 
   if (sessionStorage.getItem(ackKey) === '1') placeHomeCta();
 
