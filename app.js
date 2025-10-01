@@ -663,21 +663,22 @@ try {
     fb: `<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#1877F2" d="M16 3a13 13 0 1 0 0 26 13 13 0 0 0 0-26Z"/><path fill="#fff" d="M18 10h2v-2h-2.3c-2.5 0-3.8 1.4-3.8 3.7v1.6h-1.8v2.6h1.8v5.6h2.4v-5.6h2l.4-2.6h-2.4v-1c0-.7.3-1.3 1.7-1.3Z"/></svg>`
   };
 
-  p.innerHTML = `
-    <button id="resultsShareNow" class="share-primary" type="button">⚡ Share now</button>
+p.innerHTML = `
+  <div class="row-icons" role="group" aria-label="Share to…">
+    <a id="shareWA" class="icon-btn" aria-label="WhatsApp"  target="_blank" rel="noopener">${IC.wa}</a>
+    <a id="shareTG" class="icon-btn" aria-label="Telegram"  target="_blank" rel="noopener">${IC.tg}</a>
+    <a id="shareX"  class="icon-btn" aria-label="X"        target="_blank" rel="noopener">${IC.x}</a>
+    <a id="shareFB" class="icon-btn" aria-label="Facebook" target="_blank" rel="noopener">${IC.fb}</a>
+  </div>
 
-    <div class="row-icons" role="group" aria-label="Share to…">
-      <a id="shareWA" class="icon-btn" aria-label="WhatsApp"  target="_blank" rel="noopener">${IC.wa}</a>
-      <a id="shareTG" class="icon-btn" aria-label="Telegram"  target="_blank" rel="noopener">${IC.tg}</a>
-      <a id="shareX"  class="icon-btn" aria-label="X"        target="_blank" rel="noopener">${IC.x}</a>
-      <a id="shareFB" class="icon-btn" aria-label="Facebook" target="_blank" rel="noopener">${IC.fb}</a>
-    </div>
+  <button id="resultsShareNow" class="share-primary" type="button">⚡ Share now</button>
 
-    <div class="cta">
-      <button id="resultsCopyBtn" class="btn" type="button">Copy link</button>
-      <button id="resultsMineBtn" class="btn" type="button">My answers</button>
-    </div>
-  `;
+  <div class="cta">
+    <button id="resultsCopyBtn" class="btn" type="button">Copy link</button>
+    <button id="resultsMineBtn" class="btn" type="button">My answers</button>
+  </div>
+`;
+
 
   // Native share first
   const shareNow = document.getElementById('resultsShareNow');
