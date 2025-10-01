@@ -155,8 +155,7 @@ const countrySel  = qs("#country");
   }
 })();
 
-<script>
-// === Region -> Country filter (non-breaking, uses your existing country cache) ===
+
 (function regionCountryFilter(){
   const PRIORITY = ['IE','GB','US','CA','AU','NZ','PH'];   // keep in sync with your loader
   const CACHE_KEY = 'hq-countries-v1';
