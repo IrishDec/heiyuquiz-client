@@ -300,8 +300,20 @@ if (view === "results" && id) return renderResults(id);
   }
 })();
 
-/* ------------------ Create quiz & share (play-first) ------------------ */
 async function createQuiz(){
+  // --- Require a name/nickname first ---
+  const playerName = (nameIn?.value || '').trim();
+  if (!playerName) {
+    window.hqToast && hqToast("Name required — please enter your name or nickname");
+    if (nameIn) {
+      nameIn.focus();
+      nameIn.style.border = "2px solid red";
+      setTimeout(()=> nameIn.style.border = "", 2000); // reset after 2s
+    }
+    return; // stop quiz creation
+  }
+  saveName(playerName);
+
   // ----- Read current form values -----
   const category = (categorySel?.value || "General").trim();
   const country  = (countrySel?.value  || "").trim();
@@ -384,6 +396,7 @@ async function createQuiz(){
     if (createBtn) createBtn.textContent = originalLabel;
   }
 }
+
 
 
 /* ------------------ Play view ------------------ */
