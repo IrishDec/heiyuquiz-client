@@ -155,6 +155,122 @@ const countrySel  = qs("#country");
   }
 })();
 
+<script>
+// === Region -> Country filter (non-breaking, uses your existing country cache) ===
+(function regionCountryFilter(){
+  const PRIORITY = ['IE','GB','US','CA','AU','NZ','PH'];   // keep in sync with your loader
+  const CACHE_KEY = 'hq-countries-v1';
+
+  const regionBox = document.getElementById('region');     // seg container
+  const countrySel = document.getElementById('country');
+  if (!regionBox || !countrySel) return;                   // safety
+
+  // Get countries: prefer cache your loader already wrote; fallback to fetch if empty.
+  async function getCountryList(){
+    try{
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+      if (Array.isArray(cached) && cached.length) return cached;
+    }catch{}
+    try{
+      const resp = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,region,flag');
+      const data = await resp.json();
+      const list = (Array.isArray(data) ? data : [])
+        .map(c => ({
+          name: c?.name?.common || '',
+          code: c?.cca2 || '',
+          region: c?.region || '',
+          flag:  c?.flag || ''
+        }))
+        .filter(x => x.code && x.name)
+        .sort((a,b)=> a.name.localeCompare(b.name));
+      try{
+        localStorage.setItem(CACHE_KEY, JSON.stringify(list));
+        localStorage.setItem(CACHE_KEY + ':at', String(Date.now()));
+      }catch{}
+      return list;
+    }catch{
+      return [];
+    }
+  }
+
+  function buildOptions(list){
+    const opt = c => `<option value="${c.code}">${c.flag ? c.flag + ' ' : ''}${c.name}</option>`;
+    return list.map(opt).join('');
+  }
+
+  function fillCountries(allCountries, region){
+    // filter by region if provided
+    const filtered = String(region||'').trim()
+      ? allCountries.filter(c => c.region === region)
+      : allCountries.slice();
+
+    // split into priority + rest
+    const priSet = new Set(PRIORITY);
+    const top  = filtered.filter(c => priSet.has(c.code));
+    const rest = filtered.filter(c => !priSet.has(c.code));
+
+    // current/ saved value
+    const saved = localStorage.getItem('hq-country') || '';
+    const hadSaved = !!saved && filtered.some(c => c.code === saved);
+
+    // build markup
+    const sep = (top.length ? `<option value="" disabled>──────────</option>` : '');
+    const html =
+      `<option value="">Any country</option>` +
+      buildOptions(top) +
+      sep +
+      buildOptions(rest);
+
+    countrySel.innerHTML = html;
+
+    // restore value if still valid in this region
+    if (hadSaved) {
+      countrySel.value = saved;
+    } else {
+      countrySel.value = '';
+      try { localStorage.setItem('hq-country', ''); } catch{}
+    }
+  }
+
+  // Apply region (button state + dropdown filter)
+  async function applyRegion(regionName){
+    // persist choice
+    try { localStorage.setItem('hq-region', regionName || ''); } catch{}
+
+    // set active button styles
+    regionBox.querySelectorAll('.seg-btn').forEach(b=>{
+      b.classList.toggle('active', b.getAttribute('data-region') === regionName);
+      // inverse (your style scheme)
+      const isOn = b.classList.contains('active');
+      b.classList.toggle('inverse', !isOn && regionName); // only darken non-selected when a region is chosen
+    });
+
+    // fill countries
+    const all = await getCountryList();
+    fillCountries(all, regionName);
+  }
+
+  // Button wiring
+  regionBox.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.seg-btn');
+    if (!btn) return;
+    const region = btn.getAttribute('data-region') || '';
+    applyRegion(region);
+  });
+
+  // Init with saved region (or All)
+  (async function init(){
+    const savedRegion = localStorage.getItem('hq-region') || '';
+    await applyRegion(savedRegion);
+    // also keep storing country changes
+    countrySel.addEventListener('change', ()=>{
+      try { localStorage.setItem('hq-country', countrySel.value || ''); } catch{}
+    });
+  })();
+})();
+</script>
+
+
 // --- Name helpers for Play view ---
 function getSavedName(){ return localStorage.getItem('hq-name') || ''; }
 function saveName(n){ localStorage.setItem('hq-name', (n || '').slice(0, 24)); }
