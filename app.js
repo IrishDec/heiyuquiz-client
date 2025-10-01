@@ -267,8 +267,6 @@ const countrySel  = qs("#country");
     });
   })();
 })();
-</script>
-
 
 // --- Name helpers for Play view ---
 function getSavedName(){ return localStorage.getItem('hq-name') || ''; }
