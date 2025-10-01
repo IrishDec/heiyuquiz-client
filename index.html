@@ -99,16 +99,16 @@
     <option>History</option>
   </select>
 
-  <!-- Region (filters the country list; wiring comes next) -->
-<label class="lbl">Region</label>
-<div class="seg seg--equal" id="region">
-  <button type="button" class="seg-btn active" data-region="">All</button>
-  <button type="button" class="seg-btn" data-region="Europe">Europe</button>
-  <button type="button" class="seg-btn" data-region="Americas">Americas</button>
-  <button type="button" class="seg-btn" data-region="Asia">Asia</button>
-  <button type="button" class="seg-btn" data-region="Africa">Africa</button>
-  <button type="button" class="seg-btn" data-region="Oceania">Oceania</button>
-</div>
+ <label class="lbl">Region</label>
+<select id="region">
+  <option value="">Any region</option>
+  <option value="Africa">Africa</option>
+  <option value="Americas">Americas</option>
+  <option value="Asia">Asia</option>
+  <option value="Europe">Europe</option>
+  <option value="Oceania">Oceania</option>
+</select>
+
 
 
   <label for="country">Country</label>
