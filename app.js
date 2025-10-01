@@ -155,7 +155,7 @@ const countrySel  = qs("#country");
   }
 })();
 
-// === Region dropdown filters the Country dropdown ===
+// === Region dropdown filters the Country dropdown (with English-speaking group) ===
 (function regionDropdown(){
   const regionSel  = document.getElementById('region');
   const countrySel = document.getElementById('country');
@@ -168,9 +168,26 @@ const countrySel  = qs("#country");
 
   function fillCountries(region){
     const filtered = region ? list.filter(c => c.region === region) : list;
+
+    // English-speaking priority group
+    const englishCodes = ['US','GB','IE','CA','AU','NZ'];
+    const english = filtered.filter(c => englishCodes.includes(c.code));
+    const others  = filtered.filter(c => !englishCodes.includes(c.code));
+
+    const makeOpt = c => `<option value="${c.code}">${c.flag||''} ${c.name}</option>`;
     const opts = ['<option value="">Any country</option>']
-      .concat(filtered.map(c => `<option value="${c.code}">${c.flag||''} ${c.name}</option>`));
+      .concat(
+        english.length ? [`<optgroup label="English speaking">`, ...english.map(makeOpt), `</optgroup>`] : [],
+        others.map(makeOpt)
+      );
+
     countrySel.innerHTML = opts.join('');
+
+    // restore saved choice if still valid
+    const saved = localStorage.getItem('hq-country') || '';
+    if (saved && filtered.some(c => c.code === saved)) {
+      countrySel.value = saved;
+    }
   }
 
   // initial fill
@@ -179,6 +196,7 @@ const countrySel  = qs("#country");
   // update when region changes
   regionSel.addEventListener('change', ()=> fillCountries(regionSel.value));
 })();
+
 
 
 
