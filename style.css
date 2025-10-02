@@ -947,5 +947,30 @@ button:disabled{
   .results-share .cta{ grid-template-columns: 1fr; }
 }
 
+/* === Leaderboard alignment fix === */
+#scoreList { padding-left: 0; list-style: none; }
+
+#scoreList .score-row {
+  display: grid;
+  grid-template-columns: 2.2em 1fr; /* fixed left column */
+  align-items: center;
+  column-gap: 8px;
+  line-height: 1.25;
+  margin: 4px 0;
+}
+
+#scoreList .marker {
+  width: 2.2em; /* must match the grid column */
+  text-align: center;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+#scoreList .row-text {
+  vertical-align: middle;
+}
+
 
 
