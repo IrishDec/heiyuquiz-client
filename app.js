@@ -729,8 +729,8 @@ p.innerHTML = `
     return data;
   }
 
-function draw(list, total){
-  // keep share state (unchanged)
+  function draw(list, total){
+  // keep share state
   window._hqShareState = { list: Array.isArray(list) ? list : [], total: Number(total) || 0 };
 
   if (!scoreList) return;
@@ -741,10 +741,6 @@ function draw(list, total){
     return;
   }
 
-  // previous snapshot for deltas + leader change
-  const prevScores = window._hqPrevScores || {};
-  const prevLeader = window._hqPrevLeader || null;
-
   const meName = (getSavedName() || (nameIn?.value || "")).trim().toLowerCase();
 
   list.forEach((row, i) => {
@@ -754,14 +750,14 @@ function draw(list, total){
     // medals for top 3
     const medal = i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : "";
 
-    // delta since last draw
-    const key   = (row.name || "").toLowerCase().trim();
-    const prev  = (typeof prevScores[key] === "number") ? prevScores[key] : row.score;
-    const delta = (Number(row.score) || 0) - (Number(prev) || 0);
-    const deltaTxt = delta > 0 ? ` ↑+${delta}` : (delta < 0 ? ` ↓${delta}` : "");
-
-    li.textContent = `${medal}${i + 1}.
-
+    li.textContent = `${medal}${i + 1}. ${row.name} — ${row.score}/${total}`;
+    if (isMe) {
+      li.style.fontWeight = "700";
+      li.style.textDecoration = "underline";
+    }
+    scoreList.appendChild(li);
+  });
+}
 
 
   // Client-only “My answers” panel: try LocalStorage → SID → Name
