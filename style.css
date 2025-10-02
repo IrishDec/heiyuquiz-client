@@ -947,12 +947,12 @@ button:disabled{
   .results-share .cta{ grid-template-columns: 1fr; }
 }
 
-/* === Leaderboard alignment fix === */
+/* === Leaderboard alignment fix (handles 1–3 digit ranks) === */
 #scoreList { padding-left: 0; list-style: none; }
 
 #scoreList .score-row {
   display: grid;
-  grid-template-columns: 2.2em 1fr; /* fixed left column */
+  grid-template-columns: 2.8em 1fr; /* enough space for 🏆 or "300" */
   align-items: center;
   column-gap: 8px;
   line-height: 1.25;
@@ -960,17 +960,18 @@ button:disabled{
 }
 
 #scoreList .marker {
-  width: 2.2em; /* must match the grid column */
+  width: 2.8em;              /* must match the grid column */
   text-align: center;
   font-weight: 700;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-feature-settings: "tnum" 1, "lnum" 1; /* uniform digits */
 }
 
 #scoreList .row-text {
   vertical-align: middle;
 }
+
 
 
 
