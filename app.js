@@ -729,10 +729,9 @@ p.innerHTML = `
     return data;
   }
 
-  function draw(list, total){
-  // keep share state
+function draw(list, total){
+  // Save share state
   window._hqShareState = { list: Array.isArray(list) ? list : [], total: Number(total) || 0 };
-
   if (!scoreList) return;
   scoreList.innerHTML = "";
 
@@ -743,18 +742,34 @@ p.innerHTML = `
 
   const meName = (getSavedName() || (nameIn?.value || "")).trim().toLowerCase();
 
+  // Top icons
+  const iconFor = (i) => {
+    if (i === 0) return "🏆";   // 1st
+    if (i === 1) return "🥈";   // 2nd
+    if (i === 2) return "🥉";   // 3rd
+    if (i === 3 || i === 4) return "🏅"; // 4th & 5th
+    return null; // others get number
+  };
+
   list.forEach((row, i) => {
     const li = document.createElement("li");
     const isMe = meName && row.name && row.name.toLowerCase() === meName;
 
-    // medals for top 3
-    const medal = i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : "";
+    const icon = iconFor(i);
+    const marker = icon ? icon : (i + 1); // icon for top 5, number otherwise
 
-    li.textContent = `${medal}${i + 1}. ${row.name} — ${row.score}/${total}`;
+    li.innerHTML = `
+      <span class="medal">${marker}</span>
+      <span class="row-text">
+        ${row.name} — <strong>${row.score}/${total}</strong>
+      </span>
+    `;
+
     if (isMe) {
-      li.style.fontWeight = "700";
-      li.style.textDecoration = "underline";
+      li.querySelector(".row-text").style.fontWeight = "700";
+      li.querySelector(".row-text").style.textDecoration = "underline";
     }
+
     scoreList.appendChild(li);
   });
 }
