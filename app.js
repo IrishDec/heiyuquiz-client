@@ -730,7 +730,6 @@ p.innerHTML = `
   }
 
 function draw(list, total){
-  // Save share state
   window._hqShareState = { list: Array.isArray(list) ? list : [], total: Number(total) || 0 };
   if (!scoreList) return;
   scoreList.innerHTML = "";
@@ -742,29 +741,29 @@ function draw(list, total){
 
   const meName = (getSavedName() || (nameIn?.value || "")).trim().toLowerCase();
 
-  // Top icons
-  const iconFor = (i) => {
-    if (i === 0) return "🏆";   // 1st
-    if (i === 1) return "🥈";   // 2nd
-    if (i === 2) return "🥉";   // 3rd
+  const markerFor = (i) => {
+    if (i === 0) return "🏆";       // 1st
+    if (i === 1) return "🥈";       // 2nd
+    if (i === 2) return "🥉";       // 3rd
     if (i === 3 || i === 4) return "🏅"; // 4th & 5th
-    return null; // others get number
+    return String(i + 1);           // 6,7,8…
   };
 
   list.forEach((row, i) => {
     const li = document.createElement("li");
-    const isMe = meName && row.name && row.name.toLowerCase() === meName;
+    li.className = "score-row";
 
-    const icon = iconFor(i);
-    const marker = icon ? icon : (i + 1); // icon for top 5, number otherwise
+    const marker = markerFor(i);
 
     li.innerHTML = `
-      <span class="medal">${marker}</span>
+      <span class="marker" aria-hidden="true">${marker}</span>
       <span class="row-text">
         ${row.name} — <strong>${row.score}/${total}</strong>
       </span>
     `;
 
+    // highlight me
+    const isMe = meName && row.name && row.name.toLowerCase() === meName;
     if (isMe) {
       li.querySelector(".row-text").style.fontWeight = "700";
       li.querySelector(".row-text").style.textDecoration = "underline";
