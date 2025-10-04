@@ -46,6 +46,18 @@ const resultsView = qs("#resultsView");
 
 const nameIn      = qs("#name");
 const categorySel = qs("#category");
+// Pre-select category if passed in URL (e.g. ?category=Music)
+const params = new URLSearchParams(window.location.search);
+const catFromUrl = params.get("category");
+if (catFromUrl && categorySel) {
+  for (const opt of categorySel.options) {
+    if (opt.text.toLowerCase() === catFromUrl.toLowerCase()) {
+      categorySel.value = opt.text;
+      break;
+    }
+  }
+}
+
 const createBtn   = qs("#createBtn");
 const shareBtn    = qs("#shareBtn");
 
