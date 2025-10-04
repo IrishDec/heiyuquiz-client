@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>HeiyuQuiz — Free Group Quiz Game (Daily & Weekly Leagues)</title>
+  <meta name="description" content="HeiyuQuiz is a fast, free group quiz game. Create or play 5–10 question quizzes, join daily & weekly leagues, and share with friends. No sign-up." />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png">
+  <link rel="canonical" href="https://heiyuquiz.com/home.html" />
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:title" content="HeiyuQuiz — Free Group Quiz Game" />
+  <meta property="og:description" content="Create quick quizzes, play with friends, and climb the daily & weekly leaderboards. No download, no sign-up." />
+  <meta property="og:image" content="/assets/og.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://heiyuquiz.com/home.html" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebSite",
+    "name":"HeiyuQuiz",
+    "url":"https://heiyuquiz.com/",
+    "potentialAction":{
+      "@type":"SearchAction",
+      "target":"https://heiyuquiz.com/index.html#/?q={search_term_string}",
+      "query-input":"required name=search_term_string"
+    }
+  }
+  </script>
+
+  <!-- Optional: reuse your site styles if you like -->
+  <link rel="stylesheet" href="/style.css" />
+
+  <!-- Minimal styles scoped to this page so nothing breaks -->
+  <style>
+    :root{--g1:#6e56cf;--g2:#d6467e;}
+    body{font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; margin:0; color:#111; background:#fafafa;}
+    .wrap{max-width:960px;margin:0 auto;padding:24px 16px 60px;}
+    header{display:flex;justify-content:space-between;align-items:center;padding:18px 0;}
+    header img{height:38px}
+    .btn{display:inline-block;border:none;border-radius:14px;padding:14px 18px;font-weight:700;background:linear-gradient(90deg,var(--g1),var(--g2));color:#fff;cursor:pointer;text-decoration:none}
+    .btn.outline{background:#fff;color:#333;border:1px solid #e6e6e6}
+    .hero{background:#fff;border:1px solid #eee;border-radius:18px;padding:24px;margin:8px 0 20px;box-shadow:0 10px 30px rgba(17,17,17,.06)}
+    .hero h1{margin:0 0 10px;font-size:32px;line-height:1.15}
+    .hero p{margin:0 0 16px;color:#555}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+    @media (max-width:800px){.grid{grid-template-columns:1fr}}
+    .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:16px}
+    .card h3{margin:0 0 8px}
+    .muted{color:#666}
+    footer{margin-top:28px;color:#666;font-size:14px}
+    .links a{color:#333}
+    .pill{display:inline-block;background:#f3f3f7;border:1px solid #ececf2;border-radius:999px;padding:6px 10px;font-weight:600;font-size:13px}
+    .badge{font-size:12px;font-weight:700;color:#fff;background:#111;border-radius:8px;padding:4px 8px}
+    .league-list li{margin:8px 0}
+    .kw{font-weight:600}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="./assets/logo.png?v=1" alt="HeiyuQuiz logo" />
+      <nav class="links" aria-label="Utility">
+        <a class="pill" href="./index.html?utm_source=home&utm_medium=nav&utm_campaign=play">Play now</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <span class="badge">No sign-up • No download</span>
+      <h1>HeiyuQuiz — play fast <span class="muted">group quizzes</span> with friends</h1>
+      <p>Create a game in seconds, pick a category or custom topic, share a link, and see results live. Perfect for WhatsApp groups, classrooms, and parties.</p>
+      <div class="cta-row" role="group" aria-label="Primary actions">
+        <a class="btn" href="./index.html?utm_source=home&utm_medium=hero&utm_campaign=play#">
+          🚀 Start a quiz
+        </a>
+        <a class="btn outline" href="./index.html?utm_source=home&utm_medium=hero&utm_campaign=browse#">
+          🔎 Try a quick round
+        </a>
+      </div>
+    </section>
+
+    <!-- Leagues -->
+    <section class="grid" aria-labelledby="leaguesTitle">
+      <div class="card" id="leagues">
+        <h3 id="leaguesTitle">Daily League</h3>
+        <p class="muted">One fixed set every day. Share your score, beat your friends.</p>
+        <ul class="league-list">
+          <li>🎬 Movies — <a href="./index.html?utm_source=home&utm_medium=leagues&utm_campaign=daily-movies#">Play today’s set</a></li>
+          <li>🧠 General — <a href="./index.html?utm_source=home&utm_medium=leagues&utm_campaign=daily-general#">Play today’s set</a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Weekly League</h3>
+        <p class="muted">Accumulate points across the week. Rankings posted on socials.</p>
+        <ul class="league-list">
+          <li>⚽ Sports — <a href="./index.html?utm_source=home&utm_medium=leagues&utm_campaign=weekly-sports#">Join this week</a></li>
+          <li>🔬 Science — <a href="./index.html?utm_source=home&utm_medium=leagues&utm_campaign=weekly-science#">Join this week</a></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Popular categories</h3>
+        <p class="muted">Tap to start a fresh quiz:</p>
+        <div class="cta-row">
+          <a class="pill" href="./index.html?utm_source=home&utm_medium=popular&utm_campaign=general#">General</a>
+          <a class="pill" href="./index.html?utm_source=home&utm_medium=popular&utm_campaign=movies#">Movies</a>
+          <a class="pill" href="./index.html?utm_source=home&utm_medium=popular&utm_campaign=science#">Science</a>
+          <a class="pill" href="./index.html?utm_source=home&utm_medium=popular&utm_campaign=sports#">Sports</a>
+          <a class="pill" href="./index.html?utm_source=home&utm_medium=popular&utm_campaign=history#">History</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEO text block -->
+    <section class="card" aria-labelledby="seoTitle">
+      <h3 id="seoTitle">Free online quiz game for groups</h3>
+      <p class="muted">
+        HeiyuQuiz is a <span class="kw">free quiz maker</span> and
+        <span class="kw">group trivia game</span> you can play instantly in your browser.
+        Create <span class="kw">5–10 question quizzes</span>, choose difficulty, focus by country,
+        and share a link to play on mobile or desktop. Scores update live with a ranked leaderboard.
+      </p>
+      <p class="muted">
+        Play <span class="kw">daily quizzes</span> and <span class="kw">weekly leagues</span> across
+        <span class="kw">general knowledge, movies, sports, science, and history</span>.
+        No sign-up — just tap <em>Start a quiz</em>, share, and go.
+      </p>
+      <p class="muted">
+        Privacy-friendly, ad-supported. Read our
+        <a href="./privacy.html">Privacy Policy</a>,
+        <a href="./quiz-policy.html">Quiz Policy</a> and
+        <a href="./terms.html">Terms</a>.
+      </p>
+    </section>
+
+    <footer>
+      <div class="links">
+        <a href="./index.html?utm_source=home&utm_medium=footer&utm_campaign=play">Play now</a> ·
+        <a href="./privacy.html">Privacy</a> ·
+        <a href="./terms.html">Terms</a> ·
+        <a href="./quiz-policy.html">Quiz Policy</a>
+      </div>
+      <p class="muted">© <span id="y"></span> HeiyuQuiz</p>
+    </footer>
+  </div>
+
+  <script>
+    // tiny year helper
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
