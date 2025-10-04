@@ -712,16 +712,23 @@ p.innerHTML = `
   document.getElementById('shareX').href  = withUtm(`https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}&url=${encodeURIComponent(baseLink)}`,'x');
   document.getElementById('shareFB').href = withUtm(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(baseLink)}`,'facebook');
 
-  // Copy / My answers
-  document.getElementById('resultsCopyBtn').onclick = async ()=>{
-    try{ await navigator.clipboard.writeText(baseLink); }catch{}
-    window.hqToast && hqToast('Link copied!');
-    unlockStart();
-  };
-  document.getElementById('resultsMineBtn').onclick = async ()=>{
-    try{ await showMyAnswers(); }catch{}
-    unlockStart();
-  };
+// Copy / My answers
+document.getElementById('resultsCopyBtn').onclick = async ()=>{
+  const msg = composeShareText();
+  const fullText = `${msg}\n${baseLink}`;
+  try {
+    await navigator.clipboard.writeText(fullText);
+    window.hqToast && hqToast('Message + link copied!');
+  } catch {
+    window.hqToast && hqToast('Could not copy');
+  }
+  unlockStart();
+};
+
+document.getElementById('resultsMineBtn').onclick = async ()=>{
+  try{ await showMyAnswers(); }catch{}
+  unlockStart();
+};
 })();
 
 
