@@ -715,7 +715,8 @@ p.innerHTML = `
 // Copy / My answers
 document.getElementById('resultsCopyBtn').onclick = async ()=>{
   const msg = composeShareText();
-  const fullText = `${msg}\n${baseLink}`;
+  // Use two line breaks so it looks clean in chat apps
+  const fullText = `${msg}\n\n${baseLink}`;
   try {
     await navigator.clipboard.writeText(fullText);
     window.hqToast && hqToast('Message + link copied!');
