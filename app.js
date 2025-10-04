@@ -692,25 +692,52 @@ p.innerHTML = `
 `;
 
 
-  // Native share first
-  const shareNow = document.getElementById('resultsShareNow');
-  if (navigator.share){
-    shareNow.onclick = async ()=>{
-      try{
-        await navigator.share({ title:'HeiyuQuiz', text: composeShareText(), url: baseLink });
-      }catch{}
-      unlockStart();
-    };
-  } else {
-    shareNow.onclick = ()=> document.getElementById('shareWA').click();
-  }
-
-  // Network URLs + UTM (include the composed message)
+// ⚡ Share now — unified: native share, else copy message+link (with WA fallback)
+const shareNow = document.getElementById('resultsShareNow');
+shareNow.onclick = async () => {
   const msg = composeShareText();
-  document.getElementById('shareWA').href = withUtm(`https://wa.me/?text=${encodeURIComponent(msg + ' ' + baseLink)}`,'whatsapp');
-  document.getElementById('shareTG').href = withUtm(`https://t.me/share/url?url=${encodeURIComponent(baseLink)}&text=${encodeURIComponent(msg)}`,'telegram');
-  document.getElementById('shareX').href  = withUtm(`https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}&url=${encodeURIComponent(baseLink)}`,'x');
-  document.getElementById('shareFB').href = withUtm(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(baseLink)}`,'facebook');
+  const fullText = `${msg}\n\n${baseLink}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'HeiyuQuiz', text: msg, url: baseLink });
+    } catch {
+      // user canceled or unsupported
+    }
+  } else {
+    try {
+      await navigator.clipboard.writeText(fullText);
+      window.hqToast && hqToast('Message + link copied!');
+    } catch {
+      // fallback: WhatsApp
+      location.href = withUtm(`https://wa.me/?text=${encodeURIComponent(fullText)}`, 'whatsapp');
+    }
+  }
+  unlockStart();
+};
+
+// Social links — consistent message across all networks
+(() => {
+  const msg = composeShareText();
+  const fullText = `${msg} ${baseLink}`;
+
+  document.getElementById('shareWA').href = withUtm(
+    `https://wa.me/?text=${encodeURIComponent(fullText)}`,
+    'whatsapp'
+  );
+  document.getElementById('shareTG').href = withUtm(
+    `https://t.me/share/url?url=${encodeURIComponent(baseLink)}&text=${encodeURIComponent(msg)}`,
+    'telegram'
+  );
+  document.getElementById('shareX').href = withUtm(
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(msg)}&url=${encodeURIComponent(baseLink)}`,
+    'x'
+  );
+  document.getElementById('shareFB').href = withUtm(
+    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(baseLink)}`,
+    'facebook'
+  );
+})();
+
 
 // Copy / My answers
 document.getElementById('resultsCopyBtn').onclick = async ()=>{
