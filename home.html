@@ -33,22 +33,21 @@
   }
   </script>
 
-  <!-- Optional: reuse your site styles if you like -->
   <link rel="stylesheet" href="/style.css" />
 
-  <!-- Minimal styles scoped to this page so nothing breaks -->
+  <!-- Minimal styles scoped to this page -->
   <style>
     :root{--g1:#6e56cf;--g2:#d6467e;}
-    body{font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; margin:0; color:#111; background:#fafafa;}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;margin:0;color:#111;background:#fafafa;}
     .wrap{max-width:960px;margin:0 auto;padding:24px 16px 60px;}
-    header{display:flex;justify-content:space-between;align-items:center;padding:18px 0;}
-    header img{height:38px}
+    header{display:flex;justify-content:center;align-items:center;padding:18px 0;}
+    header img{height:60px} /* bigger centered logo on home */
     .btn{display:inline-block;border:none;border-radius:14px;padding:14px 18px;font-weight:700;background:linear-gradient(90deg,var(--g1),var(--g2));color:#fff;cursor:pointer;text-decoration:none}
     .btn.outline{background:#fff;color:#333;border:1px solid #e6e6e6}
-    .hero{background:#fff;border:1px solid #eee;border-radius:18px;padding:24px;margin:8px 0 20px;box-shadow:0 10px 30px rgba(17,17,17,.06)}
+    .hero{background:#fff;border:1px solid #eee;border-radius:18px;padding:24px;margin:8px 0 20px;box-shadow:0 10px 30px rgba(17,17,17,.06);text-align:center}
     .hero h1{margin:0 0 10px;font-size:32px;line-height:1.15}
     .hero p{margin:0 0 16px;color:#555}
-    .cta-row{display:flex;gap:10px;flex-wrap:wrap}
+    .cta-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
     .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
     @media (max-width:800px){.grid{grid-template-columns:1fr}}
     .card{background:#fff;border:1px solid #eee;border-radius:16px;padding:16px}
@@ -57,18 +56,22 @@
     footer{margin-top:28px;color:#666;font-size:14px}
     .links a{color:#333}
     .pill{display:inline-block;background:#f3f3f7;border:1px solid #ececf2;border-radius:999px;padding:6px 10px;font-weight:600;font-size:13px}
-    .badge{font-size:12px;font-weight:700;color:#fff;background:#111;border-radius:8px;padding:4px 8px}
+    .badge{font-size:12px;font-weight:700;color:#fff;background:#111;border-radius:8px;padding:4px 8px;margin-bottom:12px;display:inline-block}
     .league-list li{margin:8px 0}
     .kw{font-weight:600}
+
+    /* Videos & Updates */
+    .updates{margin:30px 0}
+    .updates h2{margin-top:0}
+    .video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin:20px 0}
+    .video-grid iframe{width:100%;aspect-ratio:16/9;border-radius:12px;border:1px solid #ccc}
+    .update-box{background:#fdfdfd;border:1px solid #ddd;padding:16px;border-radius:12px}
   </style>
 </head>
-<body>
+<body class="home">
   <div class="wrap">
     <header>
       <img src="./assets/logo.png?v=1" alt="HeiyuQuiz logo" />
-      <nav class="links" aria-label="Utility">
-        <a class="pill" href="./index.html?utm_source=home&utm_medium=nav&utm_campaign=play">Play now</a>
-      </nav>
     </header>
 
     <section class="hero">
@@ -78,9 +81,6 @@
       <div class="cta-row" role="group" aria-label="Primary actions">
         <a class="btn" href="./index.html?utm_source=home&utm_medium=hero&utm_campaign=play#">
           🚀 Start a quiz
-        </a>
-        <a class="btn outline" href="./index.html?utm_source=home&utm_medium=hero&utm_campaign=browse#">
-          🔎 Try a quick round
         </a>
       </div>
     </section>
@@ -113,6 +113,27 @@
           <a class="pill" href="./index.html?utm_source=home&utm_medium=popular&utm_campaign=sports#">Sports</a>
           <a class="pill" href="./index.html?utm_source=home&utm_medium=popular&utm_campaign=history#">History</a>
         </div>
+      </div>
+    </section>
+
+    <!-- Videos & Updates -->
+    <section class="updates">
+      <h2>🎥 Videos & Updates</h2>
+      <p>Learn how to play, share quizzes with friends, and join our live leagues.</p>
+
+      <div class="video-grid">
+        <iframe src="https://www.youtube.com/embed/XXXXXXXXXXX"
+                title="How to Play HeiyuQuiz"
+                frameborder="0" allowfullscreen></iframe>
+
+        <iframe src="https://www.youtube.com/embed/YYYYYYYYYYY"
+                title="How to Share HeiyuQuiz"
+                frameborder="0" allowfullscreen></iframe>
+      </div>
+
+      <div class="update-box">
+        <h3>📢 Latest Update</h3>
+        <p>Our next <strong>Live League</strong> starts this Friday! Stay tuned and join the fun 🎉</p>
       </div>
     </section>
 
