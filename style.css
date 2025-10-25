@@ -1015,30 +1015,3 @@ body.home {
     transform: scale(0.9); /* keeps hamburger neat on mobile */
   }
 }
-/* === MENU CLOSE BUTTON UPGRADE === */
-.menu-close {
-  background: linear-gradient(135deg, #6e56cf, #d6467e);
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 42px;
-  height: 42px;
-  font-size: 20px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease-in-out;
-}
-
-/* Subtle hover / tap feedback */
-.menu-close:hover,
-.menu-close:active {
-  transform: scale(1.05);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-}
-
-
-
