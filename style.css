@@ -1,8 +1,8 @@
-der styl/* ===== Base layout ===== */
+/* ===== Base layout ===== */
 *{box-sizing:border-box}
 :root{--radius:12px}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#fff;color:#111}
-.wrap{max-width:720px;margin:0 auto;padding:16px;padding-bottom:16px} /* JS bumps this only when an ad is visible */
+.wrap{max-width:720px;margin:0 auto;padding:16px;padding-bottom:16px}
 .hidden{display:none}
 
 /* Cards & controls */
@@ -31,7 +31,7 @@ button:active{transform:translateY(1px)}
 .consent.hidden{display:none}
 .consent .row{display:flex;gap:8px;margin-top:8px}
 
-/* ===== Bottom ad banner (no space unless visible) ===== */
+/* ===== Bottom ad banner ===== */
 .ad-banner{
   position:fixed;left:0;right:0;bottom:0;
   background:#fff;border-top:1px solid #e5e5e5;text-align:center;
@@ -39,9 +39,6 @@ button:active{transform:translateY(1px)}
 }
 .ad-banner.hidden{display:none!important}
 .ad-banner ins.adsbygoogle{display:block;width:100%}
-
-/* Ensure overlays stay below ad */
-.overlay-safe{z-index:2147482000}
 
 /* ===== Mobile polish ===== */
 @media (max-width:480px){
@@ -51,20 +48,17 @@ button:active{transform:translateY(1px)}
   input,select{padding:12px;border-radius:12px}
   .row{gap:10px}
   button{width:100%;padding:12px 14px;border-radius:12px}
-  .opts{grid-template-columns:1fr} /* stack answers */
+  .opts{grid-template-columns:1fr}
   .q{padding:12px}
 }
-/* ===== HeiyuQuiz Beauty Pack ===== */
 
-/* Subtle app background */
+/* ===== HeiyuQuiz Beauty Pack ===== */
 body{
   background:
     radial-gradient(1000px 600px at 10% -10%, #f7faff 0%, transparent 60%),
     radial-gradient(800px 500px at 110% 10%, #fff3f7 0%, transparent 60%),
     #ffffff;
 }
-
-/* Fancy gradient title */
 h1{
   font-weight:800;
   letter-spacing:-0.02em;
@@ -72,929 +66,137 @@ h1{
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 
-/* Glow card with gradient border */
+/* Glow card */
 .card{
-  position:relative; overflow:hidden;
+  position:relative;overflow:hidden;
   border:1px solid rgba(0,0,0,0.06);
   background:rgba(255,255,255,0.85);
   backdrop-filter:saturate(140%) blur(6px);
   transition:transform .12s ease, box-shadow .2s ease;
 }
 .card::before{
-  content:""; position:absolute; inset:-1px;
-  border-radius:inherit; padding:1px;
-  background:linear-gradient(135deg, #e2d9ff, #ffd8e5);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box, 
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
+  content:"";position:absolute;inset:-1px;
+  border-radius:inherit;padding:1px;
+  background:linear-gradient(135deg,#e2d9ff,#ffd8e5);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
   pointer-events:none;
 }
-.card:hover{ transform:translateY(-1px); box-shadow:0 10px 30px rgba(0,0,0,.06); }
-
-/* Inputs */
-input,select{
-  border:1px solid #e6e6e6; background:#fff;
-  transition:box-shadow .15s,border-color .15s;
-}
-input:focus,select:focus{
-  outline:none; border-color:#b9a6ff;
-  box-shadow:0 0 0 3px rgba(185,166,255,.25);
-}
+.card:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(0,0,0,.06)}
 
 /* Buttons */
 #createBtn{
   background:linear-gradient(90deg,#6e56cf,#d6467e,#ffb224);
-  color:#fff; border:0;
+  color:#fff;border:0;
   box-shadow:0 6px 18px rgba(214,70,126,.25);
-  transition:transform .06s ease, filter .2s ease;
+  transition:transform .06s ease,filter .2s ease;
 }
-#createBtn:active{ transform:translateY(1px) scale(.99); }
+#createBtn:active{transform:translateY(1px) scale(.99)}
 
-/* Share button */
-#shareBtn{
-  border:1px solid #e6e6e6; background:#fff;
-  border-radius:10px; padding:8px 12px;
-}
-#shareBtn:hover{ border-color:#c9c9c9; }
-
-/* Quiz options */
+/* Options */
 .opts button{
-  background:#fff; border:1px solid #e9e9e9;
-  border-radius:12px; padding:12px; text-align:left;
-  transition:transform .06s ease, border-color .15s, box-shadow .15s;
+  background:#fff;border:1px solid #e9e9e9;border-radius:12px;
+  padding:12px;text-align:left;
+  transition:transform .06s ease,border-color .15s,box-shadow .15s;
 }
-.opts button:hover{ border-color:#cfcfcf; box-shadow:0 4px 14px rgba(0,0,0,.05); }
-.opts button:active{ transform:translateY(1px); }
+.opts button:hover{border-color:#cfcfcf;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.opts button:active{transform:translateY(1px)}
 .opts button.selected{
-  border-color:#6e56cf; box-shadow:0 0 0 4px rgba(185,166,255,.25);
+  border-color:#6e56cf;box-shadow:0 0 0 4px rgba(185,166,255,.25)
 }
 
-/* Progress pill */
+/* Progress */
 .progress{
-  display:inline-block; padding:4px 10px; border-radius:999px;
-  background:#f6f5ff; color:#5a4fbf; font-weight:600;
+  display:inline-block;padding:4px 10px;border-radius:999px;
+  background:#f6f5ff;color:#5a4fbf;font-weight:600;
 }
 
 /* Toast */
 .toast{
-  position:fixed; left:50%; transform:translateX(-50%);
-  bottom:calc(100px + 8px); /* stays above ad */
-  background:#111; color:#fff; padding:10px 14px;
-  border-radius:12px; font-size:14px;
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(100px + 8px);
+  background:#111;color:#fff;padding:10px 14px;
+  border-radius:12px;font-size:14px;
   box-shadow:0 8px 24px rgba(0,0,0,.25);
-  opacity:0; pointer-events:none; transition:opacity .2s ease;
+  opacity:0;pointer-events:none;transition:opacity .2s ease;
   z-index:2147482800;
 }
-.toast.show{ opacity:1; }
+.toast.show{opacity:1}
 
-/* Confetti bits */
-.confetti{
-  position:fixed; width:8px; height:12px; border-radius:2px;
-  top:0; left:50%; opacity:.9; transform:translateX(-50%);
-  animation:confetti-fall 1000ms ease-out forwards;
-  z-index:2147482600;
-}
-@keyframes confetti-fall{
-  0%{ transform:translate(var(--x,0), -20px) rotate(0); }
-  100%{ transform:translate(var(--x,0), calc(100vh - 120px)) rotate(240deg); }
-}
-/* === HeiyuQuiz Play Page – Cute/Cartoon UI pass === */
-
-/* Category themes (auto-applied by app.js) */
-:root{
-  --theme: #6e56cf;          /* default (General) */
-  --theme-soft: rgba(110,86,207,.12);
-}
-html[data-theme*="sport"] { --theme:#22c55e; --theme-soft:rgba(34,197,94,.12); }   /* green */
-html[data-theme*="movie"] { --theme:#f97316; --theme-soft:rgba(249,115,22,.12); }  /* orange */
-html[data-theme*="music"] { --theme:#ec4899; --theme-soft:rgba(236,72,153,.12); }  /* pink */
-html[data-theme*="history"]{ --theme:#3b82f6; --theme-soft:rgba(59,130,246,.12);} /* blue */
-html[data-theme*="science"]{ --theme:#06b6d4; --theme-soft:rgba(6,182,212,.12);}  /* cyan */
-
-/* Play card */
-#playView .card{
-  border:0;
-  background:linear-gradient(180deg,#fff, #fff8);
-  backdrop-filter:saturate(140%) blur(4px);
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
-}
-
-/* Question block = rounded, pill header, gentle glow */
-.q{
-  border:1px solid rgba(0,0,0,.06);
-  border-radius:16px;
-  padding:14px;
-  background:#fff;
-  box-shadow:0 6px 18px rgba(0,0,0,.05);
-}
-.q h3{
-  margin:8px 0 12px;
-  font-size:18px;
-  line-height:1.25;
-}
-
-/* Progress pill */
-.progress{
-  display:inline-block;
-  font-weight:700;
-  font-size:12px;
-  padding:6px 10px;
-  border-radius:999px;
-  background:var(--theme-soft);
-  color:var(--theme);
-}
-
-/* Options grid – big, tap-friendly */
-.opts{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-@media (max-width:480px){ .opts{ grid-template-columns:1fr; } }
-
-.opts button{
-  background:#fff;
-  border:2px solid rgba(0,0,0,.06);
-  border-radius:14px;
-  padding:14px 12px;
-  text-align:left;
-  font-weight:700;
-  line-height:1.25;
-  box-shadow:0 4px 12px rgba(0,0,0,.05);
-  transition:transform .06s ease, border-color .15s, box-shadow .15s, background .15s;
-  position:relative;
-  overflow:hidden;
-}
-.opts button:active{ transform:translateY(1px) scale(.99); }
-.opts button:hover{ border-color:#d6d6d6; box-shadow:0 8px 18px rgba(0,0,0,.06); }
-
-/* Selected = chunky colorful outline + soft glow */
-.opts button.selected{
-  border-color:var(--theme);
-  box-shadow:0 0 0 4px var(--theme-soft), 0 10px 24px rgba(0,0,0,.06);
-}
-
-/* Tiny emoji badge (cartoon vibe) */
-.opts button::before{
-  content:"✨";
-  position:absolute; right:10px; top:8px; opacity:.25; font-size:18px;
-}
-.opts button.selected::before{ content:"✅"; opacity:1; }
-
-/* Sticky submit button above the ad */
-.sticky-submit{
-  position: sticky;
-  bottom: calc(70px + env(safe-area-inset-bottom, 0px)); /* sits above ad/footer */
-  background: linear-gradient(90deg,#6e56cf,#d6467e,#ffb224);
-  color: #fff;
-  border: 0;
-  border-radius: 14px;
-  padding: 14px;
-  font-weight: 800;
-  width: 100%;          /* ensure full-width */
-  box-shadow: 0 12px 28px rgba(214,70,126,.25);
-  z-index: 2147481000;  /* stay above content */
-}
-
-/* Reserve room so last question isn't covered */
-#playView, #quizBody{
-  padding-bottom: 120px;          /* space for the sticky button */
-  scroll-padding-bottom: 120px;   /* when browser scrolls to anchors */
-}
-@supports (padding: max(0px)){
-  #playView, #quizBody{
-    padding-bottom: max(120px, calc(80px + env(safe-area-inset-bottom, 0px)));
-    scroll-padding-bottom: max(120px, calc(80px + env(safe-area-inset-bottom, 0px)));
-  }
-}
-
-/* Keep the button sticky above the safe area */
-.sticky-submit{
-  position: sticky;
-  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  z-index: 10;
-}
-
-/* Micro polish */
-.muted{ color:#667085; }
-:root{
-  /* set this to your create/start button color if you want an exact match */
-  --brand: #6e56cf;
-}
-
-/* reset any old star styles and build our box + dot */
-.opts button{
-  position: relative;
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 12px 14px 12px 48px; /* room for the box */
-  margin: 8px 0;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fff;
-  font-weight: 700;
-  line-height: 1.2;
-  box-shadow: 0 2px 6px rgba(0,0,0,.04);
-}
-
-/* remove any previous emoji/star bullets */
-.opts button::before,
-.opts button::after{
-  background: none;
-  content: "";
-}
-
-/* small square box */
-.opts button::before{
-  content: "";
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  border: 2px solid #d4d4d8;     /* light gray border */
-  border-radius: 6px;             /* rounded square */
-  background: #fff;
-}
-
-/* brand-colored round dot when selected */
-.opts button.selected::after{
-  content: "";
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--brand);
-}
-:root{
-  /* keep these aligned to your create/start button */
-  --brand: #6e56cf;
-  --brand2: #d6467e;    /* end of gradient */
-  --btn-radius: 14px;
-}
-
-/* Primary brand buttons everywhere */
-button,
-#resultsActions button,
-.home-cta button,
-#linkPanel button,
-#linkPanel a,
-#viewResultsBtn,
-#copyLinkBtn,
-#openLinkBtn {
-  background: linear-gradient(90deg, var(--brand), var(--brand2)) !important;
-  color: #fff !important;
-  border: 0 !important;
-  border-radius: var(--btn-radius) !important;
-  padding: 12px 14px !important;
-  font-weight: 800 !important;
-  line-height: 1.1 !important;
-  box-shadow: 0 10px 22px rgba(110,86,207,.25) !important;
-  cursor: pointer !important;
-  text-decoration: none !important; /* for the <a> buttons */
-}
-
-/* Disabled look */
-button:disabled{
-  opacity: .6 !important;
-  cursor: not-allowed !important;
-}
-
-/* Keep the sticky submit behavior (can stay the same color/gradient) */
-.sticky-submit{
-  position: sticky;
-  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
-}
-
-/* IMPORTANT: keep answer option cards white (override the global button style) */
-.opts button{
-  position: relative;
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 12px 14px 12px 48px !important;
-  margin: 8px 0 !important;
-  background: #fff !important;
-  color: #111 !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 12px !important;
-  box-shadow: 0 2px 6px rgba(0,0,0,.04) !important;
-}
-
-/* (from previous step) the small square + brand dot indicator */
-.opts button::before{
-  content: "";
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  border: 2px solid #d4d4d8;
-  border-radius: 6px;
-  background: #fff;
-}
-.opts button.selected::after{
-  content: "";
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--brand);
-}
-/* --- OVERRIDE: kill old green ticks and use a centered round dot --- */
-
-/* Base option card stays white */
-.opts button{
-  position: relative;
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 12px 14px 12px 48px !important;
-  margin: 8px 0 !important;
-  background: #fff !important;
-  color: #111 !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 12px !important;
-  box-shadow: 0 2px 6px rgba(0,0,0,.04) !important;
-}
-
-/* Small square (kept on both selected/unselected) */
-.opts button::before{
-  content: "";
-  position: absolute;
-  left: 16px;                /* anchor for the 18px square */
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  border: 2px solid #d4d4d8;
-  border-radius: 6px;
-  background: #fff;
-  z-index: 0;
-}
-
-/* Nuke ANY legacy ticks (backgrounds, masks, old pseudo content) */
-.opts button.selected{
-  background-image: none !important;
-}
-.opts button.selected::after{
-  background-image: none !important;
-  -webkit-mask: none !important;
-  mask: none !important;
-}
-
-/* Round dot that fully covers inside the square */
-:root{ --brand:#6e56cf; } /* ensure brand is defined */
-.opts button.selected::after{
-  content: "" !important;
-  position: absolute;
-  /* center the 14px dot inside the 18px square:
-     16px (square left) + (18-14)/2 = 16 + 2 = 18 → tweak to 19 for visual crispness */
-  left: 19px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 14px;               /* larger so it hides any old ✓ completely */
-  height: 14px;
-  border-radius: 999px;
-  background: var(--brand) !important;
-  z-index: 1;                /* on top of the square */
-}
-
-/* If an old template injected icon elements, hide them too */
-.opts button .icon,
-.opts button .tick {
-  display: none !important;
-}
-:root{ --brand:#6e56cf; } /* your create/start color */
-
-/* Base option button */
-.q .opts button{
-  position:relative;
-  display:block;
-  width:100%;
-  text-align:left;
-  padding:12px 14px 12px 56px !important; /* space for square */
-  margin:8px 0 !important;
-  background:#fff !important;
-  color:#111 !important;
-  border:1px solid #e5e7eb !important;
-  border-radius:12px !important;
-  box-shadow:0 2px 6px rgba(0,0,0,.04) !important;
-  /* 💣 kill any legacy tick images */
-  background-image:none !important;
-  background-size:0 0 !important;
-  background-position:9999px 9999px !important;
-}
-
-/* Left square outline */
-.q .opts button::before{
-  content:"";
-  position:absolute;
-  left:16px;
-  top:50%;
-  transform:translateY(-50%);
-  width:22px;
-  height:22px;
-  border:2px solid #d4d4d8;
-  border-radius:6px;
-  background:transparent;
-  z-index:1;
-}
-
-/* Filled round dot that sits on top of the square when selected */
-.q .opts button::after{
-  content:"";
-  position:absolute;
-  left:16px;
-  top:50%;
-  transform:translateY(-50%);
-  width:22px;
-  height:22px;
-  border-radius:50%;
-  background:var(--brand);
-  opacity:0;
-  z-index:2;                /* sits above any old ticks */
-  transition:opacity .12s ease;
-}
-
-/* Show the dot on selected */
-.q .opts button.selected::after{ opacity:1 !important; }
-
-/* Extra hard kill in case a theme injects ticks via pseudo-elements */
-.q .opts button.selected,
-.q .opts button.selected *{
-  background-image:none !important;
-  -webkit-mask-image:none !important;
-  mask-image:none !important;
-}
-.q .opts button.selected::before,
-.q .opts button.selected::after{
-  background-image:none !important;
-  -webkit-mask-image:none !important;
-  mask-image:none !important;
-}
-/* Hard mask the old tick area, then show the brand dot on top */
-.q .opts button{
-  background-image:none !important;
-  background-position:9999px 9999px !important;
-}
-
-.q .opts button::before{
-  /* filled white square to cover any legacy tick */
-  content:"";
-  position:absolute;
-  left:16px; top:50%;
-  transform:translateY(-50%);
-  width:22px; height:22px;
-  border:2px solid #e5e7eb;
-  border-radius:6px;
-  background:#fff !important;   /* <-- mask */
-  z-index:2;                     /* sits above any old background */
-}
-
-.q .opts button::after{
-  /* brand round dot */
-  content:"";
-  position:absolute;
-  left:16px; top:50%;
-  transform:translateY(-50%);
-  width:22px; height:22px;
-  border-radius:50%;
-  background:var(--brand, #6e56cf);
-  opacity:0;
-  z-index:3;                     /* above the white square */
-  transition:opacity .12s ease;
-}
-
-.q .opts button.selected::after{ opacity:1 !important; }
-
-/* Nuclear option: hide any inline icons inside options */
-.q .opts button svg,
-.q .opts button i,
-.q .opts button .icon { display:none !important; }
-
-#shareBtn { display: none !important; }
-
-/* Results list rows: keep label left, tiny action on right */
-#scoreList li { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-#scoreList li > span { flex:1; min-width:0; }
-
-/* Make "See answers" a link-like button (no gradient) */
-.see-answers{
-  background: transparent !important;
-  background-image: none !important;
-  border: 0 !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-  text-decoration: underline;
-  font-weight: 700;
-  cursor: pointer;
-  color: #6e56cf;       /* match your brand purple */
-}
-.see-answers:active { opacity: .7; }
-
-
-#scoreList li{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tagline{
-  margin: 6px 0 16px;
-  color: #666;
-  font-size: .95rem;
-  line-height: 1.4;
-}
-
-/* Inline AI segmented toggle */
-.ai-row{ display:flex; gap:8px; align-items:center; margin-top:6px; }
-.ai-seg{ display:flex; border:1px solid #e6e6e6; border-radius:10px; overflow:hidden; background:#fff; }
-.seg-btn{
-  padding:8px 12px; font-weight:700; border:0; background:#fff; color:#444; cursor:pointer;
-}
-.seg-btn + .seg-btn{ border-left:1px solid #e6e6e6; }
-.seg-btn.active{
-  background: linear-gradient(90deg, var(--brand,#6e56cf), var(--brand2,#d6467e));
-  color:#fff; box-shadow:0 6px 18px rgba(214,70,126,.18);
-}
-.ai-input{ flex:1; min-width:160px; }
-
-/* hide the real checkbox but keep it accessible if needed */
-.visually-hidden{
-  position:absolute !important; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0);
-}
-/* Opposite button highlight (black) */
-.seg-btn.inverse{ background:#111; color:#fff; }
-/* Force styles for the AI segmented buttons (override global button !important) */
-.ai-seg .seg-btn{
-  background:#fff !important;
-  color:#444 !important;
-  box-shadow:none !important;
-  border:0 !important;
-}
-.ai-seg .seg-btn + .seg-btn{ border-left:1px solid #e6e6e6 !important; }
-
-.ai-seg .seg-btn.active{
-  background: linear-gradient(90deg, var(--brand,#6e56cf), var(--brand2,#d6467e)) !important;
-  color:#fff !important;
-  box-shadow:0 6px 18px rgba(214,70,126,.18) !important;
-}
-
-/* Black out the opposite (non-selected) button */
-.ai-seg .seg-btn.inverse{
-  background:#111 !important;
-  color:#fff !important;
-}
-/* Segmented control: same line, equal widths */
-.seg{
-  display:flex;
-  flex-wrap:nowrap;          /* keep on one line */
-  border:1px solid #e6e6e6;
-  border-radius:10px;
-  overflow:hidden;
-  background:#fff;
-}
-.seg--equal .seg-btn{ flex:1 1 0; }   /* equal widths for 2 or 3 buttons */
-.seg .seg-btn + .seg-btn{ border-left:1px solid #e6e6e6; }
-
-/* Neutral look (override global gradient button style) */
-.seg .seg-btn{
-  padding:10px 12px !important;
-  font-weight:700 !important;
-  border:0 !important;
-  background:#fff !important;
-  color:#444 !important;
-  box-shadow:none !important;
-  cursor:pointer !important;
-}
-.seg .seg-btn.active{
-  background: linear-gradient(90deg, var(--brand,#6e56cf), var(--brand2,#d6467e)) !important;
-  color:#fff !important;
-  box-shadow:0 6px 18px rgba(214,70,126,.18) !important;
-}
-
-/* === Slide-in side menu === */
+/* === Slide-in menu === */
 #sideMenu{
-  position: fixed;
-  inset: 0;
-  z-index: 2147483200;            /* above header/ad content */
-  pointer-events: none;           /* disabled until open */
+  position:fixed;inset:0;z-index:2147483200;
+  pointer-events:none;
 }
 #sideMenu .menu-overlay{
-  position:absolute; inset:0;
-  background: rgba(0,0,0,.45);
-  opacity: 0;
-  transition: opacity .2s ease;
+  position:absolute;inset:0;background:rgba(0,0,0,.45);
+  opacity:0;transition:opacity .2s ease;
 }
 #sideMenu .menu-panel{
-  position:absolute; top:0; right:0;
-  width: min(360px, 84vw);
-  height: 100%;
-  background:#fff;
-  box-shadow: -16px 0 32px rgba(0,0,0,.12);
-  transform: translateX(100%);
-  transition: transform .25s ease;
-  display:flex; flex-direction:column;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  position:absolute;top:0;right:0;
+  width:min(360px,84vw);height:100%;
+  background:#fff;box-shadow:-16px 0 32px rgba(0,0,0,.12);
+  transform:translateX(100%);transition:transform .25s ease;
+  display:flex;flex-direction:column;
 }
+#sideMenu.open{pointer-events:auto;}
+#sideMenu.open .menu-overlay{opacity:1;}
+#sideMenu.open .menu-panel{transform:translateX(0);}
 
-/* when open */
-#sideMenu.open{ pointer-events:auto; }
-#sideMenu.open .menu-overlay{ opacity:1; }
-#sideMenu.open .menu-panel{ transform: translateX(0); }
-
-/* Header row inside panel */
+/* Header inside menu */
 .menu-header{
-  display:flex; align-items:center; justify-content:space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid #eee;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid #eee;
 }
-.menu-header h3{ margin:0; font-size:1.05rem; }
-
-/* Close button (×) */
+.menu-header h3{margin:0;font-size:1.05rem;}
 .menu-close{
-  background:#fff; border:1px solid #eee; border-radius:10px;
-  width:36px; height:36px; font-size:20px; line-height:1;
-  box-shadow:0 4px 12px rgba(0,0,0,.06);
-  cursor:pointer;
+  background:#fff;border:1px solid #eee;border-radius:10px;
+  width:36px;height:36px;font-size:20px;cursor:pointer;
+}
+.menu-close:hover{
+  background:linear-gradient(90deg,#6e56cf,#d6467e);
+  color:#fff;
 }
 
-/* Link list */
-.menu-list{
-  list-style:none; margin:0; padding:10px 8px;
-}
-.menu-list li{ margin: 2px 0; }
+/* Links */
+.menu-list{list-style:none;margin:0;padding:10px 8px;}
+.menu-list li{margin:2px 0;}
 .menu-list a{
-  display:block;
-  padding: 12px 12px;
-  border-radius: 10px;
-  text-decoration:none;
-  color:#111;
+  display:block;padding:12px 12px;border-radius:10px;
+  text-decoration:none;color:#111;
 }
-.menu-list a:hover{
-  background:#f7f7fb;
-}
+.menu-list a:hover{background:#f7f7fb}
 
-
-/* ===== CLEAN HEADER (single source of truth) ===== */
-:root { --hq-header-h: 0px; } /* JS will set this based on actual header height */
-
+/* ===== Header ===== */
 #appHeader{
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 1000;
-  background: #fff;
-  border-bottom: 1px solid #eee;
-
-  /* layout: center logo, hamburger on right */
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  justify-items: center;
-  padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px; /* no fixed height */
+  position:fixed;top:0;left:0;right:0;
+  z-index:1000;
+  background:#fff;border-bottom:1px solid #eee;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;box-shadow:0 2px 6px rgba(0,0,0,.05);
 }
-
-/* Bigger, readable logo */
 #appHeader img{
-  grid-column: 2;
-  justify-self: center;
-  width: clamp(240px, 45vw, 420px); /* larger min & max */
-  max-height: 96px;                 /* keep header reasonable */
-  height: auto;
-  object-fit: contain;
-  display: block;
+  height:50px;width:auto;object-fit:contain;
 }
-
-/* Give it a little more room on larger screens */
-@media (min-width: 768px){
-  #appHeader img{
-    width: clamp(220px, 28vw, 380px);
-    max-height: 80px;
-  }
-}
-
-
-/* push page content below the fixed header */
-.wrap{ padding-top: calc(var(--hq-header-h, 0px) + 8px); }
-
-/* Hamburger (kept minimal and immune to global button styles) */
 #menuToggle{
-  grid-column: 3;
-  justify-self: end;
-  width: 36px; height: 36px; padding: 0;
-  border: 1px solid #e6e6e6; border-radius: 10px;
-  background: #fff; display: inline-flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 4px;
-  cursor: pointer; box-shadow: none;
+  width:36px;height:36px;border:1px solid #e6e6e6;
+  border-radius:10px;background:#fff;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;cursor:pointer;
 }
-#menuToggle .bar{ width:22px; height:2px; background:#111; border-radius:2px; transition:transform .2s, opacity .2s; }
-#menuToggle.is-open .bar:nth-child(1){ transform: translateY(6px) rotate(45deg); }
-#menuToggle.is-open .bar:nth-child(2){ opacity:0; }
-#menuToggle.is-open .bar:nth-child(3){ transform: translateY(-6px) rotate(-45deg); }
+#menuToggle .bar{
+  width:22px;height:2px;background:#111;border-radius:2px;
+  transition:transform .2s,opacity .2s;
+}
+#menuToggle.is-open .bar:nth-child(1){transform:translateY(6px) rotate(45deg);}
+#menuToggle.is-open .bar:nth-child(2){opacity:0;}
+#menuToggle.is-open .bar:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
 
-/* === Results: Share panel — clean + consistent === */
-.results-share{
-  margin:14px 0 16px;
-  padding:16px;
-  border:1px solid #eee;
-  border-radius:18px;
-  background:#fff;
-  box-shadow:0 10px 26px rgba(0,0,0,.06);
-}
-
-/* Primary headline button */
-.results-share .share-primary{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  width:100%;
-  height:56px;
-  border:0;border-radius:16px;
-  font-weight:800;font-size:17px;letter-spacing:.2px;
-  color:#fff;
-  background:linear-gradient(90deg,var(--brand,#6e56cf),var(--brand2,#d6467e));
-  box-shadow:0 14px 30px rgba(214,70,126,.22);
-}
-
-/* 4 identical circle icon buttons */
-.results-share .row-icons{
-  margin:14px 0 6px;
-  display:grid;
-  grid-template-columns:repeat(4, 60px);
-  gap:14px;
-  justify-content:center;
-}
-.results-share .icon-btn{
-  width:60px; aspect-ratio:1/1;
-  border-radius:999px;
-  background:#fff;
-  border:1px solid #e9e9ee;
-  box-shadow:0 6px 14px rgba(0,0,0,.05);
-  display:inline-flex;align-items:center;justify-content:center;
-  transition:transform .08s ease, box-shadow .15s ease, border-color .15s ease;
-}
-.results-share .icon-btn:active{ transform:translateY(1px) scale(.99); }
-.results-share .icon-btn:hover{ border-color:#dcdce5; box-shadow:0 8px 18px rgba(0,0,0,.08); }
-.results-share .icon-btn svg{ width:26px;height:26px;display:block; }
-
-/* action buttons (copy/my answers) – identical size */
-.results-share .cta{ display:flex; flex-direction:column; gap:12px; margin-top:8px; }
-.results-share .cta .btn{
-  width:100%;
-  height:52px;
-  border:0;border-radius:14px;
-  padding:0 14px;
-  font-weight:800;font-size:16px;line-height:1;
-  color:#fff;
-  background:linear-gradient(90deg,var(--brand,#6e56cf),var(--brand2,#d6467e));
-  box-shadow:0 10px 22px rgba(110,86,207,.22);
-}
-
-/* tiny phones */
-@media (max-width:380px){
-  .results-share .row-icons{ grid-template-columns:repeat(4, 56px); gap:12px; }
-  .results-share .icon-btn{ width:56px; }
-  .results-share .share-primary{ height:54px; font-size:16px; }
-}
-
-/* respect users who prefer less motion */
-@media (prefers-reduced-motion:reduce){
-  .results-share .icon-btn,
-  .results-share .share-primary{ transition:none; }
-}
-
-/* === Results share UI polish === */
-.results-share{
-  margin: 8px 0 14px;
-  padding: 12px;
-  border: 1px solid #eee;
-  border-radius: 14px;
-  background:#fff;
-  box-shadow: 0 6px 18px rgba(0,0,0,.05);
-}
-
-/* Primary “Share now” */
-.results-share .share-primary{
-  width: 100%;
-  padding: 14px;
-  border: 0;
-  border-radius: 14px;
-  font-weight: 800;
-  line-height: 1.1;
-  cursor: pointer;
-  background: linear-gradient(90deg, var(--brand,#6e56cf), var(--brand2,#d6467e));
-  color: #fff;
-  box-shadow: 0 12px 28px rgba(214,70,126,.20);
-}
-
-/* Icon row: uniform circular buttons */
-.results-share .row-icons{
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin: 10px 0 8px;
-}
-.results-share .icon-btn{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  margin: 0 auto;
-  border-radius: 999px;
-  background: #fff;
-  border: 1px solid #e8e8e8;
-  box-shadow: 0 4px 12px rgba(0,0,0,.06);
-  transition: transform .08s ease, box-shadow .15s ease, border-color .15s ease;
-}
-.results-share .icon-btn:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(0,0,0,.08);
-  border-color: #ddd;
-}
-.results-share .icon-btn svg{
-  width: 26px; height: 26px; display:block;
-}
-
-/* Bottom CTA buttons (Copy / My answers) */
-.results-share .cta{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 6px;
-}
-.results-share .cta .btn{
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #e6e6e6;
-  background: #fff;
-  color: #111;
-  font-weight: 700;
-  line-height: 1.1;
-  box-shadow: 0 2px 6px rgba(0,0,0,.04);
-}
-
-/* Mobile stack */
-@media (max-width: 420px){
-  .results-share .row-icons{ gap: 8px; }
-  .results-share .icon-btn{ width: 52px; height: 52px; }
-  .results-share .cta{ grid-template-columns: 1fr; }
-}
-
-/* === Leaderboard alignment fix (handles 1–3 digit ranks) === */
-#scoreList { padding-left: 0; list-style: none; }
-
-#scoreList .score-row {
-  display: grid;
-  grid-template-columns: 2.8em 1fr; /* enough space for 🏆 or "300" */
-  align-items: center;
-  column-gap: 8px;
-  line-height: 1.25;
-  margin: 4px 0;
-}
-
-#scoreList .marker {
-  width: 2.8em;              /* must match the grid column */
-  text-align: center;
-  font-weight: 700;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1, "lnum" 1; /* uniform digits */
-}
-
-#scoreList .row-text {
-  vertical-align: middle;
-}
-
-.egg-flip {
-  animation: flip 1s infinite;
-}
-@keyframes flip {
-  0%, 100% { transform: rotateY(0); }
-  50% { transform: rotateY(180deg); }
-}
-/* === SAFE FIX: Prevent content from hiding under header === */
-body.home .wrap {
-  padding-top: 120px !important; /* push main content down below header */
-}
-
-@media (max-width: 480px) {
-  body.home .wrap {
-    padding-top: 100px !important; /* smaller push on mobile */
-  }
-}
-
-/* === FIX: Ensure header & menu are always clickable (topmost layer) === */
-#appHeader,
-#menuToggle,
-#sideMenu {
-  position: relative;
-  z-index: 9999 !important;
+/* Content padding */
+body,.wrap{padding-top:80px;}
+@media (max-width:768px){
+  #appHeader{padding:8px 14px;}
+  #appHeader img{height:44px;}
+  body,.wrap{padding-top:70px;}
 }
 
