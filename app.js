@@ -455,6 +455,7 @@ startFunMessages();
   createBtn?.removeAttribute('disabled');
   if (createBtn) createBtn.textContent = originalLabel;
 }
+}
 
 
 /* ------------------ Play view ------------------ */
