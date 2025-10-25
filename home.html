@@ -70,9 +70,36 @@
 </head>
 <body class="home">
   <div class="wrap">
-    <header>
-      <img src="./assets/logo.png?v=1" alt="HeiyuQuiz logo" />
-    </header>
+   <header id="appHeader">
+  <img src="./assets/logo.png?v=1" alt="HeiyuQuiz">
+
+  <!-- Hamburger button (right side) -->
+  <button id="menuToggle" aria-label="Open menu" aria-controls="sideMenu" aria-expanded="false">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+  </button>
+</header>
+
+<!-- Slide-in side menu -->
+<nav id="sideMenu" aria-hidden="true">
+  <div class="menu-overlay" data-close></div>
+  <aside class="menu-panel" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+    <div class="menu-header">
+      <h3 id="menuTitle">Menu</h3>
+      <button id="menuClose" class="menu-close" aria-label="Close menu" data-close>&times;</button>
+    </div>
+
+   <ul class="menu-list">
+<li><a href="./home.html">🏠 Home</a></li>
+<li><a href="./privacy.html">Privacy Policy</a></li>
+<li><a href="/cookies.html">Cookie Policy</a></li>
+<li><a href="./terms.html">T&Cs</a></li>
+<li><a href="./quiz-policy.html">Quiz Policy</a></li>
+
+</ul>
+ </aside>
+</nav>
 
     <section class="hero">
       <span class="badge">No sign-up • No download</span>
