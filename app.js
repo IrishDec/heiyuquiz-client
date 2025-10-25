@@ -343,9 +343,20 @@ async function createQuiz(){
   const difficulty = (diffBtn?.getAttribute('data-diff') || 'medium'); // 'easy'|'medium'|'hard'
 
   // Button UX
-  const originalLabel = createBtn?.textContent || 'Create & Share Link';
-  createBtn?.setAttribute('disabled','');
-  if (createBtn) createBtn.textContent = 'Creating…';
+const originalLabel = createBtn?.textContent || 'Create & Share Link';
+createBtn?.setAttribute('disabled','');
+
+if (createBtn) {
+  createBtn.innerHTML = `
+    <div id="creatingStatus" style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div class="egg-flip">⏳</div>
+      <div class="fun-msg">Mixing some brain fuel... 🧠</div>
+    </div>
+  `;
+}
+
+startFunMessages(); // call the fun message loop
+
 
   // tiny warm-up (ignore errors)
   try { await fetch(`${window.SERVER_URL}/api/health`, { cache:'no-store' }); } catch {}
