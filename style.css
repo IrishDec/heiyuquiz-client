@@ -979,5 +979,15 @@ button:disabled{
   0%, 100% { transform: rotateY(0); }
   50% { transform: rotateY(180deg); }
 }
+/* === SAFE FIX: Prevent content from hiding under header === */
+body.home .wrap {
+  padding-top: 120px !important; /* push main content down below header */
+}
+
+@media (max-width: 480px) {
+  body.home .wrap {
+    padding-top: 100px !important; /* smaller push on mobile */
+  }
+}
 
 
