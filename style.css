@@ -990,4 +990,11 @@ body.home .wrap {
   }
 }
 
+/* === FIX: Ensure header & menu are always clickable (topmost layer) === */
+#appHeader,
+#menuToggle,
+#sideMenu {
+  position: relative;
+  z-index: 9999 !important;
+}
 
