@@ -445,13 +445,16 @@ startFunMessages();
       alert('Network error creating quiz.');
     }
     console.error('createQuiz exception:', err);
-  } finally {
-    clearTimeout(timer);
-    createBtn?.removeAttribute('disabled');
-    if (createBtn) createBtn.textContent = originalLabel;
-  }
-}
+ } finally {
+  clearTimeout(timer);
 
+  // cleanup loader and restore button
+  document.getElementById('creatingStatus')?.remove();
+  if (createBtn) createBtn.style.display = 'block';
+
+  createBtn?.removeAttribute('disabled');
+  if (createBtn) createBtn.textContent = originalLabel;
+}
 
 
 /* ------------------ Play view ------------------ */
