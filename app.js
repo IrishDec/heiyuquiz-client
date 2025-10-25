@@ -266,6 +266,23 @@ if (view === "results" && id) return renderResults(id);
 
   return show(startCard);
 }
+/* ===== create button test===== */
+function startFunMessages() {
+  const msgs = [
+    "Mixing some brain fuel... 🧠",
+    "Cracking trivia eggs... 🥚",
+    "Charging quiz energy ⚡",
+    "Sharpening pencils ✏️",
+    "Almost ready! 🎉"
+  ];
+  let i = 0;
+  const el = document.querySelector(".fun-msg");
+  if (!el) return;
+  setInterval(() => {
+    i = (i + 1) % msgs.length;
+    el.textContent = msgs[i];
+  }, 1200);
+}
 
 
 /* ===== Beauty Pack: toast + confetti ===== */
