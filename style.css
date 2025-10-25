@@ -1001,6 +1001,7 @@ body.home {
   padding-top: 80px; /* default for desktop/tablet */
 }
 
+
 /* Responsive adjustment for mobile */
 @media (max-width: 768px) {
   body.home {
