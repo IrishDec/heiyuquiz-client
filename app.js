@@ -359,20 +359,34 @@ async function createQuiz(){
   const amount = Math.max(3, Math.min(10, Number(countBtn?.getAttribute('data-count') || 5)));
   const difficulty = (diffBtn?.getAttribute('data-diff') || 'medium'); // 'easy'|'medium'|'hard'
 
-  // Button UX
+ // Button UX
 const originalLabel = createBtn?.textContent || 'Create & Share Link';
 createBtn?.setAttribute('disabled','');
 
-if (createBtn) {
-  createBtn.innerHTML = `
-    <div id="creatingStatus" style="display:flex;flex-direction:column;align-items:center;gap:4px">
-      <div class="egg-flip">⏳</div>
-      <div class="fun-msg">Mixing some brain fuel... 🧠</div>
-    </div>
+// 1) hide the button itself
+if (createBtn) createBtn.style.display = 'none';
+
+// 2) insert a lightweight loader right after the button
+let loader = document.getElementById('creatingStatus');
+if (!loader) {
+  loader = document.createElement('div');
+  loader.id = 'creatingStatus';
+  loader.style.display = 'flex';
+  loader.style.flexDirection = 'column';
+  loader.style.alignItems = 'center';
+  loader.style.justifyContent = 'center';
+  loader.style.marginTop = '14px';
+  loader.innerHTML = `
+    <div class="egg-flip">⏳</div>
+    <div class="fun-msg">Mixing some brain fuel... 🧠</div>
   `;
+  createBtn.parentNode.insertBefore(loader, createBtn.nextSibling);
 }
 
-startFunMessages(); // call the fun message loop
+// start rotating messages (uses your existing startFunMessages)
+startFunMessages();
+
+// (optional) pad content so the sticky submit won’t jump when loader appears
 
 
   // tiny warm-up (ignore errors)
