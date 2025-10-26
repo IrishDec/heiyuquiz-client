@@ -277,8 +277,22 @@
       toggle.classList.remove('is-open');
       toggle.setAttribute('aria-expanded', 'false');
     }));
-  </script>
+    <button id="resetConsent" class="btn outline" type="button">
+  Reset cookie preferences
+</button>
+<p class="muted" style="font-size:14px;margin-top:8px;">
+  This will clear your previous choice and show the cookie banner again next time you visit.
+</p>
+
+<!-- Reset script — goes right before </body> -->
+<script>
+  document.getElementById('resetConsent')?.addEventListener('click', () => {
+    localStorage.removeItem('hq-consent');
+    alert('Your cookie preferences have been reset. Reload the page to see the banner again.');
+  });
+</script>
 </body>
 </html>
+
 
 
