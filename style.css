@@ -22,14 +22,47 @@ button:active{transform:translateY(1px)}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .opts button.selected{outline:2px solid #111}
 
-/* ===== Consent banner ===== */
-.consent{
-  position:fixed;left:16px;right:16px;bottom:100px;
-  background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px;
-  box-shadow:0 6px 20px rgba(0,0,0,.08);z-index:2147482500
+/* ===== Consent banner (updated) ===== */
+.consent-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  text-align: center;
+  z-index: 2147482500;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: all 0.35s ease;
 }
-.consent.hidden{display:none}
-.consent .row{display:flex;gap:8px;margin-top:8px}
+
+.consent-banner:not(.hidden) {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.consent-banner p {
+  margin: 0 0 10px;
+  color: #333;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.consent-banner a {
+  color: var(--brand, #6e56cf);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.consent-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
 /* ===== Bottom ad banner (no space unless visible) ===== */
 .ad-banner{
