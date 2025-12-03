@@ -280,7 +280,8 @@
   </div>
 
     <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
+    document.getElementById('y')?.textContent = new Date().getFullYear();
+
 
     const toggle = document.getElementById('menuToggle');
     const menu = document.getElementById('sideMenu');
