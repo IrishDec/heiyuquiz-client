@@ -31,8 +31,7 @@
   <!-- App scripts -->
   <script defer src="/consent.js"></script>
  <script defer src="app.js?v=fix3"></script>
-</head>
-<!-- Google tag (gtag.js) -->
+ <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JHMBLK5970"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -41,6 +40,8 @@
 
   gtag('config', 'G-JHMBLK5970');
 </script>
+</head>
+
 <body>
 <!--logo-->
 <header id="appHeader">
@@ -169,7 +170,7 @@
 <section id="resultsView" class="card hidden">
   <h2>Results</h2>
   <ol id="scoreList"></ol>
-  <p class="muted"> Checkout our socials to join in the fun with public leagues daily! ✨</p>
+  <p class="muted"> Check out our socials to join in the fun with public leagues daily! ✨</p>
   <div class="ad-slot" id="adResults"></div>
 </section>
 
@@ -241,20 +242,46 @@
 <section id="about-app" class="about-block">
   <h2>About HeiyuQuiz</h2>
   <p>
-    HeiyuQuiz is a fast, multiplayer quiz app. Create a 5- or 10-question game, 
+    HeiyuQuiz is a fast, multiplayer quiz app. Create a 5- or 10-question game,
     choose your region or topic, and share the link with friends, classmates, or colleagues.
   </p>
   <p>
-    Each quiz stays open for <strong>24 hours</strong>. The live leaderboard updates instantly, 
+    Each quiz stays open for <strong>24 hours</strong>. The live leaderboard updates instantly,
     making HeiyuQuiz perfect for classrooms, team events, or just having fun at home.
   </p>
+</section>
+
+<section id="history-quizzing" class="about-block">
+  <h2>A Short History of Quizzing</h2>
   <p>
-    For details, see our 
-    <a href="./privacy.html">Privacy Policy</a>, 
-    <a href="./terms.html">Terms</a>, and 
-    <a href="./quiz-policy.html">Quiz Policy</a>.
+    Quizzes have been part of human culture long before they became digital.
+    From oral storytelling traditions to written examinations, people have always used questions
+    as a way to test knowledge, spark curiosity, and bring groups together.
+  </p>
+  <p>
+    The word “quiz” became widely popular in the late 18th century, when public knowledge games
+    began appearing in schools, pubs, and newspapers. In the 20th century, radio and television
+    quiz shows turned question-and-answer games into shared social events.
+  </p>
+  <p>
+    Today, quizzes are used for learning, team events, friendly competition, and simple curiosity.
+    The format has evolved, but the appeal is the same: a quiz is a quick way to learn something new,
+    challenge yourself, and compare answers with other people.
   </p>
 </section>
+
+<footer class="site-footer">
+  <nav class="footer-nav">
+    <a href="./privacy.html">Privacy Policy</a>
+    <a href="./terms.html">Terms</a>
+    <a href="./quiz-policy.html">Quiz Policy</a>
+    <a href="/cookies.html">Cookie Policy</a>
+  </nav>
+
+  <p class="footer-copy">
+    © <span id="year"></span> HeiyuQuiz. All rights reserved.
+  </p>
+</footer>
 
 <style>
   .about-block {
@@ -269,11 +296,45 @@
   }
   .about-block h2 { font-size: 22px; margin-bottom: 10px; }
   .about-block p { margin: 0 0 12px; color: #444; line-height: 1.5; }
+
+  .site-footer{
+    max-width: 900px;
+    margin: 40px auto 24px;
+    padding: 16px;
+    text-align: center;
+    font-family: system-ui, sans-serif;
+    color: #555;
+  }
+
+  .footer-nav{
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .footer-nav a{
+    color: #6b4eff;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .footer-nav a:hover{
+    text-decoration: underline;
+  }
+
+  .footer-copy{
+    font-size: 13px;
+    color: #777;
+    margin: 0;
+  }
 </style>
 
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
 
 </body>
 </html>
-
-
 
