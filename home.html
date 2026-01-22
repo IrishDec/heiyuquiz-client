@@ -111,7 +111,30 @@
     .video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin:20px 0}
     .video-grid iframe{width:100%;aspect-ratio:16/9;border-radius:12px;border:1px solid #ccc}
     .update-box{background:#fdfdfd;border:1px solid #ddd;padding:16px;border-radius:12px}
-  </style>
+.video-placeholder{
+  background:#fff;
+  border:1px solid #eee;
+  border-radius:16px;
+  padding:16px;
+  box-shadow:0 10px 30px rgba(17,17,17,.06);
+}
+
+.video-placeholder h4{ margin:10px 0 6px; }
+.video-placeholder p{ margin:0; }
+
+.thumb{
+  width:56px;
+  height:56px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#f3f3f7;
+  border:1px solid #ececf2;
+  font-size:24px;
+}
+
+</style>
 </head>
 
 <body class="home">
@@ -232,8 +255,9 @@
     </section>
 
    <section class="updates">
-  <h2>🎥 Videos & Updates</h2>
-  <p>Learn how to play, share quizzes with friends, and join our live leagues.</p>
+ <h2>📚 Guides & Updates</h2>
+<p>Quick guides for starting a quiz, sharing links, and joining leagues. Short videos will be added here.</p>
+
 
   <div class="video-grid">
     <!-- Placeholder cards instead of YouTube iframes -->
