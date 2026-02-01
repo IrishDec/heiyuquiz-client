@@ -135,26 +135,53 @@
 
 </main>
 
-<footer class="site-footer">
-  <nav class="footer-nav">
-    <a href="/">Home</a>
-    <a href="/anime-quiz.html">Anime Quiz</a>
-    <a href="/science-trivia.html">Science Quiz</a>
-    <a href="/history-quiz.html">History Quiz</a>
-    <a href="/geography-quiz.html">Geography Quiz</a>
-    <a href="/movies-quiz.html">Movies Quiz</a>
-    <a href="/general-knowledge-quiz.html">General Knowledge Quiz</a>
-    <a href="/faq.html">FAQ</a>
-  </nav>
-
-  <p class="footer-copy">
-    © <span id="year"></span> HeiyuQuiz. All rights reserved.
-  </p>
 </footer>
+
+<style>
+  .site-footer{
+    background: #f7f8fb;
+    border-top: 1px solid #e6e8f0;
+    margin-top: 60px;
+    padding: 32px 16px;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color: #555;
+  }
+
+  .site-footer-inner{
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .footer-nav{
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .footer-nav a{
+    color: #6b4eff;
+    text-decoration: none;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .footer-nav a:hover{
+    text-decoration: underline;
+  }
+
+  .footer-copy{
+    font-size: 13px;
+    color: #777;
+    margin: 8px 0 0;
+  }
+</style>
 
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 </script>
-
 </body>
 </html>
+
