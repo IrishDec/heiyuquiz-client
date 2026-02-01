@@ -317,14 +317,27 @@
 </section>
 
 <footer class="site-footer">
- <nav class="footer-nav">
-  <a href="https://www.heiyudigital.com/" target="_blank" rel="noopener">Built by Heiyu Digital</a>
-  <a href="./privacy.html">Privacy Policy</a>
-  <a href="./terms.html">Terms</a>
-  <a href="./quiz-policy.html">Quiz Policy</a>
-  <a href="/cookies.html">Cookie Policy</a>
-  <a href="/guides/why-quizzes-work.html">Why Quizzes Work</a>
-</nav>
+  <nav class="footer-nav">
+    <a href="https://www.heiyudigital.com/" target="_blank" rel="noopener">
+      Built by Heiyu Digital
+    </a>
+
+    <nav class="footer-nav" style="margin-bottom:10px;">
+      <a href="/" style="margin:0 10px; color:#6e56cf; text-decoration:none;">Home</a>
+      <a href="/anime-quiz.html" style="margin:0 10px; color:#6e56cf; text-decoration:none;">Anime Quiz</a>
+      <a href="/science-trivia.html" style="margin:0 10px; color:#6e56cf; text-decoration:none;">Science Quiz</a>
+      <a href="/history-quiz.html" style="margin:0 10px; color:#6e56cf; text-decoration:none;">History Quiz</a>
+      <a href="/geography-quiz.html" style="margin:0 10px; color:#6e56cf; text-decoration:none;">Geography Quiz</a>
+      <a href="/movies-quiz.html" style="margin:0 10px; color:#6e56cf; text-decoration:none;">Movies Quiz</a>
+      <a href="/general-knowledge-quiz.html" style="margin:0 10px; color:#6e56cf; text-decoration:none;">General Knowledge Quiz</a>
+      <a href="/faq.html">FAQ</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/quiz-policy.html">Quiz Policy</a>
+      <a href="/cookies.html">Cookie Policy</a>
+      <a href="/guides/why-quizzes-work.html">Why Quizzes Work</a>
+    </nav>
+  </nav>
 
   <p class="footer-copy">
     © <span id="year"></span> HeiyuQuiz. All rights reserved.
@@ -342,8 +355,17 @@
     box-shadow: 0 6px 18px rgba(0,0,0,0.05);
     font-family: system-ui, sans-serif;
   }
-  .about-block h2 { font-size: 22px; margin-bottom: 10px; }
-  .about-block p { margin: 0 0 12px; color: #444; line-height: 1.5; }
+
+  .about-block h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+
+  .about-block p {
+    margin: 0 0 12px;
+    color: #444;
+    line-height: 1.5;
+  }
 
   .site-footer{
     max-width: 900px;
@@ -382,7 +404,4 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 </script>
-
-</body>
-</html>
 
