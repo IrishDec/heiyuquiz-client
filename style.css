@@ -1012,6 +1012,75 @@ button:disabled{
   0%, 100% { transform: rotateY(0); }
   50% { transform: rotateY(180deg); }
 }
+/* ===== Site-wide Footer ===== */
+
+.site-footer {
+  background: #0f1220;          /* deep neutral, professional */
+  color: #cfd3ff;
+  margin-top: 48px;
+}
+
+.site-footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 24px;
+  text-align: center;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* Brand line */
+.footer-brand {
+  margin-bottom: 16px;
+}
+
+.footer-brand a {
+  color: #9aa4ff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.footer-brand a:hover {
+  text-decoration: underline;
+}
+
+/* Navigation links */
+.footer-nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-bottom: 18px;
+}
+
+.footer-nav a {
+  color: #cfd3ff;
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.footer-nav a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+/* Copyright */
+.footer-copy {
+  font-size: 13px;
+  color: #9aa0c9;
+  margin: 0;
+}
+
+/* Mobile tightening */
+@media (max-width: 480px) {
+  .site-footer-inner {
+    padding: 28px 14px 20px;
+  }
+
+  .footer-nav {
+    gap: 10px 12px;
+  }
+}
 
 
 
