@@ -1081,6 +1081,35 @@ button:disabled{
     gap: 10px 12px;
   }
 }
+.upgrade-block {
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: 14px;
+  background: #f5f7fb;
+  border: 1px solid #e4e8f2;
+  text-align: center;
+}
+
+.upgrade-block h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.upgrade-block p {
+  font-size: 14px;
+  margin: 0 0 12px;
+  color: #555;
+}
+
+.upgrade-btn {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #6e56cf, #e254a6);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
 
 
 
