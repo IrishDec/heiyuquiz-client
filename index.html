@@ -189,12 +189,13 @@
     generate QR codes and use it at events, on your website or in social groups.
   </p>
 <div class="row" style="margin-top: 12px; display: flex; justify-content: center;">
-  <button 
-    id="whiteLabelBtn"
-    onclick="window.location.href='https://www.heiyudigital.com/engagement'"
-  >
-    Explore White-Label
-  </button>
+ <button 
+  id="whiteLabelBtn"
+  onclick="trackWhiteLabel()"
+>
+  Explore White-Label
+</button>
+
 </div>
 
   <!-- Start view ad slot -->
@@ -371,6 +372,21 @@
 
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+<script>
+  function trackWhiteLabel() {
+    if (typeof gtag === "function") {
+      gtag('event', 'white_label_click', {
+        event_category: 'engagement',
+        event_label: 'home_upgrade_block'
+      });
+    }
+
+    // slight delay so GA registers before redirect
+    setTimeout(function() {
+      window.location.href = 'https://www.heiyudigital.com/engagement';
+    }, 150);
+  }
 </script>
 
 </body>
