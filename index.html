@@ -244,46 +244,34 @@
        data-ad-format="auto"
        data-full-width-responsive="true"></ins>
 </div>
-<script>
-//  (adsbygoogle = window.adsbygoogle || []).push({});
-  (function(){
-    const banner = document.getElementById('adFooter');
-    const slot   = banner.querySelector('.adsbygoogle');
-    const wrap   = document.querySelector('.wrap');
+<div style="text-align:center; margin:40px 0;">
+  <form 
+    action="https://mypos.com/vmp/btn/B1NF5PCZSB821" 
+    method="post" 
+    target="_blank"
+  >
+    <button 
+      type="submit"
+      style="
+        padding: 12px 24px;
+        border: none;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #ffffff;
+        cursor: pointer;
+        background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+        transition: 0.2s ease;
+        box-shadow: 0 8px 20px rgba(168,85,247,0.25);
+      "
+      onmouseover="this.style.opacity='0.9'"
+      onmouseout="this.style.opacity='1'"
+    >
+      ☕ Buy Me a Coffee
+    </button>
+  </form>
+</div>
 
-    function applyPadding(){
-      const h = Math.max(0, Math.ceil(banner.getBoundingClientRect().height));
-      if (wrap) wrap.style.paddingBottom = (h ? h + 8 : 16) + 'px';
-      if (window._hqGate) window._hqGate.style.bottom = (h ? h + 'px' : '0');
-    }
-
-    function showIfReady(){
-      const ifr = slot.querySelector('iframe');
-      if (ifr && ifr.offsetHeight > 0){
-        banner.style.display = 'block';
-        applyPadding();
-      }
-    }
-
-    // watch for the ad iframe to appear
-    const mo = new MutationObserver(showIfReady);
-    mo.observe(slot, { childList:true, subtree:true });
-
-    // fallbacks
-    setTimeout(showIfReady, 500);
-    setTimeout(showIfReady, 1500);
-    setTimeout(function(){
-      if (!slot.querySelector('iframe')){
-        banner.style.display = 'none';
-        if (wrap) wrap.style.paddingBottom = '16px';
-        if (window._hqGate) window._hqGate.style.bottom = '0';
-      }
-    }, 2500);
-
-    // recalc on rotate/resize
-    window.addEventListener('resize', ()=>{ if (banner.style.display==='block') applyPadding(); });
-  })();
-</script>
 <div class="wrap">
 <section id="about-app" class="about-block">
   <h2>About HeiyuQuiz</h2>
